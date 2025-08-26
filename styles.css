@@ -1,0 +1,1423 @@
+:root {
+            --azul: #005CA2;
+            --celeste: #84CFED;
+            --amarillo: #FEC800;
+            --blanco: #FFFFFF;
+            --gris-claro: #f5f7fa;
+            --gris-medio: #e0e5ec;
+            --gris-oscuro: #333333;
+            --sombra: 0 4px 12px rgba(0, 0, 0, 0.15);
+            --sombra-intensa: 0 10px 30px rgba(0, 0, 0, 0.2);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--gris-claro);
+            color: var(--gris-oscuro);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--azul) 0%, #004a8c 100%);
+            color: var(--blanco);
+            padding: 5px 0;
+            box-shadow: var(--sombra);
+            position: relative;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 15px;
+        }
+
+        .logo {
+            height: 100px; 
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+        }
+        
+        .logo img {
+            height: 100%;
+            width: auto;
+            max-width: 300px;
+            object-fit: contain;
+        }
+
+        .header-text h1 {
+            text-align: right;
+            margin-left: auto;
+        }
+
+        .header-text p {
+            font-size: 16px;
+            font-weight: 500;
+            margin: 0;
+            color: var(--blanco);
+        }
+
+        .main-title {
+            text-align: center;
+            margin: 30px 0;
+            color: var(--azul);
+        }
+
+        .main-title h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .main-title p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .albergues-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .albergue-card {
+            background: var(--blanco);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--sombra);
+            transition: var(--transition);
+            border-top: 5px solid var(--azul);
+        }
+
+        .albergue-card.aquilina {
+            border-top-color: var(--amarillo);
+        }
+
+        .albergue-card.tinku {
+            border-top-color: var(--celeste);
+        }
+
+        .albergue-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--sombra-intensa);
+        }
+
+        .card-image {
+            height: 200px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 25px;
+            background-color: rgba(0, 92, 162, 0.03);
+            position: relative;
+        }
+
+        .albergue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .albergue-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--azul);
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+        }
+
+        .capacity {
+            background-color: var(--celeste);
+            color: var(--azul);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .capacity.aquilina {
+            background-color: var(--amarillo);
+        }
+
+        .capacity.tinku {
+            background-color: #d1e8f9;
+        }
+
+        .albergue-description {
+            color: #555;
+            font-size: 15px;
+            line-height: 1.5;
+            margin-top: 10px;
+
+        }
+
+        .card-body {
+            padding: 0 25px 25px;
+            margin-top: 20px;
+        }
+
+        .features {
+            margin-bottom: 25px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .feature-icon {
+            width: 26px;
+            height: 26px;
+            background-color: var(--celeste);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: var(--azul);
+            font-size: 12px;
+        }
+
+        .feature-icon.aquilina {
+            background-color: var(--amarillo);
+        }
+
+        .feature-icon.tinku {
+            background-color: #d1e8f9;
+        }
+
+        .btn-reservar {
+            width: 100%;
+            background: linear-gradient(to right, var(--azul), #004a8c);
+            color: var(--blanco);
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Roboto', sans-serif;
+            box-shadow: 0 4px 8px rgba(0, 92, 162, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .btn-reservar.aquilina {
+            background: linear-gradient(to right, var(--amarillo), #e6b500);
+            color: var(--gris-oscuro);
+        }
+
+        .btn-reservar.tinku {
+            background: linear-gradient(to right, var(--celeste), #6abde6);
+            color: var(--azul);
+        }
+
+        .btn-reservar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-reservar:active {
+            transform: translateY(0);
+        }
+
+        .map-container {
+            height: 200px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+        }
+
+        .map-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--blanco);
+            border-radius: 15px;
+            width: 95%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--sombra-intensa);
+            transform: translateY(20px);
+            transition: transform 0.4s ease;
+            position: relative;
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--azul) 0%, #004a8c 100%);
+            color: var(--blanco);
+            padding: 25px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header.aquilina {
+            background: linear-gradient(135deg, var(--amarillo) 0%, #e6b500 100%);
+            color: var(--gris-oscuro);
+        }
+
+        .modal-header.tinku {
+            background: linear-gradient(135deg, var(--celeste) 0%, #6abde6 100%);
+            color: var(--azul);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: inherit;
+            font-size: 28px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--gris-oscuro);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid var(--gris-medio);
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: 'Roboto', sans-serif;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--azul);
+            box-shadow: 0 0 0 3px rgba(0, 92, 162, 0.2);
+        }
+
+        .date-time-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .date-time-group .form-group {
+            flex: 1;
+        }
+
+        .btn-submit {
+            background: linear-gradient(to right, var(--azul), #004a8c);
+            color: var(--blanco);
+            padding: 14px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Roboto', sans-serif;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 92, 162, 0.3);
+        }
+
+        .btn-submit.aquilina {
+            background: linear-gradient(to right, var(--amarillo), #e6b500);
+            color: var(--gris-oscuro);
+            box-shadow: 0 4px 10px rgba(254, 200, 0, 0.3);
+        }
+
+        .btn-submit.tinku {
+            background: linear-gradient(to right, var(--celeste), #6abde6);
+            color: var(--azul);
+            box-shadow: 0 4px 10px rgba(132, 207, 237, 0.3);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-submit:active {
+            transform: translateY(0);
+        }
+
+        /* Disponibilidad Section */
+        .disponibilidad-section {
+            background-color: var(--gris-medio);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .disponibilidad-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--azul);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ocupacion-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .ocupacion-bar {
+            flex: 1;
+            height: 12px;
+            background-color: #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .ocupacion-fill {
+            height: 100%;
+            background: linear-gradient(to right, var(--azul), var(--celeste));
+            border-radius: 6px;
+        }
+
+        .ocupacion-info {
+            font-weight: 600;
+            min-width: 120px;
+            font-size: 14px;
+        }
+
+        .ocupacion-info.aquilina {
+            color: #e6b500;
+        }
+
+        .ocupacion-info.tinku {
+            color: var(--celeste);
+        }
+
+        .calendario-container {
+            margin-top: 20px;
+        }
+
+        .calendario-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .mes-title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .nav-mes {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: var(--azul);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .nav-mes:hover {
+            background-color: var(--gris-medio);
+        }
+
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .dia-header {
+            text-align: center;
+            font-weight: 600;
+            padding: 10px 0;
+            font-size: 14px;
+            color: var(--gris-oscuro);
+        }
+
+        .dia {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+            position: relative;
+            font-size: 14px;
+        }
+
+        .dia:hover {
+            background-color: var(--gris-medio);
+        }
+
+        .dia.ocupado {
+            background-color: #ffdddd;
+            color: #d00;
+            cursor: not-allowed;
+        }
+
+        .dia.ocupado::after {
+            content: "";
+            position: absolute;
+            bottom: 3px;
+            width: 4px;
+            height: 4px;
+            background-color: #d00;
+            border-radius: 50%;
+        }
+
+        .dia.seleccionado {
+            background-color: var(--azul);
+            color: white;
+        }
+
+        .dia.seleccionado.ingreso {
+            background: linear-gradient(135deg, var(--azul) 50%, var(--celeste) 50%);
+        }
+
+        .dia.seleccionado.salida {
+            background: linear-gradient(135deg, var(--celeste) 50%, var(--azul) 50%);
+        }
+
+        .dia.hoy {
+            background-color: var(--celeste);
+            color: var(--azul);
+            font-weight: 700;
+        }
+
+        .dia.otro-mes {
+            color: #bbb;
+        }
+
+        footer {
+            background: linear-gradient(135deg, var(--azul) 0%, #004a8c 100%);
+            color: var(--blanco);
+            text-align: center;
+            padding: 25px 0;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .date-time-group {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .albergues-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 98%;
+            }
+        }
+
+        /* Ajustes responsivos */
+        @media (max-width: 768px) {
+            .logo-container {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .header-text {
+                text-align: center;
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .logo {
+                height: 90px;
+                margin: 0 auto;
+            }
+            
+            .logo img {
+                max-width: 250px;
+            }
+            
+        }
+
+        @media (max-width: 480px) {
+            .header-text p {
+                font-size: 14px;
+            }
+            
+            .logo {
+                height: 70px;
+            }
+
+            .logo img {
+                max-width: 210px;
+            }
+        }
+
+
+        .calendario-container { position: relative; }
+
+.cal-loader[hidden] { display: none; }
+.cal-loader {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 247, 250, 0.6); /* tenue */
+  backdrop-filter: blur(1px);
+  z-index: 2;
+}
+
+/* Spinner */
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(0,0,0,0.15);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Estado bloqueado: sin clicks y con leve atenuación */
+.cal-block {
+  pointer-events: none;
+  opacity: 0.6;
+}
+/* Para boton VERDE*/
+
+/* Botón base: mantenemos tu estilo + centrado perfecto */
+.btn-submit{
+  width: 100%;
+  background: linear-gradient(to right, var(--azul), #004a8c);
+  color: var(--blanco);
+  padding: 14px 25px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Roboto', sans-serif;
+  margin-top: 20px;
+  box-shadow: 0 4px 10px rgba(0, 92, 162, 0.3);
+
+  /* centrado de contenido */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;      /* para centrar el icono por absolute */
+  gap: .5rem;
+}
+
+.btn-submit:disabled{ opacity: 0.9; cursor: not-allowed; }
+
+/* Etiqueta e ícono del botón */
+.btn-submit .btn-label{ transition: opacity .15s; }
+.btn-submit .btn-icon{
+  /* centrado absoluto, no depende del ancho del texto */
+  position: absolute;
+  left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 18px; height: 18px;
+  display: none;           /* visible solo en loading/success */
+}
+
+/* Estado: Cargando (spinner centrado) */
+.btn-submit.is-loading .btn-icon{
+  display: flex;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+.btn-submit.is-loading .btn-label{ opacity: 0; }   /* ocultar sin ocupar */
+@keyframes spin{ to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* Estado: Éxito (verde + tilde centrada) */
+.btn-submit.is-success{
+  background: #10b981;     /* verde */
+  box-shadow: 0 4px 10px rgba(16,185,129,.3);
+}
+.btn-submit.is-success .btn-icon{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-submit.is-success .btn-icon::before{
+  content: "✓";
+  font-size: 16px; line-height: 1; color: #fff;
+}
+.btn-submit.is-success .btn-label{ opacity: 0; }
+
+
+/* === Calendario: spinner fijo en su lugar === */
+.cal-loader .spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(0,0,0,0.15);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite; /* <- usa 'spin' */
+}
+
+/* SOLO rotación (no translate) */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === Botón: spinner centrado absoluto === */
+.btn-submit .btn-icon{
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px; height: 18px;
+  display: none;
+}
+
+/* En carga, animación con translate + rotate */
+.btn-submit.is-loading .btn-icon{
+  display: flex;
+  border: 2px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin-center .8s linear infinite; /* <- usa 'spin-center' */
+}
+
+/* Rotación con el translate incluido para el ícono absoluto del botón */
+@keyframes spin-center {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Estado: Error (rojo + X) */
+.btn-submit.is-error{
+  background:#ef4444;                /* rojo */
+  box-shadow:0 4px 10px rgba(239,68,68,.3);
+}
+
+/* En error mostramos icono + texto, centrados como en éxito */
+.btn-submit.is-error .btn-icon{
+  position: static;                  /* no absolute, para ir junto al texto */
+  transform: none;
+  width: 18px; height: 18px;
+  display: inline-flex;
+  align-items:center; justify-content:center;
+  margin-right:.5rem;
+}
+.btn-submit.is-error .btn-icon::before{
+  content:"✕";                       /* X */
+  font-size:16px; line-height:1; color:#fff;
+}
+.btn-submit.is-error .btn-label{ opacity:1; }
+
+/* Asegurá prioridades vs. loading */
+.btn-submit.is-loading .btn-label{ opacity:0; }
+.btn-submit.is-loading .btn-icon{
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  border:2px solid rgba(255,255,255,.35);
+  border-top-color:#fff; border-radius:50%;
+  animation:spin-center .8s linear infinite;
+}
+/* Snackbar global fijo */
+#app-snackbar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(20px);
+  background: #10b981;            /* default success */
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,.18);
+  opacity: 0;
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 99999;                  /* por encima de overlays */
+  pointer-events: none;            /* no bloquea clics */
+  max-width: 90vw;
+  text-align: center;
+}
+
+#app-snackbar.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* variantes */
+#app-snackbar.error { background: #ef4444; }
+#app-snackbar.success { background: #10b981; }
+
+/* que el carrusel ocupe toda la tarjeta */
+.card-image .glide,
+.card-image .glide__track,
+.card-image .glide__slides,
+.card-image .glide__slide { height: 100%; }
+
+/* que las imágenes se vean bien */
+.glide__slide img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* contenedor: centrado vertical y separación izquierda/derecha */
+.glide__arrows{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;          /* centra verticalmente */
+  justify-content:space-between;
+  padding:0 10px;
+  z-index:5;
+  pointer-events:none;         /* los clics solo en los botones */
+}
+
+/* botón circular: CENTRADO REAL del icono */
+.glide__arrow{
+  pointer-events:auto;
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:rgba(0,92,162,.5);
+  color:#fff;
+  border:0;
+  padding:0;                   /* quita padding nativo */
+  box-sizing:border-box;
+  display:inline-flex;         /* centra con flex */
+  align-items:center;
+  justify-content:center;
+  line-height:1;               /* evita desplazamientos verticales */
+  font-size:18px;              /* tamaño del chevron si usás texto o <i> */
+  cursor:pointer;
+  transition:background .3s ease;
+  -webkit-appearance:none;     /* quita estilos nativos (Safari) */
+  appearance:none;
+}
+
+.glide__arrow:hover{ background: var(--azul); }
+
+/* si usás Font Awesome u otro ícono dentro */
+.glide__arrow i{
+  margin:0;
+  line-height:1;
+  pointer-events:none;
+  font-size:18px;
+}
+
+/* si en lugar de <i> usás el caracter "<" y ">" */
+.glide__arrow--left,
+.glide__arrow--right{
+  font-family: inherit;
+}
+
+
+/* Estilos para el footer */
+        .footer-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-logo {
+            height: 75px;
+            width: auto;
+            margin-bottom: 5px;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .footer-text p {
+            font-size: 13px; /* Tamaño un poco más grande que 8px para mejor legibilidad */
+            margin: 2px 0;
+            line-height: 1.3;
+            color: var(--blanco);
+        }
+
+            /* Versión responsiva */
+        @media (max-width: 768px) {
+            .footer-logo {
+                height: 50px;
+            }
+            
+            .footer-text p {
+                font-size: 12px;
+            }
+        }
+
+
+        /* Estilo de campo bloqueado */
+.locked-date[readonly]{
+  background: #eef2f7;
+  cursor: not-allowed;
+}
+
+/* Oculta el ícono del picker (Chrome/Safari/Edge) */
+.locked-date::-webkit-calendar-picker-indicator{
+  display: none;
+}
+
+/* ===== Días base ===== */
+.dia {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  font-weight: 500;
+  position: relative;
+  font-size: 14px;
+}
+
+/* Hover solo para días activos */
+.dia:hover { background-color: var(--gris-medio); }
+
+/* ===== Días inactivos: otro mes + pasados ===== */
+.dia.otro-mes,
+.dia.inactiva {
+  color: #bbb;
+  cursor: not-allowed;
+  pointer-events: none;           /* no clic */
+  opacity: .8;
+}
+.dia.otro-mes:hover,
+.dia.inactiva:hover { background: none; } /* sin hover */
+
+/* Hoy (lo mantenemos) */
+.dia.hoy {
+  background-color: var(--celeste);
+  color: var(--azul);
+  font-weight: 700;
+}
+
+/* ===== Día seleccionado (por defecto: Maestro/azul) ===== */
+.dia.seleccionado {
+  background-color: var(--azul);
+  color: #fff;
+  border: 1px solid rgba(0,0,0,.05);
+}
+
+/* Tinku: celeste */
+#modal-tinku .calendario-grid .dia.seleccionado{
+  background: rgba(56, 189, 248, .22);
+  border-color: rgba(56, 189, 248, .60);
+  color: inherit;
+}
+
+/* Aquilina: amarillo */
+#modal-aquilina .calendario-grid .dia.seleccionado{
+  background: rgba(250, 204, 21, .28);
+  border-color: rgba(250, 204, 21, .70);
+  color: #2b2b2b;
+}
+
+/* Si un día ocupado también está seleccionado, priorizamos "seleccionado" */
+#modal-tinku .calendario-grid .dia.ocupado.seleccionado,
+#modal-aquilina .calendario-grid .dia.ocupado.seleccionado{
+  background: inherit;
+  border-color: inherit;
+  color: inherit;
+}
+#modal-tinku .calendario-grid .dia.ocupado.seleccionado::after,
+#modal-aquilina .calendario-grid .dia.ocupado.seleccionado::after{
+  opacity: 0;
+}
+.dia.inactiva{
+  color:#bbb;
+  cursor:not-allowed;
+  pointer-events:none;
+  opacity:.8;
+}
+.dia.inactiva:hover{ background:none; }
+
+
+
+/* ===== Aviso emergente (popup) ===== */
+.notice-overlay{
+  position: fixed;
+  inset: 0;
+  display: none;              /* oculto por defecto */
+  z-index: 9999;              /* por encima de todo */
+}
+
+.notice-overlay.show{ display: block; }
+
+.notice-backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.5); /* oscurece */
+}
+
+.notice-dialog{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%,-50%);
+  max-width: min(90vw, 680px);
+  width: clamp(320px, 80vw, 680px);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0,0,0,.35);
+  background: transparent;
+}
+
+.notice-dialog img{
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.notice-close{
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(0,0,0,.75);
+  color: #fff;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+}
+
+.notice-close:hover{ background: rgba(0,0,0,.9); }
+
+/* Más oscuro detrás del aviso */
+.notice-overlay .notice-backdrop{
+  background: rgba(0,0,0,.72); /* subí el oscurecimiento (antes .5) */
+}
+
+/* X simple, sin círculo, como en los modales */
+.notice-overlay .notice-close{
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  /* sin fondo ni borde */
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
+  /* tipografía y aspecto */
+  color: #fff;
+  font-size: 28px;   /* ajustá si querés más chica/grande */
+  line-height: 1;
+  cursor: pointer;
+
+  /* hit-area cómoda sin círculo visible */
+  padding: 4px 8px;
+}
+
+.notice-overlay .notice-close:hover{
+  opacity: .9;
+  transform: scale(1.05);
+}
+
+/* Aviso inicial: versión reducida en pantallas grandes (~80% más pequeño) */
+@media (min-width: 1024px){
+  .notice-dialog{
+    /* antes: width: clamp(320px, 80vw, 680px) */
+    width: min(35vw, 420px);   /* más angosto */
+    max-width: 420px;
+  }
+  .notice-dialog img{
+    width: 100%;
+    height: auto;
+    max-height: 80vh;          /* cap: solo 20% del alto del viewport */
+    object-fit: contain;       /* respeta proporción */
+  }
+}
+
+
+/* Verde y negrita para el número de CAMAS disponibles */
+.disponibilidad span[id^="disponibles-"]{
+  color: #16a34a;   /* verde */
+  font-weight: 700; /* negrita */
+}
+
+/* Grid base de 2 columnas en escritorio, 1 en mobile */
+.form-grid{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 768px){
+  .form-grid{ grid-template-columns: 1fr; }
+}
+
+/* Fila de 3 columnas para fecha/ingreso/egreso */
+.form-row-3{
+  grid-column: 1 / -1;                 /* ocupar ancho completo del grid padre */
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px){
+  .form-row-3{ grid-template-columns: 1fr; }
+}
+
+/* Cantidad + check compacto en línea */
+.input-row{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.input-row .form-control{
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Check en línea, compacto */
+.check-inline{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  font-size: 14px;
+  color: var(--gris-oscuro);
+  padding: 6px 10px;
+  border: 1px solid var(--gris-claro, #e5e7eb);
+  border-radius: 6px;
+  background: #fafafa;
+  cursor: pointer;
+}
+.check-inline input[type="checkbox"]{
+  accent-color: var(--azul);   /* usa tu color primario */
+  transform: scale(1.05);
+}
+
+/* Ajustes visuales */
+.form-group label{ display:block; font-weight:600; margin-bottom:6px; }
+.form-group .form-control{ width:100%; }
+
+/* Alto de controles para alinear */
+:root { --control-h: 44px; }
+
+/* Fila de "Cantidad + check" */
+.input-row{
+  display: flex;
+  align-items: flex-start;  /* ⬅️ alinear por arriba */
+  gap: 12px;
+}
+
+/* Misma altura para el input numérico en esa fila */
+.input-row .form-control{
+  height: var(--control-h);
+}
+
+/* Pill del check con la misma altura y centrado interno */
+.check-inline{
+  display: flex;
+  align-items: center;
+  height: var(--control-h);
+  padding: 0 12px;
+  border: 1px solid var(--gris-claro, #e5e7eb);
+  border-radius: 6px;
+  background: #fafafa;
+  gap: 8px;
+}
+
+/* Ajuste fino del checkbox para que no “salte” 1px arriba/abajo */
+.check-inline input[type="checkbox"]{
+  margin: 0;
+  transform: translateY(-1px);
+}
+
+/* Fila de 3 columnas: Contacto | Check (centro) | Cantidad */
+.form-row-qty{
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* check al centro */
+  gap: 16px;
+  align-items: end;
+}
+
+/* En mobile se apilan en orden: Contacto → Check → Cantidad */
+@media (max-width: 900px){
+  .form-row-qty{ grid-template-columns: 1fr; }
+}
+
+/* Celda del check centrada vertical y horizontalmente */
+.check-cell{
+  display: flex;
+  justify-content: center;  /* centrado horizontal */
+  align-items: center;      /* centrado vertical */
+}
+
+/* Unificamos alturas para alineación perfecta */
+:root { --control-h: 44px; }
+
+.form-row-qty .form-control{
+  height: var(--control-h);
+}
+
+/* Pill del check compacto y de altura igual al input */
+.check-inline{
+  display: flex;
+  align-items: center;
+  height: var(--control-h);
+  padding: 0 12px;
+  border: 1px solid var(--gris-claro, #e5e7eb);
+  border-radius: 6px;
+  background: #fafafa;
+  gap: 8px;
+}
+
+.check-inline input[type="checkbox"]{
+  margin: 0;
+  transform: translateY(-1px);
+}
+/* Fila 2: Contacto | Check | Cantidad  ==> mismas anchuras que la fila 3 */
+.form-row-qty{
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* = 1fr 1fr 1fr */
+  gap: 16px;
+  align-items: end;
+}
+
+/* Centrar el check en su columna */
+.form-row-qty .check-cell{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Asegurar que los inputs llenen su celda y queden alineados */
+.form-row-qty .form-control{
+  width: 100%;
+  height: var(--control-h, 44px);
+}
+
+/* “Píldora” del check con misma altura que los inputs */
+.check-inline{
+  display: flex;
+  align-items: center;
+  height: var(--control-h, 44px);
+  padding: 0 12px;
+  border: 1px solid var(--gris-claro, #e5e7eb);
+  border-radius: 6px;
+  background: #fafafa;
+  gap: 8px;
+}
+.check-inline input[type="checkbox"]{
+  margin: 0;
+  transform: translateY(-1px);
+}
+
+/* Responsive: se apilan en móviles */
+@media (max-width: 900px){
+  .form-row-qty{ grid-template-columns: 1fr; }
+}
+
+/* Botón grande fuera de los modales (igual ancho visual que tarjetas) */
+.btn-cancelar{
+  width: 100%;
+  max-width: 350px;        /* similar a tu .container principal */
+  margin: 20px auto 0;
+  display: block;
+  background: linear-gradient(to right, #d9534f, #c9302c);
+  color: #fff;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s ease;
+  box-shadow: 0 4px 10px rgba(217,83,79,.25);
+}
+.btn-cancelar:hover{ transform: translateY(-2px); }
+
+/* Botón rojo dentro del modal (re-usa tu “btn-submit” con estado de error) */
+.btn-cancelar-roja{
+  background: linear-gradient(to right, #d9534f, #c9302c);
+  color: #fff;
+}
+.btn-cancelar-roja.is-loading .btn-icon{
+  border: 3px solid rgba(255,255,255,.35);
+  border-top-color: #fff;
+}
+.btn-cancelar-roja.is-error{ background: #c9302c; }
+
+
+
+/*Estilos para la X del css*/
+/* Asegura que el snackbar sea el contenedor de referencia de la X */
+.snackbar{
+  position: fixed;                 /* ya lo tendrás, reforzamos */
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 44px 12px 16px;    /* espacio a la derecha para la X */
+  border-radius: 8px;
+  color: #fff;
+  z-index: 99999;                  /* por delante de todo */
+  pointer-events: auto;
+  position: fixed;
+  /* si usas flex está ok, pero que no afecte a la X absoluta */
+  display: flex;
+  align-items: center;
+  pointer-events: auto;  /* evita click-through */
+
+}
+
+/* Botón X arriba-derecha, clicable */
+.snackbar-close{
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;                    /* mayor área de clic */
+  pointer-events: auto;
+}
+.snackbar-close:hover{ opacity: .85; }
+
+/* Permite seleccionar el texto del mensaje */
+.snackbar-message{
+  user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  cursor: text;
+  white-space: pre-wrap;
+  flex: 1; /* si usas flex en .snackbar, empuja el texto y deja la X a la derecha */
+}
+
+/* Asegura que su contenido también reciba eventos */
+.snackbar *{
+  pointer-events: auto;
+}
+
+/* Quitar flechas en Chrome, Safari, Edge */
+.no-spinners::-webkit-outer-spin-button,
+.no-spinners::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Quitar flechas en Firefox */
+.no-spinners {
+  -moz-appearance: textfield;
+}

@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Reservas - Ministerio de Educación de Tucumán</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.5.0/css/glide.core.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.5.0/css/glide.theme.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="Img/icogob.png" type="image/x-icon">
+</head>
+
+
+
+<body>
+
+<header>
+    <div class="container">
+        <div class="header-content">
+            <div class="logo-container">
+                <div class="logo">
+                    <img src="Img/Blanco.png" alt="Ministerio de Educación de Tucumán">
+                </div>
+                
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div class="container">
+        <div class="main-title">
+            <h2>Reserva de Albergues</h2>
+            <p>Seleccione un albergue para realizar su reserva</p>
+        </div>
+
+        <div class="albergues-container">
+            
+           <!-- Albergue Maestro José Fierro -->
+            <div class="albergue-card">
+                
+                <div class="card-image">
+                    <div class="glide">
+                        <div class="glide__track" data-glide-el="track">
+                          <ul class="glide__slides">
+                            <li class="glide__slide">
+                              <img src="Img/jose-fierro/WhatsAppImage2025-06-12at12.44.19.jpeg" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/jose-fierro/20180407_143307 (1).jpg" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/jose-fierro/WhatsApp-Image-2024-01-09-at-15.33.39.jpeg" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/jose-fierro/Gin5K2tWoAEgoet.jpg" alt="...">
+                            </li>
+                            <!-- más slides -->
+                          </ul>
+                        </div>
+                        <div class="glide__arrows" data-glide-el="controls">
+                          <button class="glide__arrow glide__arrow--left" data-glide-dir="<">‹</button>
+                          <button class="glide__arrow glide__arrow--right" data-glide-dir=">">›</button>
+                        </div>
+                      </div>
+                </div>
+                
+                <div class="card-header">
+                    <div class="albergue-header">
+                        <h3 class="albergue-title">Albergue Maestro <br>José Fierro</h3>
+                        <div class="capacity">
+                            <i class="fas fa-users"></i>
+                            92 personas
+                        </div>
+                    </div>
+                    <p class="albergue-description">El Albergue Escolar Maestro José Fierro se encuentra ubicado al sureste de la ciudad capital.</p>
+                </div>
+                <div class="card-body">
+                    <div class="features">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <span>Comedor con capacidad para 150 personas.</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-bed"></i>
+                            </div>
+                            <span>Dormitorios compartidos en 6 habitaciones.</span>
+                        </div>
+                       
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-gamepad"></i>
+                            </div>
+                            <span>Áreas recreativas iluminada.</span>
+                        </div>
+
+                       
+                        <div class="feature-item">
+                          <div class="feature-icon">
+                            <i class="fa-solid fa-file-pdf"></i>
+                          </div>
+                          <a href="docs/Albergue Maestro Jose Fierro.pdf" target="_blank" rel="noopener noreferrer">Más información…</a>
+                        </div>
+
+
+                    </div>
+                    <button class="btn-reservar" onclick="openModal('maestro')">Reservar Ahora</button>
+                    <div class="map-container">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3558.3469779765946!2d-65.19288722381081!3d-26.89248109236016!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94225a28fd68b2a5%3A0x9e70e2029ffb5445!2sAlbergue%20Maestro%20Jos%C3%A9%20Fierro!5e0!3m2!1sen!2sar!4v1753473767982!5m2!1sen!2sar" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+
+           <!-- Albergue Tinku Huasi -->
+            <div class="albergue-card tinku">
+                <div class="card-image">
+                    <div class="glide">
+                        <div class="glide__track" data-glide-el="track">
+                          <ul class="glide__slides">
+                            <li class="glide__slide">
+                              <img src="Img/tinku-huasi/Captura de pantalla 2025-07-30 155706.jpg" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/tinku-huasi/unnqqamed (1).jpg" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/tinku-huasi/Captura de pantalla 2025-07-30 155744.jpg" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/tinku-huasi/unnamed (1).jpg" alt="...">
+                            </li>
+                            <!-- más slides -->
+                          </ul>
+                        </div>
+                        <div class="glide__arrows" data-glide-el="controls">
+                          <button class="glide__arrow glide__arrow--left" data-glide-dir="<">‹</button>
+                          <button class="glide__arrow glide__arrow--right" data-glide-dir=">">›</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-header">
+                    <div class="albergue-header">
+                        <h3 class="albergue-title">Albergue Tinku <br>Huasi</h3>
+                        <div class="capacity tinku">
+                            <i class="fas fa-users"></i>
+                            49 personas
+                        </div>
+                    </div>
+                    <p class="albergue-description">El Albergue Escolar Tinku Huasi, se encuentra ubicado en calle Andrés Villa y Saint Orne Sur (CEF N.º 18).</p>
+                </div>
+                <div class="card-body">
+                    <div class="features">
+                        <div class="feature-item">
+                            <div class="feature-icon tinku">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <span>Cocina equipada.</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon tinku">
+                                <i class="fas fa-couch"></i>
+                            </div>
+                            <span>Salon comedor equipado para 50 personas. </span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon tinku">
+                                <i class="fas fa-bath"></i>
+                            </div>
+                            <span>Baños con duchas.</span>
+                        </div>
+
+
+                        <div class="feature-item">
+                          <div class="feature-icon tinku">
+                            <i class="fa-solid fa-file-pdf"></i>                        
+                          </div>
+                          <a href="docs/Albergue Tinku Huasi.pdf" target="_blank" rel="noopener noreferrer">Más información…</a>
+                        </div>
+
+                    </div>
+                    <button class="btn-reservar tinku" onclick="openModal('tinku')">Reservar Ahora</button>
+                    <div class="map-container">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3561.0615264368676!2d-65.2531118238137!3d-26.806169488762055!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x94225df192f9345f%3A0x7a6e80a152e8999d!2sAlbergue%20Tinku%20Huasi!5e0!3m2!1sen!2sar!4v1753473842656!5m2!1sen!2sar" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Albergue Aquilina Soldati -->
+            <div class="albergue-card aquilina">
+                <div class="card-image">
+                    <div class="glide">
+                        <div class="glide__track" data-glide-el="track">
+                          <ul class="glide__slides">
+                            <li class="glide__slide">
+                              <img src="Img/aquilina/01 (1).jpg" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/aquilina/unnamed (1).webp" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/aquilina/imagepng.jpg" alt="...">
+                            </li>
+                            <li class="glide__slide">
+                                <img src="Img/aquilina/unnamed (2).webp" alt="...">
+                            </li>
+                            <!-- más slides -->
+                          </ul>
+                        </div>
+                        <div class="glide__arrows" data-glide-el="controls">
+                          <button class="glide__arrow glide__arrow--left" data-glide-dir="<">‹</button>
+                          <button class="glide__arrow glide__arrow--right" data-glide-dir=">">›</button>
+                        </div>
+                      </div>
+                </div>
+                <div class="card-header">
+                    <div class="albergue-header">
+                        <h3 class="albergue-title">Albergue Aquilina <br>Soldati</h3>
+                        <div class="capacity aquilina">
+                            <i class="fas fa-users"></i>
+                            58 personas
+                        </div>
+                    </div>
+                    <p class="albergue-description">El Albergue Aquilina Soldati se encuentra ubicado en Las Heras 4124 – San Pedro de Colalao.</p>
+                </div>
+                <div class="card-body">
+                    <div class="features">
+                        <div class="feature-item">
+                            <div class="feature-icon aquilina">
+                              <i class="fa-solid fa-fire-burner"></i>
+                            </div>
+                            <span>Quincho con asador y horno ecológico.</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon aquilina">
+                                <i class="fas fa-tree"></i>
+                            </div>
+                            <span>Zona parquizada para el esparcimiento.</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon aquilina">
+                                <i class="fas fa-toilet"></i>
+                            </div>
+                            <span>Cuenta con 2 vestuarios y duchas.</span>
+                        </div>
+                        <div class="feature-item">
+                          <div class="feature-icon aquilina">
+                            <i class="fa-solid fa-file-pdf"></i>
+                          </div>
+                          <a href="docs/Albergue Aquilina.pdf" target="_blank" rel="noopener noreferrer">Más información…</a>
+                        </div>
+                      </div>
+                    <button class="btn-reservar aquilina" onclick="openModal('aquilina')">Reservar Ahora</button>
+                    <div class="map-container">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3578.830146788623!2d-65.49806782383205!3d-26.234707965218533!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9418bd7589be37d9%3A0x56985f9492fd5f84!2sAquilina%20Soldatti%20De%20%C3%81lvarez!5e0!3m2!1sen!2sar!4v1753473913567!5m2!1sen!2sar" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Modal para Albergue Maestro José Fierro -->
+                            <div id="modal-maestro" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Reserva - Albergue Maestro José Fierro</h3>
+                <button class="close-modal" onclick="closeModal('maestro')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="disponibilidad-section">
+                    <div class="disponibilidad-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Seleccione el dia para realizar la reserva:
+                    </div>
+                    
+                    <div class="ocupacion-container">
+                        <div class="ocupacion-bar">
+                            <div class="ocupacion-fill" id="ocupacion-fill-maestro" style="width: 0%;"></div>
+                        </div>
+                        <div class="ocupacion-info" id="ocupacion-info-maestro">—</div>
+                    </div>
+                       
+                    <!-- Dentro del modal de Maestro José Fierro -->
+                        <div class="disponibilidad">
+                        Camas disponibles para la fecha seleccionada: <span id="disponibles-maestro">—</span>
+                        </div>
+                    
+                    <div class="calendario-container">
+                        <div class="calendario-header">
+                            <button class="nav-mes" onclick="cambiarMes('maestro', -1)"><i class="fas fa-chevron-left"></i></button>
+                            <div class="mes-title" id="mes-actual-maestro">Noviembre 2024</div>
+                            <button class="nav-mes" onclick="cambiarMes('maestro', 1)"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        <div class="calendario-grid" id="calendario-maestro">
+                            <!-- Calendario generado dinámicamente -->
+                        </div>
+
+                        <!-- ⬇️ Overlay de carga -->
+                            <div class="cal-loader" id="cal-loader-maestro" aria-live="polite" aria-busy="false" hidden>
+                                <div class="spinner" role="status" aria-label="Cargando disponibilidad"></div>
+                            </div>
+
+                    </div>
+                </div>
+                <!-- Formulario de reserva -->              
+                <form id="reservaFormMaestro">
+                <div class="form-grid">
+
+                  <!-- Fila 1: Institución | Responsable -->
+                  <div class="form-group">
+                    <label for="institucion-maestro">Institución/Delegación</label>
+                    <input type="text" id="institucion-maestro" class="form-control" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="responsable-maestro">Nombre Completo del Responsable</label>
+                    <input type="text" id="responsable-maestro" class="form-control" required>
+                  </div>
+
+                  <!-- Fila 2: Contacto | Cantidad + switch pernocta compactos -->
+                  <!-- <div class="form-group">
+                    <label for="contacto-maestro">Contacto (Número Telefónico)</label>
+                    <input type="tel" id="contacto-maestro" class="form-control" required>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="cantidad-maestro">Cantidad de Personas</label>
+                    <div class="input-row">
+                      <input type="number" id="cantidad-maestro" class="form-control" min="1" max="92" required>
+                      <label for="pernocta-maestro" class="check-inline">
+                        <input type="checkbox" id="pernocta-maestro">
+                        <span>Reserva camas?</span>
+                      </label>
+                    </div>
+                  </div> -->
+
+                  <div class="form-row-qty">
+              <div class="form-group">
+                <label for="contacto-tinku">Contacto (Número Telefónico)</label>
+                <input type="tel" id="contacto-maestro" class="form-control" required>
+              </div>
+
+              <div class="form-group check-cell">
+                <label for="pernocta-maestro" class="check-inline">
+                  <input type="checkbox" id="pernocta-maestro">
+                  <span>Reserva camas?</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label for="cantidad-maestro">Cantidad de Personas</label>
+                <input type="number" id="cantidad-maestro" class="form-control" min="1" required>
+              </div>
+          </div>
+
+                  <!-- Fila 3: 3 columnas => Fecha | Hora Ingreso | Hora Egreso -->
+                  <div class="form-row-3">
+                    <div class="form-group">
+                      <label for="fechaIngreso-maestro">Fecha de Ingreso</label>
+                      <input type="date" id="fechaIngreso-maestro" class="form-control locked-date" required readonly>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="horaIngreso-maestro">Hora de Ingreso</label>
+                      <select id="horaIngreso-maestro" class="form-control hour-select" required></select>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="horaEgreso-maestro">Hora de Egreso</label>
+                      <select id="horaEgreso-maestro" class="form-control hour-select" required></select>
+                    </div>
+                  </div>
+
+                </div>
+
+                <button type="submit" class="btn-submit" id="btn-submit-maestro">
+                  <span class="btn-icon" aria-hidden="true"></span>
+                  <span class="btn-label">Confirmar Reserva</span>
+                </button>
+              </form>
+
+            </div>
+        </div>
+      </div>
+
+    <!-- Modal para Albergue Tinku Huasi -->
+                    <div id="modal-tinku" class="modal">
+  <div class="modal-content">
+    <div class="modal-header tinku">
+      <h3 class="modal-title">Reserva - Albergue Tinku Huasi</h3>
+      <button class="close-modal" onclick="closeModal('tinku')">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="disponibilidad-section">
+        <div class="disponibilidad-title">
+          <i class="fas fa-chart-bar"></i>
+          Seleccione el día para realizar la reserva:
+        </div>
+
+        <div class="ocupacion-container">
+          <div class="ocupacion-bar">
+            <div class="ocupacion-fill" id="ocupacion-fill-tinku" style="width:0%"></div>
+          </div>
+          <div class="ocupacion-info" id="ocupacion-info-tinku">—</div>
+        </div>
+
+        <div class="disponibilidad">
+          Camas disponibles para la fecha seleccionada:
+          <span id="disponibles-tinku">—</span>
+          
+        </div>
+
+        <div class="calendario-container">
+          <div class="calendario-header">
+            <button class="nav-mes" onclick="cambiarMes('tinku', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="mes-title" id="mes-actual-tinku">Noviembre 2024</div>
+            <button class="nav-mes" onclick="cambiarMes('tinku', 1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="calendario-grid" id="calendario-tinku"></div>
+
+          <!-- Overlay de carga -->
+          <div class="cal-loader" id="cal-loader-tinku" aria-live="polite" aria-busy="false" hidden>
+            <div class="spinner" role="status" aria-label="Cargando disponibilidad"></div>
+          </div>
+        </div>
+      </div>
+
+              <!-- Formulario de reserva -->
+        <form id="reservaFormTinku">
+        <div class="form-grid">
+          <!-- Fila 1 -->
+          <div class="form-group">
+            <label for="institucion-tinku">Institución/Delegación</label>
+            <input type="text" id="institucion-tinku" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="responsable-tinku">Nombre Completo del Responsable</label>
+            <input type="text" id="responsable-tinku" class="form-control" required>
+          </div>
+
+          <!-- Fila 2 -->
+          
+          <div class="form-row-qty">
+              <div class="form-group">
+                <label for="contacto-tinku">Contacto (Número Telefónico)</label>
+                <input type="tel" id="contacto-tinku" class="form-control" required>
+              </div>
+
+              <div class="form-group check-cell">
+                <label for="pernocta-tinku" class="check-inline">
+                  <input type="checkbox" id="pernocta-tinku">
+                  <span>Reserva camas?</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label for="cantidad-tinku">Cantidad de Personas</label>
+                <input type="number" id="cantidad-tinku" class="form-control" min="1" required>
+              </div>
+          </div>
+
+  
+
+
+          <!-- Fila 3 -->
+          <div class="form-row-3">
+            <div class="form-group">
+              <label for="fechaIngreso-tinku">Fecha de Ingreso</label>
+              <input type="date" id="fechaIngreso-tinku" class="form-control locked-date" required readonly>
+            </div>
+            <div class="form-group">
+              <label for="horaIngreso-tinku">Hora de Ingreso</label>
+              <select id="horaIngreso-tinku" class="form-control hour-select" required></select>
+            </div>
+            <div class="form-group">
+              <label for="horaEgreso-tinku">Hora de Egreso</label>
+              <select id="horaEgreso-tinku" class="form-control hour-select" required></select>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit btn-reservar tinku" id="btn-submit-tinku">
+          <span class="btn-icon" aria-hidden="true"></span>
+          <span class="btn-label">Confirmar Reserva</span>
+        </button>
+      </form>
+
+          </div>
+        </div>
+      </div>
+   
+
+    <!-- Modal para Albergue Aquilina Soldati -->
+                    <div id="modal-aquilina" class="modal">
+  <div class="modal-content">
+    <div class="modal-header aquilina">
+      <h3 class="modal-title">Reserva - Albergue Aquilina Soldati</h3>
+      <button class="close-modal" onclick="closeModal('aquilina')">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="disponibilidad-section">
+        <div class="disponibilidad-title">
+          <i class="fas fa-chart-bar"></i>
+          Seleccione el día para realizar la reserva:
+        </div>
+
+        <div class="ocupacion-container">
+          <div class="ocupacion-bar">
+            <div class="ocupacion-fill" id="ocupacion-fill-aquilina" style="width:0%"></div>
+          </div>
+          <div class="ocupacion-info" id="ocupacion-info-aquilina">—</div>
+        </div>
+
+        <div class="disponibilidad">
+          Camas disponibles para la fecha seleccionada:
+          <span id="disponibles-aquilina">—</span>
+          <!-- opcional: Capacidad: <small><span id="capacidad-aquilina">—</span></small> -->
+        
+
+        <div class="calendario-container">
+          <div class="calendario-header">
+            <button class="nav-mes" onclick="cambiarMes('aquilina', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="mes-title" id="mes-actual-aquilina">Noviembre 2024</div>
+            <button class="nav-mes" onclick="cambiarMes('aquilina', 1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="calendario-grid" id="calendario-aquilina"></div>
+
+          <div class="cal-loader" id="cal-loader-aquilina" aria-live="polite" aria-busy="false" hidden>
+            <div class="spinner" role="status" aria-label="Cargando disponibilidad"></div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+        <!-- Formulario de reserva -->
+      <form id="reservaFormAquilina">
+        <div class="form-grid">
+          <!-- Fila 1 -->
+          <div class="form-group">
+            <label for="institucion-aquilina">Institución/Delegación</label>
+            <input type="text" id="institucion-aquilina" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="responsable-aquilina">Nombre Completo del Responsable</label>
+            <input type="text" id="responsable-aquilina" class="form-control" required>
+          </div>
+
+          <!-- Fila 2 -->
+          <div class="form-row-qty">
+              <div class="form-group">
+                <label for="contacto-aquilina">Contacto (Número Telefónico)</label>
+                <input type="tel" id="contacto-aquilina" class="form-control" required>
+              </div>
+
+              <div class="form-group check-cell">
+                <label for="pernocta-aquilina" class="check-inline">
+                  <input type="checkbox" id="pernocta-aquilina">
+                  <span>Reserva camas?</span>
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label for="cantidad-aquilina">Cantidad de Personas</label>
+                <input type="number" id="cantidad-aquilina" class="form-control" min="1" required>
+              </div>
+          </div>
+
+          <!-- Fila 3 -->
+          <div class="form-row-3">
+            <div class="form-group">
+              <label for="fechaIngreso-aquilina">Fecha de Ingreso</label>
+              <input type="date" id="fechaIngreso-aquilina" class="form-control locked-date" required readonly>
+            </div>
+            <div class="form-group">
+              <label for="horaIngreso-aquilina">Hora de Ingreso</label>
+              <select id="horaIngreso-aquilina" class="form-control hour-select" required></select>
+            </div>
+            <div class="form-group">
+              <label for="horaEgreso-aquilina">Hora de Egreso</label>
+              <select id="horaEgreso-aquilina" class="form-control hour-select" required></select>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit btn-reservar aquilina" id="btn-submit-aquilina">
+          <span class="btn-icon" aria-hidden="true"></span>
+          <span class="btn-label">Confirmar Reserva</span>
+        </button>
+      </form>
+
+
+      </div>
+    </div>
+  </div>
+
+ </div>
+
+
+<!-- Botón cancelar (ancho tarjeta) -->
+<div class="container">
+  <button class="btn-cancelar" id="open-cancel-modal">
+    Cancelar reserva
+  </button>
+</div>
+
+<!-- Modal cancelar reserva -->
+<div id="modal-cancelar" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" style="background:#d9534f; color:#fff;">
+      <h3 class="modal-title">Cancelar reserva</h3>
+      <button class="close-modal" id="close-cancel-modal">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="cancelForm">
+        <div class="form-grid">
+          
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="cancel-id">Ingrese su Número de reserva</label>
+                    <input 
+                      type="number" 
+                      id="cancel-id" 
+                      class="form-control no-spinners" 
+                      placeholder="Ej: 1234" 
+                      min="0" 
+                      max="9999" 
+                      required
+                    >
+                    </div>
+
+        </div>
+
+        <button type="submit" class="btn-submit btn-cancelar-roja" id="btn-cancelar-enviar">
+          <span class="btn-icon" aria-hidden="true"></span>
+          <span class="btn-label">Confirmar cancelación</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <img src="Img/3 - Blanco.png" alt="Logo Ministerio" class="footer-logo">
+                <div class="footer-text">
+                    <p>© 2025 Ministerio de Educación de Tucumán. Todos los derechos reservados</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.5.0/glide.min.js"></script>
+   <script src="script.js"></script>
+
+
+    <!-- Aviso inicial -->
+        <div id="site-notice" class="notice-overlay" aria-hidden="true">
+          <div class="notice-backdrop"></div>
+          <div class="notice-dialog" role="dialog" aria-modal="true" aria-label="Aviso">
+            <button class="notice-close" aria-label="Cerrar aviso">&times;</button>
+            <img src="Img/aviso.png" alt="Aviso importante" loading="eager">
+          </div>
+        </div>
+
+</body>
+</html>
