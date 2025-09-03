@@ -183,7 +183,7 @@ async function submitForm(albergue) {
 showSnackbar(
   `PRE-Reserva realizada \n Conserve su Nro.: ${resultado.idReserva}\n Para su confirmación, llamar al:\n (0381)452-6408.`,
   'success',
-  20000
+  60000
 );
 
 
