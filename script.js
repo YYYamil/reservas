@@ -1,7 +1,7 @@
 // Configuración global
 const CONFIG = {
   secretKey: "cristiano1988",
-  googleScriptUrl: "https://script.google.com/macros/s/AKfycbwUo0ouoBIxBhYl89tEy1NartJHSg-HIknuwN4Vc0YRnb601c5BDrq9-CHLNIEG1Y_L/exec",
+  googleScriptUrl: "https://script.google.com/macros/s/AKfycbzJ2wkg3dAdkX5cLBY-2pZEBkq_MlqQt5X1L185BhIvnJqlleKPNX4ZIAf-cS2DK0Ar/exec",
   meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
   diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
   diasSemanaCortos: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -68,9 +68,7 @@ const notice = document.getElementById('site-notice');
 
   function hideNotice(){
     notice.classList.remove('show');
-    document.body.style.overflow = '';
-    // Opcional: recordá que ya se mostró (para no mostrarlo de nuevo)
-    // localStorage.setItem('siteNoticeSeen','1');
+    document.body.style.overflow = '';    
   }
 
   closeBtn.addEventListener('click', hideNotice);
@@ -89,7 +87,7 @@ const notice = document.getElementById('site-notice');
       perView: 1,
       autoplay: 4000,     // 4s
       hoverpause: true,   // pausa al pasar el mouse (mejor UX)
-      animationDuration: 6600,
+      animationDuration: 5000,
       gap: 0
     }).mount();
 
@@ -114,7 +112,7 @@ function openModal(albergue) {
   document.getElementById(`modal-${albergue}`).classList.add('active');
   document.body.style.overflow = 'hidden';
   resetForm(albergue); // Reset form when opening modal
-    resetCalendarToToday(albergue);                      // ⬅️ NUEVO
+    resetCalendarToToday(albergue);                      
 
   generarCalendario(albergue);
 }
@@ -179,12 +177,11 @@ async function submitForm(albergue) {
     if (resultado.success) {
       mostrarConfirmacion(albergue, formData, resultado.idReserva);
       setBtnSuccess(btn);
-// showSnackbar('PRE-Reserva Realizada: Para su confirmación, llamar al (0381)452-6408.', 'success', 10000);
-showSnackbar(
-  `PRE-Reserva realizada \n Conserve su Nro.: ${resultado.idReserva}\n Para su confirmación, llamar al:\n (0381)452-6408.`,
-  'success',
-  60000
-);
+      showSnackbar(
+                `PRE-Reserva realizada \n Conserve su Nro.: ${resultado.idReserva}\n Para su confirmación, llamar al:\n (0381)452-6408.`,
+                'success',
+                60000
+                );
 
 
       setTimeout(() => {
@@ -222,8 +219,7 @@ function getFormData(albergue) {
     cantidad: document.getElementById(`cantidad-${albergue}`).value,
     fechaIngreso: document.getElementById(`fechaIngreso-${albergue}`).value,
     horaIngreso: document.getElementById(`horaIngreso-${albergue}`).value,
-    horaEgreso: document.getElementById(`horaEgreso-${albergue}`).value,
-    //pernocta: document.getElementById('pernocta-maestro').checked // <-- BOOLEANO nativo
+    horaEgreso: document.getElementById(`horaEgreso-${albergue}`).value,    
     pernocta: pernoctaValue
 
   };
@@ -272,7 +268,7 @@ function setupDateListeners() {
     const ingresoInput = document.getElementById(`fechaIngreso-${albergue}`);
     if (ingresoInput) {
       ingresoInput.addEventListener('change', function() {
-        // No need to set min for salidaInput since it's removed
+        
       });
     }
   });
@@ -697,23 +693,6 @@ function ensureSnackbar() {
   return bar;
 }
 
-// function showSnackbar(message, type = 'success', duration = 1800) {
-//   const bar = ensureSnackbar();
-//   bar.classList.remove('success','error','show');
-//   bar.classList.add(type === 'error' ? 'error' : 'success');
-//   bar.textContent = message;
-
-//   // mostrar
-//   // (forzamos reflow para reiniciar la transición si ya estaba visible)
-//   void bar.offsetWidth;
-//   bar.classList.add('show');
-
-//   // ocultar
-//   clearTimeout(bar._hideTimer);
-//   bar._hideTimer = setTimeout(() => {
-//     bar.classList.remove('show');
-//   }, duration);
-// }
 
 function showSnackbar(message, type = 'success', duration = 10000) {
   const bar = ensureSnackbar();
@@ -748,9 +727,6 @@ function showSnackbar(message, type = 'success', duration = 10000) {
     bar.classList.remove('show');
   }, duration);
 }
-
-
-
 
 // Llama a esta función una vez (p. ej. al cargar la página)
 function lockFechaInputs() {
