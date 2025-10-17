@@ -132,7 +132,7 @@ if (esPernocta) {
         fecha,
         data.horaIngreso,
         horaEgreso,
-        pernoctaValue,
+        //pernoctaValue,
         "Pre-Reserva"
       ]);
 

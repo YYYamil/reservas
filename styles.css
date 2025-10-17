@@ -256,6 +256,41 @@
             transform: translateY(0);
         }
 
+        .btn-alo {
+            width: 100%;
+            background: linear-gradient(to right, var(--azul), #004a8c);
+            color: var(--blanco);
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Roboto', sans-serif;
+            box-shadow: 0 4px 8px rgba(0, 92, 162, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .btn-alo.aquilina {
+            background: linear-gradient(to right, var(--amarillo), #e6b500);
+            color: var(--gris-oscuro);
+        }
+
+        .btn-alo.tinku {
+            background: linear-gradient(to right, var(--celeste), #6abde6);
+            color: var(--azul);
+        }
+
+        .btn-alo:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-alo:active {
+            transform: translateY(0);
+        }
+
         .map-container {
             height: 200px;
             border-radius: 10px;
@@ -568,7 +603,7 @@
             bottom: 3px;
             width: 4px;
             height: 4px;
-            background-color: #d00;
+            background-color: rgb(0, 221, 55);
             border-radius: 50%;
         }
 
@@ -586,7 +621,7 @@
         }
 
         .dia.hoy {
-            background-color: var(--celeste);
+            background-color: var(--gris-medio);
             color: var(--azul);
             font-weight: 700;
         }
@@ -998,11 +1033,7 @@
 .dia.inactiva:hover { background: none; } /* sin hover */
 
 /* Hoy (lo mantenemos) */
-.dia.hoy {
-  background-color: var(--celeste);
-  color: var(--azul);
-  font-weight: 700;
-}
+
 
 /* ===== Día seleccionado (por defecto: Maestro/azul) ===== */
 .dia.seleccionado {
@@ -1417,7 +1448,499 @@
   margin: 0;
 }
 
-/* Quitar flechas en Firefox */
-.no-spinners {
-  -moz-appearance: textfield;
+
+/*///////////////////**/
+/* Colores para validación en rango */
+.dia.en-rango.verde {
+  background-color: #4CAF50 !important; /* Verde para disponible */
+  color: white;
 }
+.dia.en-rango.rojo {
+  background-color: #f44336 !important; /* Rojo para no disponible */
+  color: white;
+}
+/* Mantén en-rango base para días no validados aún */
+.dia.en-rango:not(.verde):not(.rojo) {
+  background-color: #e3f2fd !important; /* Azul claro neutral */
+  color: #1976d2;
+}
+.dia.inicio-rango, .dia.fin-rango {
+  border: 2px solid #2196f3 !important; /* Borde azul para start/end, sobre colores */
+}
+
+
+
+  
+
+        .title {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.form-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.form-row label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    color: #005CA2;
+    white-space: nowrap;
+}
+
+#cantidad-alo-maestro {
+    padding: 8px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    width: 120px;
+    font-size: 14px;
+}
+
+#cantidad-alo-maestro:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.fas {
+    color: #005CA2;
+    width: 16px;
+    text-align: center;
+}
+
+
+/*para el los recuadros rojo y verde del modal de dias disponibles*/
+.fecha-range-info {
+    margin: 10px 0;
+    font-style: italic;
+    text-align: center;
+    font-size: 0.9em;
+    color: #666;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9; /* Fondo sutil para destacar como "leyenda" */
+}
+
+.leyenda-color {
+    display: inline-block;
+    margin: 0 15px;
+    vertical-align: middle;
+}
+
+.cuadrado {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-right: 5px;
+    border-radius: 2px;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.cuadrado.rojo {
+    background-color: #f44336; /* Rojo */
+    color: white;
+}
+
+.cuadrado.verde {
+    background-color: #4CAF50; /* Verde */
+    color: white;
+}
+
+.texto-rojo {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.texto-verde {
+    color: #4CAF50;
+    font-weight: bold;
+}
+
+/* Responsivo: En mobile, apila las leyendas */
+@media (max-width: 600px) {
+    .leyenda-color {
+        display: block;
+        margin: 5px 0;
+    }
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #ccc;
+}
+
+
+.calendario-disabled {
+    pointer-events: none; /* Bloquea clicks */
+    opacity: 0.6; /* Gris visual */
+}
+
+.calendario-disabled .nav-mes {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.ayuda-texto {
+    color: #999;
+    font-size: 0.8em;
+    display: block;
+    margin-top: 4px;
+    font-style: italic;
+}
+
+select:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
+/*Estilos para el control secuencial en el modal alojamiento*/
+
+/* Contenedores de pasos */
+.step-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+.step-container.step-completed {
+    border-color: #4caf50; /* Verde completado */
+    background-color: #f1f8e9;
+}
+.step-container.step-active {
+    border-color: #ff9800; /* Amarillo actual */
+    background-color: #fff3e0;
+}
+
+/* Indicador de progreso */
+.progress-steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+}
+.step-indicator {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #666;
+    margin: 0 10px;
+    transition: background 0.3s ease;
+}
+.step-indicator.completed {
+    background: #4caf50;
+    color: white;
+}
+.step-indicator.active {
+    background: #ff9800;
+    color: white;
+}
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+    margin: 0 15px;
+    position: relative;
+}
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #4caf50, #8bc34a);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+/* Botón Reset */
+.btn-reset {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    font-size: 14px;
+}
+.btn-reset:hover {
+    background: #d32f2f;
+}
+
+/* Bloqueo visual para campos congelados */
+input[readonly], select[disabled] {
+    background-color: #f5f5f5;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/*Bloque de modal*/
+.step-container {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+.step-container.step-completed {
+    border-color: #4caf50;
+    background-color: #f1f8e9;
+}
+.step-container.step-active {
+    border-color: #ff9800;
+    background-color: #fff3e0;
+}
+.progress-steps {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.step-indicator {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: #666;
+    margin: 0 10px;
+    transition: background 0.3s ease;
+}
+.step-indicator.completed {
+    background: #4caf50;
+    color: white;
+}
+.step-indicator.active {
+    background: #ff9800;
+    color: white;
+}
+.progress-bar {
+    flex: 1;
+    height: 4px;
+    background: #ddd;
+    border-radius: 2px;
+    margin: 0 15px;
+}
+.progress-fill {
+    height: 100%;
+    background: #4caf50;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+.btn-reset {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+}
+.btn-reset:hover {
+    background: #d32f2f;
+}
+input[readonly], select[disabled] {
+    background-color: #f5f5f5;
+    color: #666;
+    cursor: not-allowed;
+}
+.calendario-grid.step-completed {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/*Loader de calendario*/
+
+.cal-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8); /* Fondo semi-transparente */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10; /* Sobre el calendario */
+    border-radius: 8px; /* Si el calendario tiene bordes redondeados */
+}
+.loader-text {
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+.calendario-grid.cal-block {
+    pointer-events: none; /* Ya bloquea clics durante carga */
+    opacity: 0.5; /* Opcional: Atenúa el calendario durante carga */
+}
+
+/*Horarios de entrada y salida*/
+.horarios-resaltados {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background-color: #e3f2fd; /* Fondo azul claro */
+  border-left: 4px solid #2196F3; /* Borde izquierdo azul */
+  border-radius: 4px;
+  font-weight: bold;
+  color: #1976D2; /* Texto azul oscuro */
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 14px;
+}
+
+
+.horarios-resaltados i {
+  color: #2196F3 !important; /* Azul para iconos */
+  font-size: 18px; /* Ligeramente más grande para impacto visual */
+  margin-right: 5px;
+}
+
+/*fondo gris calendario*/
+/* Fondo gris para calendario de Alojamiento (matching con modal regular) */
+.step-container.step-3 {
+  background-color: white; /* Gris claro */
+  border-radius: 8px; /* Bordes redondeados suaves */
+  padding: 15px; /* Espaciado interno */
+  margin-bottom: 10px;
+}
+
+.calendario-header {
+  background-color: #f5f5f5; /* Gris más oscuro para header, opcional */
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.calendario-grid {
+  background-color: #f5f5f5; /* Blanco para los días, contraste */
+  border: 1px solid #ddd; /* Borde sutil */
+  border-radius: 4px;
+}
+
+/*Flecha de limpiar todo*/
+/* Icono del botón "Limpiar Todo": Blanco y más grueso */
+.btn-reset i {
+  color: white !important; /* Blanco fijo */
+  font-weight: 900; /* Más grueso (bold máximo) */
+  font-size: 18px; /* Ligeramente más grande para visibilidad */
+  margin-right: 8px; /* Espaciado opcional del texto */
+}
+
+
+/* Fix Mobile: Campos completos en pasos 1 y 2 (evita corte) */
+@media (max-width: 480px) { /* Cubre móviles estándar */
+  .step-container.step-1 .form-row,
+  .step-container.step-2 .form-row {
+    width: 100%;
+    box-sizing: border-box; /* Incluye padding en ancho */
+    padding: 8px; /* Reduce padding para más espacio */
+    margin: 0; /* Elimina márgenes extras */
+  }
+
+  .step-container.step-1 label,
+  .step-container.step-2 label {
+    font-size: 14px; /* Texto más pequeño para labels largos */
+    line-height: 1.3; /* Menos alto para caber */
+    display: block; /* Stack vertical: Label arriba, input abajo */
+    margin-bottom: 4px;
+  }
+
+  .step-container.step-1 input[type="number"],
+  .step-container.step-2 select {
+    width: 100% !important; /* Fuerza ancho completo */
+    font-size: 16px; /* Mantiene touch-friendly para mobile */
+    padding: 8px; /* Padding interno ajustado */
+    box-sizing: border-box;
+  }
+
+  .modal-content {
+    width: 95vw; /* Modal más ancho en mobile (95% viewport) */
+    max-width: 95vw;
+    margin: 0 auto;
+  }
+
+  .modal-body {
+    padding: 10px; /* Menos padding general */
+  }
+}
+
+/* Opcional: Para tablets (480-768px) */
+@media (max-width: 768px) and (min-width: 481px) {
+  .step-container.step-1 input[type="number"],
+  .step-container.step-2 select {
+    width: 100%;
+  }
+}
+
+/* Uniformidad visual para Paso 1 (input number) y Paso 2 (select) */
+#cantidad-alo-maestro,
+#delegacion-alo-maestro {
+  height: 40px; /* Alto uniforme */
+  font-family: 'Roboto', sans-serif; /* Fuente consistente */
+  font-size: 16px; /* Tamaño de letra uniforme */
+  font-weight: 400; /* Peso normal */
+  padding: 10px 12px; /* Padding interno equilibrado */
+  border: 1px solid #ddd; /* Borde sutil */
+  border-radius: 4px; /* Bordes redondeados */
+  background-color: white; /* Fondo blanco */
+  width: 100%; /* Ancho completo */
+  box-sizing: border-box; /* Incluye padding/border en ancho */
+  transition: border-color 0.3s ease; /* Suave hover/focus */
+}
+
+#cantidad-alo-maestro:focus,
+#delegacion-alo-maestro:focus {
+  outline: none;
+  border-color: #2196F3; /* Azul en focus para feedback */
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2); /* Sombra sutil */
+}
+
+/* Responsividad mobile (ya existente, reforzada para uniformidad) */
+@media (max-width: 480px) {
+  #cantidad-alo-maestro,
+  #delegacion-alo-maestro {
+    height: 45px; /* Ligeramente más alto en mobile para touch */
+    font-size: 18px; /* Más grande para fácil tipeo/tap */
+    padding: 12px; /* Padding extra en mobile */
+  }
+}
+
+/* Highlight temporal para rango pendiente (celeste) */
+.dia.en-rango-pendiente {
+  background-color: #e3f2fd !important; /* Celeste claro temporal */
+  color: #1976D2 !important; /* Texto azul oscuro para contraste */
+  border: 2px solid #2196F3; /* Borde azul sutil */
+  border-radius: 4px;
+  font-weight: bold; /* Más grueso para visibilidad */
+  transition: all 0.3s ease; /* Suave cambio a rojo/verde */
+}
+
+/* Asegura que celeste no interfiera con rojo/verde final */
+.dia.verde { background-color: #d4edda !important; color: #155724 !important; border-color: #28a745 !important; }
+.dia.rojo { background-color: #f8d7da !important; color: #721c24 !important; border-color: #dc3545 !important; }
