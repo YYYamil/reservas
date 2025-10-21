@@ -3,7 +3,7 @@ const CONFIG = {
   secretKey: "cristiano1988",
 
   // googleScriptUrl: "https://script.google.com/macros/s/AKfycbwUo0ouoBIxBhYl89tEy1NartJHSg-HIknuwN4Vc0YRnb601c5BDrq9-CHLNIEG1Y_L/exec",
-  googleScriptUrl: "https://script.google.com/macros/s/AKfycbxgWWIc13CwraIF2d1ZZCTf8xdsHpjG36Fh0qmVySlvDLT_OOzmWdbc8L72dSIaONcLhg/exec",
+  googleScriptUrl: "https://script.google.com/macros/s/AKfycbyD3-7fFieyDn77g8JuJb8ub8F7brefDb_ykk2GS6QtrJayZ3jFN7MuHVG0Jaus7AwM-A/exec",
   googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbxvskDSMkR5mqtGoqal4Tfuls001kyAlSu9QVE3Q9hORer0s3-aNCyjmPgAotk1wAQb/exec",
 
   meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
@@ -175,7 +175,7 @@ async function submitForm(albergue) {
   console.log(`Iniciando envío de formulario para ${albergue}`);
 
   const formData = getFormData(albergue);
-  if (!formData.institucion || !formData.responsable || !formData.contacto ||
+  if (!formData.institucion || !formData.responsable || !formData.dni || !formData.contacto ||
       !formData.cantidad || !formData.fechaIngreso || !formData.horaIngreso|| !formData.horaEgreso) {
     alert("Por favor complete todos los campos del formulario");
     return;
@@ -230,6 +230,7 @@ function getFormData(albergue) {
     albergue,
     institucion: document.getElementById(`institucion-${albergue}`).value,
     responsable: document.getElementById(`responsable-${albergue}`).value,
+    dni: document.getElementById(`dni-${albergue}`).value,
     contacto: document.getElementById(`contacto-${albergue}`).value,
     cantidad: document.getElementById(`cantidad-${albergue}`).value,
     fechaIngreso: document.getElementById(`fechaIngreso-${albergue}`).value,
@@ -507,6 +508,7 @@ async function enviarReservaAGoogleSheets(data) {
                data.albergue === 'tinku' ? 'Tinku Huasi' : 'Aquilina Soldati',
       institucion: data.institucion,
       responsable: data.responsable,
+      dni: data.dni,
       contacto: data.contacto,
       cantidad: parseInt(data.cantidad),
       fechaIngreso: data.fechaIngreso,
@@ -1930,7 +1932,7 @@ function setupPasoListenersAlo(albergue) {
 
   const dniInput = document.getElementById('dni-alo-maestro');
   if (dniInput) {
-    dniInput.placeholder = 'Ej: 12345678';
+    dniInput.placeholder = 'Ej: 30300600';
     dniInput.min = '0';
     dniInput.max = '99999999'; // Límite superior para 8 dígitos
     dniInput.addEventListener('input', () => {
@@ -2070,21 +2072,61 @@ function resetCalendarAloToToday(albergue) {
 // Funciones de loading (CARGA)
 function showCalendarLoadingAlo(albergue) {
   const overlay = document.getElementById(`cal-loader-alo-${albergue}`);
-  if (overlay) {
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  
+  if (grid && overlay) {
+    // Asegura que el overlay sea hijo del padre del grid para cubrir solo el calendario
+    const parent = grid.parentElement;
+    if (overlay.parentNode !== parent) {
+      parent.appendChild(overlay);
+    }
+    
+    // Asegura position relative en el padre para absolute en overlay
+    if (getComputedStyle(parent).position === 'static') {
+      parent.style.position = 'relative';
+    }
+    
+    // Estilos para cobertura exacta del calendario y centrado vertical/horizontal
+    overlay.style.position = 'absolute';
+    overlay.style.top = `${grid.offsetTop}px`;
+    overlay.style.left = `${grid.offsetLeft}px`;
+    overlay.style.width = `${grid.offsetWidth}px`;
+    overlay.style.height = `${grid.offsetHeight}px`;
+    overlay.style.alignItems = 'center';
+    overlay.style.justifyContent = 'center';
+    overlay.style.zIndex = '10'; // Sobre el contenido del calendario
+    
+    // Forzar display flex y remover hidden para mostrar
+    overlay.style.display = 'flex';
     overlay.hidden = false;
+    
+    // Si hay backdrop-filter causando blur extra o inconsistente, ajusta aquí
+    // Por ejemplo, forzar un blur uniforme: overlay.style.backdropFilter = 'blur(5px)'; // Ajusta según CSS original
+    // O deshabilitar temporalmente para test: overlay.style.backdropFilter = 'none';
+
+    
     const textEl = document.getElementById(`loader-text-alo-${albergue}`);
     if (textEl) textEl.textContent = 'Buscando...'; // Texto custom
   }
-  const grid = document.getElementById(`calendario-alo-${albergue}`);
-  if (grid) grid.classList.add('cal-block');
+  
+  if (grid) {
+    grid.classList.add('cal-block'); // Mantiene si es necesario, pero si causa blur extra, coméntalo temporalmente para test
+  }
 }
 
 function hideCalendarLoadingAlo(albergue) {
   const overlay = document.getElementById(`cal-loader-alo-${albergue}`);
-  if (overlay) overlay.hidden = true;
+  if (overlay) {
+    // Forzar display none y agregar hidden para ocultar de forma segura
+    overlay.style.display = 'none';
+    overlay.hidden = true;
+  }
   const grid = document.getElementById(`calendario-alo-${albergue}`);
   if (grid) grid.classList.remove('cal-block');
 }
+
+
+
 
 function updateOcupacionUIAlo(albergue, ocupados, capacidad) {
   const percent = capacidad > 0 ? Math.round((ocupados / capacidad) * 100) : 0;
