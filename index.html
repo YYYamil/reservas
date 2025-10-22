@@ -270,108 +270,109 @@
 
 
     <!-- VISITA Modal para  Albergue Maestro José Fierro -->
-                   <div id="modal-maestro" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Reserva - Albergue Maestro José Fierro</h3>
-                <button class="close-modal" onclick="closeModal('maestro')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="disponibilidad-section">
-                    <div class="disponibilidad-title">
-                        <i class="fas fa-chart-bar"></i>
-                        Seleccione el dia para realizar su visita:
-                    </div>
-                    
-                    <div class="ocupacion-container">
-                        <div class="ocupacion-bar">
-                            <div class="ocupacion-fill" id="ocupacion-fill-maestro" style="width: 0%;"></div>
-                        </div>
-                        <div class="ocupacion-info" id="ocupacion-info-maestro">—</div>
-                    </div>
-                       
-                    <!-- Dentro del modal de Maestro José Fierro -->
-                        <div class="disponibilidad">
-                        Lugares disponibles para ese dia: <span id="disponibles-maestro">—</span>
-                        </div>
-                    
-                    <div class="calendario-container">
-                        <div class="calendario-header">
-                            <button class="nav-mes" onclick="cambiarMes('maestro', -1)"><i class="fas fa-chevron-left"></i></button>
-                            <div class="mes-title" id="mes-actual-maestro">Noviembre 2024</div>
-                            <button class="nav-mes" onclick="cambiarMes('maestro', 1)"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <div class="calendario-grid" id="calendario-maestro">
-                            <!-- Calendario generado dinámicamente -->
-                        </div>
-
-                        <!-- ⬇️ Overlay de carga -->
-                            <div class="cal-loader" id="cal-loader-maestro" aria-live="polite" aria-busy="false" hidden>
-                                <div class="spinner" role="status" aria-label="Cargando disponibilidad"></div>
-                            </div>
-
-                    </div>
-                </div>
-                <!-- Formulario de reserva -->              
-                <form id="reservaFormMaestro">
-                <div class="form-grid">
-
-                  <!-- Fila 1: Institución | Responsable -->
-                  <div class="form-group">
-                    <label for="institucion-maestro">Institución/Delegación</label>
-                    <input type="text" id="institucion-maestro" class="form-control" required>
-                  </div>
-
-                  <div class="form-group">
-                    <label for="responsable-maestro">Nombre Completo del Responsable</label>
-                    <input type="text" id="responsable-maestro" class="form-control" required>
-                  </div>
-               
-
-                 
-
-              <div class="form-group">
-                <label for="contacto-tinku">Contacto (Número Telefónico)</label>
-                <input type="tel" id="contacto-maestro" class="form-control" required>
-              </div>
-
-           
-
-              <div class="form-group">
-                <label for="cantidad-maestro">Cantidad de Personas</label>
-                <input type="number" id="cantidad-maestro" class="form-control" min="1" required>
-              </div>
-          
-
-                  <!-- Fila 3: 3 columnas => Fecha | Hora Ingreso | Hora Egreso -->
-                
-                   <div style="display: none;">
-        <input type="hidden" id="fechaIngreso-maestro" required>
+                  <!-- VISITA Modal para Albergue Maestro José Fierro -->
+<div id="modal-maestro" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Reserva - Albergue Maestro José Fierro</h3>
+      <button class="close-modal" onclick="closeModal('maestro')">&times;</button>
     </div>
+    <div class="modal-body">
+      <div class="disponibilidad-section">
+        <div class="disponibilidad-title">
+          <i class="fas fa-chart-bar"></i>
+          Seleccione el dia para realizar su visita:
+        </div>
+        
+        <div class="ocupacion-container">
+          <div class="ocupacion-bar">
+            <div class="ocupacion-fill" id="ocupacion-fill-maestro" style="width: 0%;"></div>
+          </div>
+          <div class="ocupacion-info" id="ocupacion-info-maestro">—</div>
+        </div>
+           
+        <!-- Dentro del modal de Maestro José Fierro -->
+        <div class="disponibilidad">
+          Lugares disponibles para ese dia: <span id="disponibles-maestro">—</span>
+        </div>
+        
+        <div class="calendario-container">
+          <div class="calendario-header">
+            <button class="nav-mes" onclick="cambiarMes('maestro', -1)"><i class="fas fa-chevron-left"></i></button>
+            <div class="mes-title" id="mes-actual-maestro">Noviembre 2024</div>
+            <button class="nav-mes" onclick="cambiarMes('maestro', 1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+          <div class="calendario-grid" id="calendario-maestro">
+            <!-- Calendario generado dinámicamente -->
+          </div>
 
-                    <div class="form-group">
-                      <label for="horaIngreso-maestro">Hora de Ingreso</label>
-                      <select id="horaIngreso-maestro" class="form-control hour-select" required></select>
-                    </div>
+          <!-- ⬇️ Overlay de carga -->
+          <div class="cal-loader" id="cal-loader-maestro" aria-live="polite" aria-busy="false" hidden>
+            <div class="spinner" role="status" aria-label="Cargando disponibilidad"></div>
+          </div>
 
-                    <div class="form-group">
-                      <label for="horaEgreso-maestro">Hora de Egreso</label>
-                      <select id="horaEgreso-maestro" class="form-control hour-select" required></select>
-                    </div>
-                  
-
-                </div>
-
-                <button type="submit" class="btn-submit" id="btn-submit-maestro">
-                  <span class="btn-icon" aria-hidden="true"></span>
-                  <span class="btn-label">Confirmar Reserva</span>
-                </button>
-              </form>
-
-            </div>
         </div>
       </div>
+      <!-- Formulario de reserva -->              
+      <form id="reservaFormMaestro">
+        <div class="form-grid">
 
+          <!-- Primera fila: Institución/Delegación (full width) -->
+          <div class="form-group full-width">
+            <label for="institucion-maestro">Institución/Delegación</label>
+            <input type="text" id="institucion-maestro" class="form-control" required>
+          </div>
+
+          <!-- Segunda fila: Nombre Completo del Responsable y DNI -->
+          <div class="form-group">
+            <label for="responsable-maestro">Nombre Completo del Responsable</label>
+            <input type="text" id="responsable-maestro" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="dni-maestro">DNI (solo números)</label>
+            <input type="text" id="dni-maestro" class="form-control" required pattern="\d{8}" placeholder="Ej: 30300600">
+          </div>
+
+          <!-- Tercera fila: Contacto y Cantidad de Personas -->
+          <div class="form-group">
+            <label for="contacto-maestro">Contacto (Número Telefónico)</label>
+            <input type="tel" id="contacto-maestro" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
+          </div>
+
+          <div class="form-group">
+            <label for="cantidad-maestro">Cantidad de Personas</label>
+            <input type="number" id="cantidad-maestro" class="form-control" min="1" required>
+          </div>
+
+          <!-- Campo oculto para fecha -->
+          <div style="display: none;">
+            <input type="hidden" id="fechaIngreso-maestro" required>
+          </div>
+
+          <!-- Cuarta fila: Hora de Ingreso y Hora de Egreso -->
+          <div class="form-group">
+            <label for="horaIngreso-maestro">Hora de Ingreso</label>
+            <select id="horaIngreso-maestro" class="form-control hour-select" required></select>
+          </div>
+
+          <div class="form-group">
+            <label for="horaEgreso-maestro">Hora de Egreso</label>
+            <select id="horaEgreso-maestro" class="form-control hour-select" required></select>
+          </div>
+
+        </div>
+
+        <!-- Quinta fila: Botón de Confirmar Reserva -->
+        <button type="submit" class="btn-submit" id="btn-submit-maestro">
+          <span class="btn-icon" aria-hidden="true"></span>
+          <span class="btn-label">Confirmar Reserva</span>
+        </button>
+      </form>
+
+    </div>
+  </div>
+</div>
 
 
       
@@ -425,15 +426,17 @@
             </div>
 
      <!-- Nuevo: Horarios resaltados -->
-<div class="horarios-resaltados">
-  <span>Recuerde: </span>
-  <i class="fas fa-clock" style="color: #2196F3;"></i>
-  <span>Hora Ingreso: 09:00 hs</span>
-  <i class="fas fa-clock" style="color: #2196F3;"></i>
-  <span>Hora Salida: 18:30 hs</span>
-</div>
+<div class="step-container step-3">
+      <div class="form-row">
+      <label for="delegacion-alo-maestro">
+                <i class="fa-solid fa-calendar-days"></i>
+                        3. Seleccione fecha de entrada y fecha de salida:                        
+        </label>
+  
+          </div>
 
-            <!-- Paso 3: Rango de Días -->
+
+<!-- Paso 3: Rango de Días -->
             <!-- Calendario header -->
 <div class="calendario-header">
     <button class="nav-mes" id="nav-prev-alo-maestro" onclick="cambiarMesAlo('maestro', -1)"><i class="fas fa-chevron-left"></i></button>
@@ -465,38 +468,58 @@
             </div>
 
             
+<div class="horarios-resaltados">
+        
+<i class="fa-solid fa-clock"></i>
+  <span>Recuerde los horarios: </span>
+        
+        <span>Ingreso a 09:00 hs</span>
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Salida a 18:30 hs</span>
+      </div>
+
+
+
+
+
+
+
+
+</div>
+
+            
 
             <!-- Paso 4: Datos Adicionales -->
+
             <div class="step-container step-4">
                 <form id="aloFormMaestro">
                     <input type="hidden" id="delegacion-hidden-alo-maestro" name="delegacion" value="">
                     <div class="form-group">
-                        <label for="institucion-alo-maestro">4. Institución/Delegación</label>
+                        <label for="institucion-alo-maestro">4. Nombre de Institución/Delegación</label>
                         <input type="text" id="institucion-alo-maestro" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="responsable-alo-maestro">Nombre Completo del Responsable</label>
+                        <label for="responsable-alo-maestro">Nombre completo del responsable</label>
                         <input type="text" id="responsable-alo-maestro" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="dni-alo-maestro">DNI (Número Documento)</label>
+                        <label for="dni-alo-maestro">DNI (Solo números)</label>
                         <input type="tel" id="dni-alo-maestro" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label for="contacto-alo-maestro">Contacto (Número Telefónico)</label>
-                        <input type="tel" id="contacto-alo-maestro" class="form-control" required>
+                        <label for="contacto-alo-maestro">Contacto (Nro. Telefónico)</label>
+                        <input type="tel" id="contacto-alo-maestro" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
                     </div>
+                                   
 
-                   
-
- <!-- Botón Submit (deshabilitado inicialmente) -->
+            <!-- Botón Submit (deshabilitado inicialmente) -->
             <button type="submit" form="aloFormMaestro" class="btn-submit" id="btn-submit-alo-maestro" disabled>
                 <span class="btn-label">Confirmar Reserva</span>
             </button>
 
 
-                </form>
-            </div>
+                
+            
 
            
 
@@ -504,9 +527,18 @@
             <button type="button" class="btn-reset" id="btn-reset-alo-maestro" onclick="resetAllAlo('maestro')">
                 <i class="fas fa-undo"></i> Limpiar Todo
             </button>
-        </div>
+
+          </form>
+
+            </div>
+
+
+      </div>
     </div>
-</div>
+
+
+  </div>
+
 
 
     <!-- Modal para Albergue Tinku Huasi -->
@@ -728,7 +760,7 @@
 <div id="modal-cancelar" class="modal">
   <div class="modal-content">
     <div class="modal-header" style="background:#d9534f; color:#fff;">
-      <h3 class="modal-title">Cancelar reserva</h3>
+      <h3 class="modal-title">Para cancelar su reserva ingrese:</h3>
       <button class="close-modal" id="close-cancel-modal">&times;</button>
     </div>
     <div class="modal-body">
@@ -736,7 +768,8 @@
         <div class="form-grid">
           
                     <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="cancel-id">Ingrese su Número de reserva</label>
+                    <label for="cancel-id">Número de reserva:</label>
+                    
                     <input 
                       type="number" 
                       id="cancel-id" 
@@ -746,6 +779,18 @@
                       max="9999" 
                       required
                     >
+                    
+                    <label for="cancel-dni">DNI responsable:</label>
+                    <input 
+                      type="number" 
+                      id="cancel-dni" 
+                      class="form-control no-spinners" 
+                      placeholder="Ej: 30300400" 
+                       
+                      required
+                    >
+
+
                     </div>
 
         </div>

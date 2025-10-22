@@ -630,6 +630,23 @@
             color: #bbb;
         }
 
+
+
+
+        /* Día seleccionado provisional (inicio de rango) */
+.dia.seleccionado-inicial {
+  background-color: #84CFED; /* celeste claro */
+  color: #004a8c;
+  border: 2px solid #004a8c;
+}
+
+
+
+
+
+
+
+
         footer {
             background: linear-gradient(135deg, var(--azul) 0%, #004a8c 100%);
             color: var(--blanco);
@@ -1682,6 +1699,7 @@ select:disabled {
     width: 100%;
     margin-top: 10px;
     font-size: 14px;
+    font-weight: 600
 }
 .btn-reset:hover {
     background: #d32f2f;
@@ -1801,24 +1819,25 @@ input[readonly], select[disabled] {
 
 /*Horarios de entrada y salida*/
 .horarios-resaltados {
-  margin-top: 10px;
-  padding: 8px 12px;
-  background-color: #e3f2fd; /* Fondo azul claro */
-  border-left: 4px solid #2196F3; /* Borde izquierdo azul */
+  margin-top: 0px;
+  padding: 0px 1px;
+  /*background-color: #e3f2fd; /* Fondo azul claro */
+  /*border-left: 4px solid #2196F3; /* Borde izquierdo azul */
   border-radius: 4px;
   font-weight: bold;
-  color: #1976D2; /* Texto azul oscuro */
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 14px;
+  color:#005CA2; /* Texto azul oscuro */
+  /*display: flex;*/
+  align-items: center important!;
+  
+  gap: 10px;
+  /*font-size: 14px;*/
 }
 
 
 .horarios-resaltados i {
   color: #2196F3 !important; /* Azul para iconos */
   font-size: 18px; /* Ligeramente más grande para impacto visual */
-  margin-right: 5px;
+  margin-right: 10px;
 }
 
 /*fondo gris calendario*/
@@ -1931,16 +1950,25 @@ input[readonly], select[disabled] {
   }
 }
 
-/* Highlight temporal para rango pendiente (celeste) */
-.dia.en-rango-pendiente {
-  background-color: #e3f2fd !important; /* Celeste claro temporal */
-  color: #1976D2 !important; /* Texto azul oscuro para contraste */
-  border: 2px solid #2196F3; /* Borde azul sutil */
-  border-radius: 4px;
-  font-weight: bold; /* Más grueso para visibilidad */
-  transition: all 0.3s ease; /* Suave cambio a rojo/verde */
+/* Antes de consultar */
+.dia.azul-seleccion {
+  background-color: #b3e5ff !important;
+  color: #003366;
+  border: 2px solid #007bff;
 }
 
-/* Asegura que celeste no interfiera con rojo/verde final */
-.dia.verde { background-color: #d4edda !important; color: #155724 !important; border-color: #28a745 !important; }
-.dia.rojo { background-color: #f8d7da !important; color: #721c24 !important; border-color: #dc3545 !important; }
+/* Después de consultar */
+.dia.verde {
+  background-color: #9af59a !important;
+  color: #0b4d0b;
+}
+.dia.rojo {
+  background-color: #f59a9a !important;
+  color: #660000;
+}
+.dia {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+
