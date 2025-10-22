@@ -3,7 +3,7 @@ const CONFIG = {
   secretKey: "cristiano1988",
 
   // googleScriptUrl: "https://script.google.com/macros/s/AKfycbwUo0ouoBIxBhYl89tEy1NartJHSg-HIknuwN4Vc0YRnb601c5BDrq9-CHLNIEG1Y_L/exec",
-  googleScriptUrl: "https://script.google.com/macros/s/AKfycbyD3-7fFieyDn77g8JuJb8ub8F7brefDb_ykk2GS6QtrJayZ3jFN7MuHVG0Jaus7AwM-A/exec",
+  googleScriptUrl: "https://script.google.com/macros/s/AKfycbyUru89r3xPTkHDKQk8NTO6AtaIRPYXln4J-vWtB70yz9tASWbnCnx1iwpaBsGkqJ2qKQ/exec",
   googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbxvskDSMkR5mqtGoqal4Tfuls001kyAlSu9QVE3Q9hORer0s3-aNCyjmPgAotk1wAQb/exec",
 
   meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
@@ -1049,9 +1049,10 @@ function openCancelModal(){
   if (!m) return;
   // limpia input y botón
   const inp = document.getElementById('cancel-id');
+  const dni = document.getElementById('cancel-dni');
   if (inp) inp.value = '';
   const btn = document.getElementById('btn-cancelar-enviar');
-  if (btn) resetBtn(btn, 'Confirmar cancelación');
+  if (btn) resetBtn(btn, 'Borrar Reserva');
 
   m.classList.add('active');
   document.body.style.overflow = 'hidden';
@@ -1090,44 +1091,51 @@ if (btnAlo) {
   }
 
   if (cancelForm){
-    cancelForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
+  cancelForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
 
-      const idVal = document.getElementById('cancel-id')?.value?.trim();
-      if (!idVal){
-        showSnackbar('Ingrese un ID válido', 'error', 2500);
-        return;
-      }
+    const idVal = document.getElementById('cancel-id')?.value?.trim();
+    const dniVal = document.getElementById('cancel-dni')?.value?.trim();
 
-      const btn = document.getElementById('btn-cancelar-enviar');
-      setBtnLoading(btn);
+    if (!idVal){
+      showSnackbar('Ingrese un ID válido', 'error', 2500);
+      return;
+    }
+    if (!dniVal){
+      showSnackbar('Ingrese el DNI del responsable', 'error', 2500);
+      return;
+    }
 
-      try{
-        const result = await cancelarReservaEnGoogleSheets(idVal);
-        if (result.success){
-          setBtnSuccess(btn, 'Cancelada');
-          showSnackbar(`Reserva ${idVal} cancelada correctamente.`, 'success', 8200);
-          setTimeout(() => {
-            closeCancelModal();
-            resetBtn(btn, 'Confirmar cancelación');
-          }, 900);
-        }else{
-          setBtnError(btn, 'Error');
-          showSnackbar(result.message || 'No se pudo cancelar la reserva', 'error', 8200);
-          setTimeout(() => resetBtn(btn, 'Confirmar cancelación'), 1200);
-        }
-      }catch(err){
-        console.error(err);
+    const btn = document.getElementById('btn-cancelar-enviar');
+    setBtnLoading(btn);
+
+    try{
+      const result = await cancelarReservaEnGoogleSheets(idVal, dniVal);
+      if (result && result.success){
+        setBtnSuccess(btn, 'Cancelada');
+        showSnackbar(result.message || `Reserva ${idVal} cancelada correctamente.`, 'success', 8200);
+        setTimeout(() => {
+          closeCancelModal();
+          resetBtn(btn, 'Confirmar cancelación');
+        }, 900);
+      } else {
         setBtnError(btn, 'Error');
-        showSnackbar('Error de conexión al cancelar', 'error', 3200);
+        showSnackbar(result.message || 'No se pudo cancelar la reserva', 'error', 8200);
         setTimeout(() => resetBtn(btn, 'Confirmar cancelación'), 1200);
       }
-    });
-  }
+    }catch(err){
+      console.error(err);
+      setBtnError(btn, 'Error');
+      showSnackbar('Error de conexión al cancelar', 'error', 3200);
+      setTimeout(() => resetBtn(btn, 'Confirmar cancelación'), 1200);
+    }
+  });
+}
+
 });
 
 // Llamada al Apps Script para cancelar
-async function cancelarReservaEnGoogleSheets(idReserva){
+/*async function cancelarReservaEnGoogleSheets(idReserva){
   const payload = new URLSearchParams({
     secret: CONFIG.secretKey,
     action: 'cancelarReserva',
@@ -1148,6 +1156,23 @@ document.getElementById("cancel-id").addEventListener("input", function() {
     this.value = this.value.slice(0, 4); // limita a 4 dígitos
   }
 });
+*/
+async function cancelarReservaEnGoogleSheets(idReserva, dni){
+  const payload = new URLSearchParams({
+    secret: CONFIG.secretKey,
+    action: 'cancelarReserva',
+    idReserva: String(idReserva),
+    dni: String(dni)
+  });
+
+  const resp = await fetch(CONFIG.googleScriptUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: payload
+  });
+
+  return resp.json();
+}
 
 
 
