@@ -212,7 +212,7 @@ if (data.action === "cancelarReserva") {
     return ContentService.createTextOutput(JSON.stringify({
       success: ok,
       message: ok
-        ? `Eliminadas ${borradasReservas} Reserva`
+        ? `Cancelada ${borradasReservas} Reserva`
         : 'No se encontraron reservas para eliminar en Visitas'
     })).setMimeType(ContentService.MimeType.JSON);
   }
@@ -273,7 +273,7 @@ if (data.action === "cancelarReserva") {
   return ContentService.createTextOutput(JSON.stringify({
     success: okAlo,
     message: okAlo
-      ? `Eliminadas ${borradasRAlo} Reservas y ${borradasDAlo} dias`
+      ? `Cancelada ${borradasRAlo} Reserva de ${borradasDAlo} dias`
       : 'No se encontraron reservas para eliminar'
   })).setMimeType(ContentService.MimeType.JSON);
 }
