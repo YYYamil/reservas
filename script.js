@@ -1740,8 +1740,8 @@ async function handleClickDiaAlo(albergue, iso, cell) {
           completePasoAlo(albergue, 3); // Completa paso → Activa paso 4
           //console.log('Paso 3 completado: Todos los días verdes'); // DEBUG
         } else if (!todosVerdes) {
-          //console.log('Paso 3 no completado: Algunos días rojos (insuficientes camas)'); // DEBUG
-          showSnackbar('Algunos días no tienen suficientes camas. Revise colores rojos.', 'error', 4000);
+          //console.log('Paso 3 no completado: Algunos días rojos (insuficientes camas)'); // DEBUG          
+          showSnackbar('Algunos dias no tiene disponibilidad. Seleccione otro rango.', 'error', 12000);
         }
       } catch (error) {
         console.error('Error al verificar rango:', error);
@@ -2281,7 +2281,7 @@ async function obtenerDisponibilidadDiaAlo(albergueKey, fechaISO) {
 }
 
 // Límites para cantidad en alojamiento (similar a setupCantidadLimits)
-function setupCantidadLimitsAlo() {
+/*function setupCantidadLimitsAlo() {
   const albergue = 'maestro';
   const input = document.getElementById(`cantidad-alo-${albergue}`);
   if (!input) return;
@@ -2293,6 +2293,44 @@ function setupCantidadLimitsAlo() {
   input.addEventListener('input', () => {
     let v = parseInt(input.value, 10);
     if (isNaN(v) || v < 1) v = 1;
+    if (v > capacidades[albergue]) v = capacidades[albergue];
+    input.value = v;
+  });
+}*/
+
+function setupCantidadLimitsAlo() {
+  const albergue = 'maestro';
+  const input = document.getElementById(`cantidad-alo-${albergue}`);
+  if (!input) return;
+  
+  input.min = '1';
+  input.max = capacidades[albergue]; // 92 para maestro
+  input.placeholder = `máx ${capacidades[albergue]}`;
+  
+  input.addEventListener('input', () => {
+    let v = input.value.trim();
+    if (v === '') return; // Permite vaciar temporalmente para edición
+    v = parseInt(v, 10);
+    if (isNaN(v)) {
+      input.value = '';
+      return;
+    }
+    if (v < 1) v = 1;
+    if (v > capacidades[albergue]) v = capacidades[albergue];
+    input.value = v;
+  });
+
+  // En blur: Si vacío, no fuerza, pero required lo manejará en submit
+  // Si valor, asegura clamp (redundante pero seguro)
+  input.addEventListener('blur', () => {
+    let v = input.value.trim();
+    if (v === '') return; // Deja vacío si el usuario lo dejó así
+    v = parseInt(v, 10);
+    if (isNaN(v)) {
+      input.value = '';
+      return;
+    }
+    if (v < 1) v = 1;
     if (v > capacidades[albergue]) v = capacidades[albergue];
     input.value = v;
   });
