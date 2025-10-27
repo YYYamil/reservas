@@ -1147,6 +1147,8 @@ const estadoCalendarioAlo = {
   maestro: { mes: new Date().getMonth(), año: new Date().getFullYear(), startISO: null, endISO: null, range: [], diasValidos: [] }
 };
 
+const showStepErrorsAlo = { maestro: false };
+
 // Estado global para pasos (por albergue)
 const pasoEstadoAlo = { maestro: { current: 1, completed: [] } };
 
@@ -1192,7 +1194,7 @@ function openAlojamientoModal(albergue) {
 }
 
 // Inicializar pasos
-function initPasoFlujoAlo(albergue) {
+/*function initPasoFlujoAlo(albergue) {
   pasoEstadoAlo[albergue] = { current: 1, completed: [] };
   updateProgresoAlo(albergue);
   // Deshabilita submit inicialmente
@@ -1204,6 +1206,22 @@ function initPasoFlujoAlo(albergue) {
     btnSubmit.classList.remove('enabled');
   }
 }
+*/
+
+function initPasoFlujoAlo(albergue) {
+  pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+  showStepErrorsAlo[albergue] = false; // Reset errores al init
+  updateProgresoAlo(albergue);
+  // Deshabilita submit inicialmente
+  const btnSubmit = document.getElementById('btn-submit-alo-maestro');
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.setAttribute('disabled', 'disabled');
+    btnSubmit.classList.add('disabled');
+    btnSubmit.classList.remove('enabled');
+  }
+}
+
 
 function closeAlojamientoModal(albergue) {
   //console.log(`Cerrando modal de alojamiento para ${albergue}`);
@@ -1235,6 +1253,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // En handleFormSubmitAlo: Refuerza check para prevenir submit si Paso 4 no completo
+/*
 function handleFormSubmitAlo(e) {
   e.preventDefault();
   const albergue = 'maestro'; // Fijo por ahora
@@ -1249,7 +1268,24 @@ function handleFormSubmitAlo(e) {
     formSubmissionStateAlo[albergue].isSubmitting = false;
   });
 }
+*/
 
+function handleFormSubmitAlo(e) {
+  e.preventDefault();
+  const albergue = 'maestro'; // Fijo por ahora
+  if (formSubmissionStateAlo[albergue].isSubmitting) return;
+  // NUEVO: Check explícito para todos los pasos completos (incluyendo Paso 4)
+  if (pasoEstadoAlo[albergue].completed.length < 4) {
+    showStepErrorsAlo[albergue] = true; // Activa modo error
+    updateProgresoAlo(albergue); // Actualiza visual con errores
+    showSnackbar('Debe completar los 4 PASOS antes de confirmar.', 'error', 4000);
+    return;
+  }
+  formSubmissionStateAlo[albergue].isSubmitting = true;
+  submitFormAlo(albergue).finally(() => {
+    formSubmissionStateAlo[albergue].isSubmitting = false;
+  });
+}
 // En completePasoAlo: Toggle clases visuales al habilitar
 function completePasoAlo(albergue, pasoNum) {
   if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
@@ -1266,6 +1302,10 @@ function completePasoAlo(albergue, pasoNum) {
       btnSubmit.classList.add('enabled'); // Agrega azul/activo
       //console.log('Botón submit habilitado: Paso 4 completo'); // DEBUG
     }
+
+    // NUEVO: Resetea errores si todos completos
+    showStepErrorsAlo[albergue] = false;
+    updateProgresoAlo(albergue);
   }
 }
 
@@ -1959,6 +1999,7 @@ function completePasoAlo(albergue, pasoNum) {
 }
 
 // Actualizar progreso visual
+/*
 function updateProgresoAlo(albergue) {
   // Highlights en steps
   document.querySelectorAll('.step-container').forEach((step, index) => {
@@ -1988,8 +2029,44 @@ function updateProgresoAlo(albergue) {
   const fill = document.getElementById('progress-fill');
   if (fill) fill.style.width = `${progress}%`;
 }
+*/
 
+function updateProgresoAlo(albergue) {
+  // Highlights en steps
+  document.querySelectorAll('.step-container').forEach((step, index) => {
+    const pasoNum = index + 1;
+    step.classList.remove('step-completed', 'step-active', 'step-error'); // NUEVO: Remueve error también
+    if (pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
+      step.classList.add('step-completed');
+    } else if (pasoEstadoAlo[albergue].current === pasoNum) {
+      step.classList.add('step-active');
+    } else if (showStepErrorsAlo[albergue]) {
+      // NUEVO: Agrega rojo a incompletos si modo error activo
+      step.classList.add('step-error');
+    }
+  });
+
+  // Indicadores circulares
+  document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
+    const pasoNum = index + 1;
+    indicator.classList.remove('completed', 'active', 'error'); // NUEVO: Remueve error
+    if (pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
+      indicator.classList.add('completed');
+    } else if (pasoEstadoAlo[albergue].current === pasoNum) {
+      indicator.classList.add('active');
+    } else if (showStepErrorsAlo[albergue]) {
+      // NUEVO: Agrega error a incompletos si modo error activo
+      indicator.classList.add('error');
+    }
+  });
+
+  // Barra de progreso
+  const progress = (pasoEstadoAlo[albergue].completed.length / 4) * 100;
+  const fill = document.getElementById('progress-fill');
+  if (fill) fill.style.width = `${progress}%`;
+}
 // Función Reset Global
+/*
 function resetAllAlo(albergue) {
   //console.log('Reset all para', albergue); // DEBUG
   // Reset inputs y select
@@ -2031,7 +2108,53 @@ function resetAllAlo(albergue) {
 
   //showSnackbar('Todos los campos han sido limpiados. Puede comenzar de nuevo.', 'success', 3000);
 }
+*/
 
+function resetAllAlo(albergue) {
+  console.log('Reset all para', albergue); // DEBUG
+  // Reset inputs y select
+  const qtyInput = document.getElementById('cantidad-alo-maestro');
+  if (qtyInput) {
+    qtyInput.value = '';
+    qtyInput.readonly = false; // Desbloquea
+  }
+  const delSelect = document.getElementById('delegacion-alo-maestro');
+  if (delSelect) {
+    delSelect.value = '';
+    delSelect.disabled = false; // Desbloquea
+  }
+  document.getElementById('delegacion-hidden-alo-maestro').value = '';
+  ['institucion-alo-maestro', 'responsable-alo-maestro', 'dni-alo-maestro', 'contacto-alo-maestro'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.value = '';
+  });
+
+  // Reset form
+  const form = document.getElementById('aloFormMaestro');
+  if (form) form.reset();
+
+  // Reset calendario
+  resetRangoAlo(albergue);
+  fechasOcupadasAlo[albergue] = [];
+  generarCalendarioAlo(albergue);
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  if (grid) grid.classList.remove('step-completed');
+  const navPrev = document.getElementById(`nav-prev-alo-${albergue}`);
+  const navNext = document.getElementById(`nav-next-alo-${albergue}`);
+  if (navPrev) navPrev.disabled = false;
+  if (navNext) navNext.disabled = false;
+
+  // Reset pasos y visual
+  initPasoFlujoAlo(albergue);
+  const btnSubmit = document.getElementById('btn-submit-alo-maestro');
+  if (btnSubmit) btnSubmit.disabled = true;
+
+  // NUEVO: Reset errores
+  showStepErrorsAlo[albergue] = false;
+  updateProgresoAlo(albergue);
+
+  //showSnackbar('Todos los campos han sido limpiados. Puede comenzar de nuevo.', 'success', 3000);
+}
 function cambiarMesAlo(albergue, direccion) {
   const estado = estadoCalendarioAlo[albergue];
   estado.mes += direccion;
