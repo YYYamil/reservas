@@ -1816,7 +1816,7 @@ async function handleClickDiaAlo(albergue, iso, cell) {
           console.log('Paso 3 completado: Todos los días verdes'); // DEBUG
         } else if (!todosVerdes) {
           console.log('Paso 3 no completado: Algunos días rojos (insuficientes camas)'); // DEBUG
-          showSnackbar('Hay días en rojo, por favor seleccione otro rango.', 'error', 4000);
+          showSnackbar('El rango seleccionado no tiene camas disponibles. Elija otro rango ', 'error', 10000);
         }
       } catch (error) {
         console.error('Error al verificar rango:', error);
@@ -2604,7 +2604,8 @@ function setupPasoListenersAlo(albergue) {
   }
 
   // Escucha cambios en los campos del Paso 4
-  ['input', 'blur', 'paste'].forEach(evt => {
+  //['input', 'blur', 'paste'].forEach(evt => {
+    ['blur', 'paste'].forEach(evt => {
     Object.values(campos).forEach(el => {
       if (!el) return;
       el.addEventListener(evt, () => {
