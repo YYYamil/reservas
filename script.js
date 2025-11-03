@@ -4,7 +4,7 @@ const CONFIG = {
 
   // googleScriptUrl: "https://script.google.com/macros/s/AKfycbwUo0ouoBIxBhYl89tEy1NartJHSg-HIknuwN4Vc0YRnb601c5BDrq9-CHLNIEG1Y_L/exec",
   googleScriptUrl: "https://script.google.com/macros/s/AKfycby27iY1bq_o5I-UiDFZifgCxdFteWrd_7PcA6Itu30TPrOg7oF-07IxWgwgdPJHz7PYfQ/exec",
-  googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbxvskDSMkR5mqtGoqal4Tfuls001kyAlSu9QVE3Q9hORer0s3-aNCyjmPgAotk1wAQb/exec",
+  googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbxKmK_OI6M9tIeGZelvBa_srys0REkE_JF6bheHmEgQgRxMH76uHsPSVS22nflE-WhV/exec",
 
   meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
   diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
@@ -364,10 +364,14 @@ function generarCalendario(albergue) {
 
     const esPasado = fechaActual < hoy;
 
+    const esHoy = fechaActual.getTime() === hoy.getTime(); // NUEVO: Detecta hoy explícitamente
+
     // Clases
     let clases = [];
     if (estaOcupado) clases.push('ocupado');
-    if (esPasado)    clases.push('inactiva');
+    //if (esPasado)    clases.push('inactiva');
+
+    if (esPasado || esHoy) clases.push('inactiva'); // NUEVO: Hoy también inactivo
 
     const dia = crearDiaElemento(i, clases.join(' '));
     dia.dataset.iso = iso;
@@ -382,7 +386,8 @@ function generarCalendario(albergue) {
     }
 
     // Click SOLO si no es pasado ni ocupado
-    if (!esPasado && !estaOcupado) {
+   //f (!esPasado && !estaOcupado) {
+   if (!esPasado && !esHoy && !estaOcupado) {
       dia.addEventListener('click', () => {
         setSelectedDate(albergue, iso, dia);
         mostrarInfoDia(albergue, año, mes, i);
@@ -793,7 +798,7 @@ function sanitizeTelefono(v){
   return v.replace(/\D/g, '');
 }
 
-// --- Instalación de validaciones para todos los formularios ---
+
 // --- Instalación de validaciones para todos los formularios ---
 function setupFieldGuards(){
   // Nombre del responsable: solo letras y espacios
@@ -856,7 +861,7 @@ document.querySelectorAll('input[id^="dni-"]').forEach(el => {
     const v = parseInt(el.value, 10);
     if (isNaN(v) || v.toString().length !== 8) {
       el.value = ''; // Limpia si no es 8 dígitos válidos
-      showSnackbar('DNI debe ser exactamente 8 números.', 'error', 3000);
+      //showSnackbar('DNI debe ser exactamente 8 números.', 'error', 3000);
     }
   });
 });
@@ -1171,6 +1176,22 @@ async function cancelarReservaEnGoogleSheets(idReserva, dni){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*//////////////////////// II parte //////////////////////////////////////////////////*/
 
 // Estado para calendario de alojamiento (solo maestro )
@@ -1193,65 +1214,7 @@ let ocupacionActualAlo = { maestro: 0 };
 const formSubmissionStateAlo = { maestro: { isSubmitting: false } };
 
 // Funciones para modales de alojamiento
-function openAlojamientoModal(albergue) {
-  //console.log(`Abriendo modal de alojamiento para ${albergue}`); // DEBUG: Confirm albergue value
-  const modalId = `modal-alojamiento-${albergue}`;
-  const modalEl = document.getElementById(modalId);
-  //console.log(`Looking for modal ID: ${modalId}, found:`, modalEl); // DEBUG: Check if element exists
-  
-  if (!modalEl) {
-    console.error(`Modal element '${modalId}' not found in DOM. Check HTML ID.`);
-    alert(`Error: Modal para ${albergue} no encontrado. Recarga la página.`);
-    return; // Exit early to prevent crash
-  }
-  
-  modalEl.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  resetFormAlo(albergue);
-  resetCalendarAloToToday(albergue);
-  resetOcupacionUIAlo(albergue); // Limpia barra
-  fechasOcupadasAlo[albergue] = []; // Reset cache al abrir
-  generarCalendarioAlo(albergue);
 
-  // Always init steps - con try-catch mínimo para no romper el modal
-  try {
-    initPasoFlujoAlo(albergue);
-    setupPasoListenersAlo(albergue);
-    //console.log('Pasos inicializados exitosamente para', albergue); // DEBUG éxito en pasos
-  } catch (error) {
-    console.error('Error en inits de pasos:', error);
-    
-  }
-}
-
-// Inicializar pasos
-/*function initPasoFlujoAlo(albergue) {
-  pasoEstadoAlo[albergue] = { current: 1, completed: [] };
-  updateProgresoAlo(albergue);
-  // Deshabilita submit inicialmente
-  const btnSubmit = document.getElementById('btn-submit-alo-maestro');
-  if (btnSubmit) {
-    btnSubmit.disabled = true;
-    btnSubmit.setAttribute('disabled', 'disabled');
-    btnSubmit.classList.add('disabled');
-    btnSubmit.classList.remove('enabled');
-  }
-}
-*/
-
-function initPasoFlujoAlo(albergue) {
-  pasoEstadoAlo[albergue] = { current: 1, completed: [] };
-  showStepErrorsAlo[albergue] = false; // Reset errores al init
-  updateProgresoAlo(albergue);
-  // Deshabilita submit inicialmente
-  const btnSubmit = document.getElementById('btn-submit-alo-maestro');
-  if (btnSubmit) {
-    btnSubmit.disabled = true;
-    btnSubmit.setAttribute('disabled', 'disabled');
-    btnSubmit.classList.add('disabled');
-    btnSubmit.classList.remove('enabled');
-  }
-}
 
 
 function closeAlojamientoModal(albergue) {
@@ -1283,23 +1246,6 @@ document.addEventListener('DOMContentLoaded', function() {
   setupCantidadListenerAlo(); // Asegura que se llame
 });
 
-// En handleFormSubmitAlo: Refuerza check para prevenir submit si Paso 4 no completo
-/*
-function handleFormSubmitAlo(e) {
-  e.preventDefault();
-  const albergue = 'maestro'; // Fijo por ahora
-  if (formSubmissionStateAlo[albergue].isSubmitting) return;
-  // NUEVO: Check explícito para todos los pasos completos (incluyendo Paso 4)
-  if (pasoEstadoAlo[albergue].completed.length < 4) {
-    showSnackbar('Complete todos los pasos antes de confirmar.', 'error', 3000);
-    return;
-  }
-  formSubmissionStateAlo[albergue].isSubmitting = true;
-  submitFormAlo(albergue).finally(() => {
-    formSubmissionStateAlo[albergue].isSubmitting = false;
-  });
-}
-*/
 
 function handleFormSubmitAlo(e) {
   e.preventDefault();
@@ -1317,53 +1263,6 @@ function handleFormSubmitAlo(e) {
     formSubmissionStateAlo[albergue].isSubmitting = false;
   });
 }
-// En completePasoAlo: Toggle clases visuales al habilitar
-function completePasoAlo(albergue, pasoNum) {
-  if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
-    pasoEstadoAlo[albergue].completed.push(pasoNum);
-    pasoEstadoAlo[albergue].current = Math.min(4, pasoNum + 1);
-    updateProgresoAlo(albergue);
-  }
-  // Habilita submit SOLO si todos completos (4 pasos, Paso 4 incluido)
-  if (pasoEstadoAlo[albergue].completed.length === 4) {
-    const btnSubmit = document.getElementById('btn-submit-alo-maestro');
-    if (btnSubmit) {
-      btnSubmit.disabled = false;
-      btnSubmit.classList.remove('disabled'); // Remueve gris/prohibido
-      btnSubmit.classList.add('enabled'); // Agrega azul/activo
-      //console.log('Botón submit habilitado: Paso 4 completo'); // DEBUG
-    }
-
-    // NUEVO: Resetea errores si todos completos
-    showStepErrorsAlo[albergue] = false;
-    updateProgresoAlo(albergue);
-  }
-}
-
-// En setupPasoListenersAlo: Deshabilita visual si no todos llenos (Paso 4)
-['institucion-alo-maestro', 'responsable-alo-maestro', 'dni-alo-maestro', 'contacto-alo-maestro'].forEach(id => {
-  const input = document.getElementById(id);
-  if (input) {
-    input.addEventListener('blur', () => {
-      // Completa Paso 4 solo si TODOS los campos tienen valor
-      const todosLlenos = ['institucion-alo-maestro', 'responsable-alo-maestro', 'dni-alo-maestro', 'contacto-alo-maestro'].every(idCheck => {
-        const el = document.getElementById(idCheck);
-        return el && el.value.trim();
-      });
-      const btnSubmit = document.getElementById('btn-submit-alo-maestro');
-      if (todosLlenos) {
-        completePasoAlo(albergue, 4);
-        //console.log('Paso 4 completado: Todos los campos llenos'); // DEBUG
-      } else if (btnSubmit) {
-        // Deshabilita visual si no todos llenos
-        btnSubmit.disabled = true;
-        btnSubmit.classList.add('disabled');
-        btnSubmit.classList.remove('enabled');
-        //console.log('Botón submit deshabilitado: Falta campo en Paso 4'); // DEBUG
-      }
-    });
-  }
-});
 
 async function submitFormAlo(albergue) {
   const formData = getFormDataAlo(albergue);
@@ -1431,6 +1330,7 @@ function getFormDataAlo(albergue) {
     institucion: document.getElementById(`institucion-alo-${albergue}`).value.trim(),
     responsable: document.getElementById(`responsable-alo-${albergue}`).value.trim(), 
     dni: document.getElementById('dni-alo-maestro').value.trim(), 
+    contacto: document.getElementById(`contacto-alo-maestro`).value.trim(), // ✅ agregado
     cantidad,
     range: estado.range // Array correcto para BD
     
@@ -1511,99 +1411,7 @@ function getSubmitButtonAlo(albergue) {
   return form ? form.querySelector('.btn-submit') : null;
 }
 
-// Funciones para calendario de alojamiento
 /*
-function generarCalendarioAlo(albergue) {
-  const estado = estadoCalendarioAlo[albergue];
-  const { mes, año } = estado;
-
-  const primerDia = new Date(año, mes, 1);
-  const ultimoDia = new Date(año, mes + 1, 0);
-  const primerDiaSemana = primerDia.getDay();
-  const diasEnMes = ultimoDia.getDate();
-
-  const contenedor = document.getElementById(`calendario-alo-${albergue}`);
-  if (!contenedor) return;
-  contenedor.innerHTML = '';
-
-  // Encabezados
-  CONFIG.diasSemanaCortos.forEach(dia => {
-    const diaHeader = document.createElement('div');
-    diaHeader.className = 'dia-header';
-    diaHeader.textContent = dia;
-    contenedor.appendChild(diaHeader);
-  });
-
-  // Espacios iniciales
-  for (let k = 0; k < primerDiaSemana; k++) {
-    contenedor.appendChild(crearDiaElementoAlo('', 'otro-mes'));
-  }
-
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-
-  for (let i = 1; i <= diasEnMes; i++) {
-    const fechaActual = new Date(año, mes, i);
-    fechaActual.setHours(0,0,0,0);
-    const iso = isoFromYMD(año, mes, i);
-
-    const estaOcupado = fechasOcupadasAlo[albergue].some(f => f.toDateString() === fechaActual.toDateString());
-    const esPasado = fechaActual < hoy;
-
-    let clases = [];
-    if (estaOcupado) clases.push('ocupado');
-    if (esPasado) clases.push('inactiva');
-
-    
-    // Rango activo
-if (estado.range.includes(iso)) {
-  clases.push('en-rango');
-  if (estado.startISO === iso) clases.push('inicio-rango');
-  if (estado.endISO === iso) clases.push('fin-rango');
-
-  // 🔹 Solo aplicar verde/rojo si ya se obtuvo la disponibilidad
-  if (estado.disponibilidadConfirmada) {
-    if (estado.diasValidos.includes(iso)) {
-      clases.push('verde');
-    } else {
-      clases.push('rojo');
-    }
-  } else {
-    // 🔹 Antes de confirmar disponibilidad, mantener azul
-    clases.push('azul-seleccion');
-  }
-}
-
-
-    const dia = crearDiaElementoAlo(i, clases.join(' '));
-    dia.dataset.iso = iso;
-
-    if (fechaActual.getTime() === hoy.getTime()) dia.classList.add('hoy');
-
-    if (!esPasado && !estaOcupado) {
-      dia.addEventListener('click', () => handleClickDiaAlo(albergue, iso, dia));
-    } else {
-      dia.tabIndex = -1;
-      dia.setAttribute('aria-disabled', 'true');
-    }
-
-    contenedor.appendChild(dia);
-  }
-
-  // Rellenar hasta 42 celdas
-  const totalCeldas = 42;
-  const usados = primerDiaSemana + diasEnMes;
-  const faltan = totalCeldas - usados;
-  for (let i = 0; i < faltan; i++) {
-    contenedor.appendChild(crearDiaElementoAlo('', 'otro-mes'));
-  }
-
-  const titulo = document.getElementById(`mes-actual-alo-${albergue}`);
-  if (titulo) titulo.textContent = `${CONFIG.meses[mes]} ${año}`;
-
-  //console.log(`Calendario regenerado para ${albergue}. Rango actual:`, estado.range);
-}
-*/
-
 function generarCalendarioAlo(albergue) {
   const estado = estadoCalendarioAlo[albergue];
   const { mes, año } = estado;
@@ -1694,6 +1502,102 @@ if (estado.range.includes(iso)) {
 
   console.log(`Calendario regenerado para ${albergue}. Rango actual:`, estado.range);
 }
+  */
+
+function generarCalendarioAlo(albergue) {
+  const estado = estadoCalendarioAlo[albergue];
+  const { mes, año } = estado;
+
+  const primerDia = new Date(año, mes, 1);
+  const ultimoDia = new Date(año, mes + 1, 0);
+  const primerDiaSemana = primerDia.getDay();
+  const diasEnMes = ultimoDia.getDate();
+
+  const contenedor = document.getElementById(`calendario-alo-${albergue}`);
+  if (!contenedor) return;
+  contenedor.innerHTML = '';
+
+  // ¿Está deshabilitado el "Paso 3"?
+  const paso3Bloqueado = contenedor.classList.contains('disabled');
+
+  // Encabezados
+  CONFIG.diasSemanaCortos.forEach(dia => {
+    const diaHeader = document.createElement('div');
+    diaHeader.className = 'dia-header';
+    diaHeader.textContent = dia;
+    contenedor.appendChild(diaHeader);
+  });
+
+  // Espacios iniciales
+  for (let k = 0; k < primerDiaSemana; k++) {
+    contenedor.appendChild(crearDiaElementoAlo('', 'otro-mes'));
+  }
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+  for (let i = 1; i <= diasEnMes; i++) {
+    const fechaActual = new Date(año, mes, i);
+    fechaActual.setHours(0,0,0,0);
+    const iso = isoFromYMD(año, mes, i);
+
+    const estaOcupado = Array.isArray(fechasOcupadasAlo[albergue]) && fechasOcupadasAlo[albergue].some(f => f.toDateString() === fechaActual.toDateString());
+    const esPasado = fechaActual < hoy;
+    const esHoy = fechaActual.getTime() === hoy.getTime();
+
+    let clases = [];
+    if (estaOcupado) clases.push('ocupado');
+    if (esPasado || esHoy) clases.push('inactiva');
+
+    // Rango activo
+    if (Array.isArray(estado.range) && estado.range.includes(iso)) {
+      clases.push('en-rango');
+      if (estado.startISO === iso) clases.push('inicio-rango');
+      if (estado.endISO === iso) clases.push('fin-rango');
+
+      if (estado.disponibilidadConfirmada) {
+        if (estado.diasValidos.includes(iso)) clases.push('verde');
+        else clases.push('rojo');
+      } else {
+        clases.push('azul-seleccion');
+      }
+    }
+
+    const dia = crearDiaElementoAlo(i, clases.join(' '));
+    dia.dataset.iso = iso;
+
+    if (fechaActual.getTime() === hoy.getTime()) dia.classList.add('hoy');
+
+    // Añadir listener solo si:
+    //  - No es pasado, no es hoy (si ese es tu criterio), no está ocupado
+    //  - Y EL PASO 3 está habilitado (paso3Bloqueado === false)
+    if (!esPasado && !esHoy && !estaOcupado && !paso3Bloqueado) {
+      dia.addEventListener('click', () => handleClickDiaAlo(albergue, iso, dia));
+      // Aseguramos tabindex normal
+      dia.tabIndex = 0;
+      dia.removeAttribute('aria-disabled');
+    } else {
+      dia.tabIndex = -1;
+      dia.setAttribute('aria-disabled', 'true');
+    }
+
+    contenedor.appendChild(dia);
+  }
+
+  // Rellenar hasta 42 celdas
+  const totalCeldas = 42;
+  const usados = primerDiaSemana + diasEnMes;
+  const faltan = totalCeldas - usados;
+  for (let i = 0; i < faltan; i++) {
+    contenedor.appendChild(crearDiaElementoAlo('', 'otro-mes'));
+  }
+
+  const titulo = document.getElementById(`mes-actual-alo-${albergue}`);
+  if (titulo) titulo.textContent = `${CONFIG.meses[mes]} ${año}`;
+
+  // debug opcional
+  // console.log(`Calendario Alo generado para ${albergue}. Paso3 bloqueado: ${paso3Bloqueado}`);
+}
+
 
 function handleClickDiaAlo(albergue, iso, dia) {
   const estadoAlo = estadoCalendarioAlo[albergue];
@@ -1769,7 +1673,6 @@ if (!estadoAlo.endISO) {
 }
 
 
-
 function crearDiaElementoAlo(numero, claseExtra = '') {
   const dia = document.createElement('div');
   dia.className = `dia ${claseExtra}`;
@@ -1820,107 +1723,6 @@ function updateRangeDisplay(albergue, range) {
   }
 }
 
-// En handleClickDiaAlo: Completa paso 3 solo si todos los días son verdes (disponibles)
-/*
-async function handleClickDiaAlo(albergue, iso, cell) {
-  const estado = estadoCalendarioAlo[albergue];
-  const [year, month, day] = iso.split('-').map(Number); // FIX: Parsea local
-  const fechaClick = new Date(year, month - 1, day); // Local explícito
-  const startDate = estado.startISO ? (() => {
-    const [sYear, sMonth, sDay] = estado.startISO.split('-').map(Number);
-    return new Date(sYear, sMonth - 1, sDay); // Local
-  })() : null;
-  
-  //console.log(`Click en ${iso}. Start actual: ${estado.startISO}, End: ${estado.endISO}`); // DEBUG
-  
-  if (!estado.startISO) {
-    // Primer click: Solo highlight visual (sin fetch/loader – optimización)
-    estado.startISO = iso;
-    estado.endISO = null;
-    estado.range = [iso];
-    //console.log(`Nuevo start: ${iso}, range: [${iso}]`); // DEBUG
-    updateCalendarHighlightsAlo(albergue);
-    updateRangeDisplay(albergue, estado.range);
-    // QUITADO: mostrarInfoDiaAlo(albergue, iso); // Ya no fetch individual
-  } else if (!estado.endISO) {
-    const diffDias = Math.floor((fechaClick - startDate) / (1000 * 60 * 60 * 24));
-    
-    console.log(`Diff días: ${diffDias} (start: ${estado.startISO}, click: ${iso})`); // DEBUG
-    
-    if (diffDias < 0) {
-      // Mueve start: Solo highlight (sin fetch)
-      estado.startISO = iso;
-      estado.endISO = null;
-      estado.range = [iso];
-      //console.log(`Start movido a ${iso}`); // DEBUG
-      updateCalendarHighlightsAlo(albergue);
-      updateRangeDisplay(albergue, estado.range);
-      // QUITADO: mostrarInfoDiaAlo(albergue, iso); // Ya no fetch individual
-    } else if (diffDias > 3) {
-      // Excede
-      //console.log(`Alerta: Excede 4 días (diff=${diffDias})`); // DEBUG
-      alert("El rango no puede exceder 4 días consecutivos");
-      return;
-    } else {
-      // NUEVO: Antes de set end, chequea límite por tipo
-      const select = document.getElementById('delegacion-alo-maestro');
-      const tipo = select.value;
-      const maxDias = tipo === 'escuelas' ? 4 : (tipo === 'otra' ? 3 : 4); // Default 4
-      if (diffDias + 1 > maxDias) { // +1 porque diff es días intermedios
-        alert(`Límite excedido según tipo de delegación (${tipo || 'no seleccionado'}): hasta ${maxDias} días.`);
-        return;
-      }
-
-      // Set end y llena rango (loop igual, ya funciona)
-      estado.endISO = iso;
-      estado.range = [];
-      let current = new Date(startDate);
-      while (current <= fechaClick) {
-        const currentIso = current.toISOString().split('T')[0];
-        estado.range.push(currentIso);
-        current.setDate(current.getDate() + 1);
-      }
-      //console.log(`Rango final: [${estado.range.join(', ')}], length=${estado.range.length}`); // DEBUG
-      if (estado.range.length !== diffDias + 1) {
-        alert("Error en selección de rango. Intente de nuevo.");
-        resetRangoAlo(albergue);
-        return;
-      }
-      // TEMPORAL: Highlight celeste antes de check
-      updateCalendarHighlightsAlo(albergue);
-      updateRangeDisplay(albergue, estado.range);
-      // UNA SOLA BÚSQUEDA: Solo aquí, después del segundo click (rango completo)
-      try {
-        await mostrarInfoRangoAlo(albergue, estado.range);
-        // OPTIMIZACIÓN: Completa paso 3 SOLO si todos los días son verdes (diasValidos.length === range.length)
-        const todosVerdes = estado.diasValidos.length === estado.range.length;
-        if (todosVerdes && validarLimiteRangoAlo(albergue, estado.range)) {
-          // Bloquea clics futuros en calendario
-          const grid = document.getElementById(`calendario-alo-${albergue}`);
-          if (grid) grid.classList.add('step-completed');
-          const navPrev = document.getElementById(`nav-prev-alo-${albergue}`);
-          const navNext = document.getElementById(`nav-next-alo-${albergue}`);
-          if (navPrev) navPrev.disabled = true;
-          if (navNext) navNext.disabled = true;
-          completePasoAlo(albergue, 3); // Completa paso → Activa paso 4
-          //console.log('Paso 3 completado: Todos los días verdes'); // DEBUG
-        } else if (!todosVerdes) {
-          //console.log('Paso 3 no completado: Algunos días rojos (insuficientes camas)'); // DEBUG          
-          showSnackbar('Algunos dias no tiene disponibilidad. Seleccione otro rango.', 'error', 12000);
-        }
-      } catch (error) {
-        console.error('Error al verificar rango:', error);
-        // No deshabilita si falla la verificación
-      }
-    }
-  } else {
-    // Reinicia
-    //console.log('Reiniciando rango completo'); // DEBUG
-    resetRangoAlo(albergue);
-    handleClickDiaAlo(albergue, iso, cell);
-  }
-}
-*/
 async function handleClickDiaAlo(albergue, iso, cell) {
   const estado = estadoCalendarioAlo[albergue];
   const [year, month, day] = iso.split('-').map(Number); // FIX: Parsea local
@@ -2014,7 +1816,7 @@ async function handleClickDiaAlo(albergue, iso, cell) {
           console.log('Paso 3 completado: Todos los días verdes'); // DEBUG
         } else if (!todosVerdes) {
           console.log('Paso 3 no completado: Algunos días rojos (insuficientes camas)'); // DEBUG
-          showSnackbar('No hay suficientes camas. Revise días en rojo.', 'error', 4000);
+          showSnackbar('Hay días en rojo, por favor seleccione otro rango.', 'error', 4000);
         }
       } catch (error) {
         console.error('Error al verificar rango:', error);
@@ -2115,152 +1917,11 @@ generarCalendarioAlo(albergue);
   }
 }
 
-// Listeners para avance de pasos
-function setupPasoListenersAlo(albergue) {
-  // Paso 1: Cantidad (bloqueo fijo al valor ingresado)
-  const qtyInput = document.getElementById('cantidad-alo-maestro');
-  if (qtyInput) {
-    qtyInput.addEventListener('blur', () => {
-      //console.log('Blur en cantidad:', qtyInput.value); // DEBUG
-      const valor = parseInt(qtyInput.value, 10);
-      if (valor && valor >= 1) {
-        qtyInput.readonly = true;
-        qtyInput.value = valor;
-        const step1 = qtyInput.closest('.step-container');
-        if (step1) step1.classList.add('step-completed');
-        completePasoAlo(albergue, 1);
-        const estado = estadoCalendarioAlo[albergue];
-        if (estado.range.length > 0) mostrarInfoRangoAlo(albergue, estado.range);
-      }
-    });
-  }
 
-  // Paso 2: Delegación
-  const delSelect = document.getElementById('delegacion-alo-maestro');
-  if (delSelect) {
-    delSelect.addEventListener('change', () => {
-      if (delSelect.value) {
-        delSelect.disabled = true;
-        const step2 = delSelect.closest('.step-container');
-        if (step2) step2.classList.add('step-completed');
-        completePasoAlo(albergue, 2);
-        document.getElementById('delegacion-hidden-alo-maestro').value = delSelect.value;
-        const estado = estadoCalendarioAlo[albergue];
-        if (estado.range.length > 0) {
-          validarLimiteRangoAlo(albergue, estado.range);
-          mostrarInfoRangoAlo(albergue, estado.range);
-        }
-      }
-    });
-  }
 
-  // Paso 3: Ya se maneja en handleClickDiaAlo
 
-  // Paso 4: Campos adicionales (usa 'input' + 'blur' para check inmediato al tipear)
-  const camposPaso4 = ['institucion-alo-maestro', 'responsable-alo-maestro', 'dni-alo-maestro', 'contacto-alo-maestro'];
-  camposPaso4.forEach(id => {
-    const input = document.getElementById(id);
-    if (input) {
-      // Evento 'input' para check al tipear 
-      input.addEventListener('input', () => checkPaso4(albergue));
-      // Evento 'blur' para check final 
-      input.addEventListener('blur', () => checkPaso4(albergue));
-    }
-  });
 
-  // Función helper para check Paso 4 (llamada desde input/blur)
-  function checkPaso4(albergue) {
-    const todosLlenos = camposPaso4.every(idCheck => {
-      const el = document.getElementById(idCheck);
-      return el && el.value.trim().length > 0;
-    });
-    const btnSubmit = document.getElementById('btn-submit-alo-maestro');
-    if (todosLlenos) {
-      completePasoAlo(albergue, 4);
-      //console.log('Paso 4 completado: Todos llenos (al input)'); // DEBUG
-    } else if (btnSubmit) {
-      btnSubmit.disabled = true;
-      btnSubmit.setAttribute('disabled', 'disabled');
-      btnSubmit.classList.add('disabled');
-      btnSubmit.classList.remove('enabled');
-      //console.log('Botón deshabilitado: Falta campo (al input)'); // DEBUG
-    }
-  }
 
-  const dniInput = document.getElementById('dni-alo-maestro');
-  if (dniInput) {
-    dniInput.placeholder = 'Ej: 30300600';
-    dniInput.min = '0';
-    dniInput.max = '99999999'; // Límite superior para 8 dígitos
-    dniInput.addEventListener('input', () => {
-      let v = dniInput.value.replace(/\D/g, ''); // Solo números (quita no-dígitos)
-      if (v.length > 8) v = v.slice(0, 8); // Corta a 8 dígitos
-      dniInput.value = v;
-      // Trigger check Paso 4 al cambiar
-      checkPaso4(albergue);
-    });
-    dniInput.addEventListener('blur', () => {
-      const v = parseInt(dniInput.value, 10);
-      if (isNaN(v) || v.toString().length !== 8) {
-        dniInput.value = ''; // Limpia si no es 8 dígitos válidos
-        showSnackbar('DNI debe ser exactamente 8 números.', 'error', 3000);
-      }
-      checkPaso4(albergue);
-    });
-}
-}
-// En completePasoAlo: Habilita al llegar a 3 pasos (ignora Paso 4 para botón)
-function completePasoAlo(albergue, pasoNum) {
-  if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
-    pasoEstadoAlo[albergue].completed.push(pasoNum);
-    pasoEstadoAlo[albergue].current = Math.min(4, pasoNum + 1);
-    updateProgresoAlo(albergue);
-  }
-  // Habilita submit SOLO si Paso 3 completado (3 pasos, ignora Paso 4)
-  if (pasoEstadoAlo[albergue].completed.length >= 3) {
-    const btnSubmit = document.getElementById('btn-submit-alo-maestro');
-    if (btnSubmit) {
-      btnSubmit.disabled = false;
-      btnSubmit.removeAttribute('disabled');
-      btnSubmit.classList.remove('disabled');
-      btnSubmit.classList.add('enabled');
-      //console.log('Botón submit habilitado: Paso 3 completado'); // DEBUG
-    }
-  }
-}
-
-// Actualizar progreso visual
-/*
-function updateProgresoAlo(albergue) {
-  // Highlights en steps
-  document.querySelectorAll('.step-container').forEach((step, index) => {
-    const pasoNum = index + 1;
-    if (pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
-      step.classList.add('step-completed');
-    } else if (pasoEstadoAlo[albergue].current === pasoNum) {
-      step.classList.add('step-active');
-    } else {
-      step.classList.remove('step-completed', 'step-active');
-    }
-  });
-
-  // Indicadores circulares
-  document.querySelectorAll('.step-indicator').forEach((indicator, index) => {
-    const pasoNum = index + 1;
-    indicator.classList.remove('completed', 'active');
-    if (pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
-      indicator.classList.add('completed');
-    } else if (pasoEstadoAlo[albergue].current === pasoNum) {
-      indicator.classList.add('active');
-    }
-  });
-
-  // Barra de progreso
-  const progress = (pasoEstadoAlo[albergue].completed.length / 4) * 100;
-  const fill = document.getElementById('progress-fill');
-  if (fill) fill.style.width = `${progress}%`;
-}
-*/
 
 function updateProgresoAlo(albergue) {
   // Highlights en steps
@@ -2296,50 +1957,6 @@ function updateProgresoAlo(albergue) {
   const fill = document.getElementById('progress-fill');
   if (fill) fill.style.width = `${progress}%`;
 }
-// Función Reset Global
-/*
-function resetAllAlo(albergue) {
-  //console.log('Reset all para', albergue); // DEBUG
-  // Reset inputs y select
-  const qtyInput = document.getElementById('cantidad-alo-maestro');
-  if (qtyInput) {
-    qtyInput.value = '';
-    qtyInput.readonly = false; // Desbloquea
-  }
-  const delSelect = document.getElementById('delegacion-alo-maestro');
-  if (delSelect) {
-    delSelect.value = '';
-    delSelect.disabled = false; // Desbloquea
-  }
-  document.getElementById('delegacion-hidden-alo-maestro').value = '';
-  ['institucion-alo-maestro', 'responsable-alo-maestro', 'contacto-alo-maestro'].forEach(id => {
-    const input = document.getElementById(id);
-    if (input) input.value = '';
-  });
-
-  // Reset form
-  const form = document.getElementById('aloFormMaestro');
-  if (form) form.reset();
-
-  // Reset calendario
-  resetRangoAlo(albergue);
-  fechasOcupadasAlo[albergue] = [];
-  generarCalendarioAlo(albergue);
-  const grid = document.getElementById(`calendario-alo-${albergue}`);
-  if (grid) grid.classList.remove('step-completed');
-  const navPrev = document.getElementById(`nav-prev-alo-${albergue}`);
-  const navNext = document.getElementById(`nav-next-alo-${albergue}`);
-  if (navPrev) navPrev.disabled = false;
-  if (navNext) navNext.disabled = false;
-
-  // Reset pasos y visual
-  initPasoFlujoAlo(albergue);
-  const btnSubmit = document.getElementById('btn-submit-alo-maestro');
-  if (btnSubmit) btnSubmit.disabled = true;
-
-  //showSnackbar('Todos los campos han sido limpiados. Puede comenzar de nuevo.', 'success', 3000);
-}
-*/
 
 function resetAllAlo(albergue) {
   console.log('Reset all para', albergue); // DEBUG
@@ -2347,17 +1964,23 @@ function resetAllAlo(albergue) {
   const qtyInput = document.getElementById('cantidad-alo-maestro');
   if (qtyInput) {
     qtyInput.value = '';
-    qtyInput.readonly = false; // Desbloquea
+    qtyInput.disabled = false; // NUEVO: Habilita edición
+    qtyInput.classList.remove('disabled');
   }
   const delSelect = document.getElementById('delegacion-alo-maestro');
   if (delSelect) {
     delSelect.value = '';
-    delSelect.disabled = false; // Desbloquea
+    delSelect.disabled = false; // NUEVO: Habilita edición
+    delSelect.classList.remove('disabled');
   }
   document.getElementById('delegacion-hidden-alo-maestro').value = '';
   ['institucion-alo-maestro', 'responsable-alo-maestro', 'dni-alo-maestro', 'contacto-alo-maestro'].forEach(id => {
     const input = document.getElementById(id);
-    if (input) input.value = '';
+    if (input) {
+      input.value = '';
+      input.disabled = false; // NUEVO: Habilita edición
+      input.classList.remove('disabled');
+    }
   });
 
   // Reset form
@@ -2379,10 +2002,6 @@ function resetAllAlo(albergue) {
   initPasoFlujoAlo(albergue);
   const btnSubmit = document.getElementById('btn-submit-alo-maestro');
   if (btnSubmit) btnSubmit.disabled = true;
-
-  // NUEVO: Reset errores
-  showStepErrorsAlo[albergue] = false;
-  updateProgresoAlo(albergue);
 
   //showSnackbar('Todos los campos han sido limpiados. Puede comenzar de nuevo.', 'success', 3000);
 }
@@ -2485,85 +2104,6 @@ function resetOcupacionUIAlo(albergue) {
   if (disp) disp.textContent = '—';
 }
 
-// Interacción con GS para alojamiento (nueva action)
-/*
-async function enviarReservaAlojamientoAGoogleSheets(data) {
-  if (!CONFIG.googleScriptUrlAlo || CONFIG.googleScriptUrlAlo.includes('undefined')) {
-    console.warn('URL Alo no configurada. Simulando éxito para test.');
-    return { success: true, idReserva: Math.floor(Math.random() * 10000) }; // Mock submit
-  }
-  
-  const payload = new URLSearchParams({
-    secret: CONFIG.secretKey,
-    action: "crearReservaAlojamiento",
-    albergue: toFullName(data.albergue),
-    institucion: data.institucion,
-    cantidad: data.cantidad,
-    responsable: data.responsable || '', // NUEVO: Responsable
-    dni: data.dni || '', // NUEVO: DNI
-    rangoFechas: data.range.join(','),
-  });
-  
-  // Genera ID client-side (ya que no-cors no lee respuesta)
-  const clientId = Math.floor(Math.random() * 10000);
-  
-  try {
-    await fetch(CONFIG.googleScriptUrlAlo, {
-      method: "POST",
-      mode: 'no-cors', // Ignora CORS, ejecuta pero no lee respuesta
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: payload
-    });
-    // Asume éxito (ya que datos se guardan)
-    console.log(`Reserva enviada con ID client-side: ${clientId}`);
-    return { success: true, idReserva: clientId };
-  } catch (err) {
-    console.error('Envío Alo falló:', err);
-    throw err; // Propaga para manejo en submit
-  }
-}
-
-async function obtenerDisponibilidadDiaAlo(albergueKey, fechaISO) {
-  if (!CONFIG.googleScriptUrlAlo || CONFIG.googleScriptUrlAlo.includes('undefined')) {
-    console.warn(`URL Alo no configurada. Usando mock para ${fechaISO}.`);
-    return { disponibles: capacidades[albergueKey], capacidad: capacidades[albergueKey] }; // Mock full
-  }
-  
-  const payload = new URLSearchParams({
-    secret: CONFIG.secretKey,
-    action: 'obtenerDisponibilidadDiaAlojamiento',
-    albergue: toFullName(albergueKey),
-    fecha: fechaISO
-  });
-  
-  try {
-    const resp = await fetch(CONFIG.googleScriptUrlAlo, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: payload
-    });
-    
-    if (!resp.ok) {
-      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
-    }
-    
-    const text = await resp.text(); // FIX: Lee text primero para debug
-    if (!text.trim()) {
-      throw new Error('Respuesta vacía de GS Alo');
-    }
-    
-    const json = JSON.parse(text);
-    if (!json.success) {
-      console.warn(`GS Alo error para ${fechaISO}: ${json.message || 'No success'}. Usando mock.`);
-      return { disponibles: capacidades[albergueKey], capacidad: capacidades[albergueKey] };
-    }
-    return { disponibles: json.disponibles, capacidad: json.capacidad };
-  } catch (err) {
-    console.error(`Fetch Alo falló para ${fechaISO}:`, err);
-    return { disponibles: capacidades[albergueKey], capacidad: capacidades[albergueKey] }; // Mock fallback
-  }
-}
-*/
 
 async function enviarReservaAlojamientoAGoogleSheets(data) {
   try {
@@ -2574,6 +2114,7 @@ async function enviarReservaAlojamientoAGoogleSheets(data) {
       institucion: data.institucion,
       responsable: data.responsable,
       dni: data.dni,
+      contacto: data.contacto,
       cantidad: parseInt(data.cantidad, 10),
       rangoFechas: data.range.join(','),
     });
@@ -2633,24 +2174,6 @@ async function obtenerDisponibilidadDiaAlo(albergueKey, fechaISO) {
     return { disponibles: capacidades[albergueKey], capacidad: capacidades[albergueKey] }; // Mock fallback
   }
 }
-
-// Límites para cantidad en alojamiento (similar a setupCantidadLimits)
-/*function setupCantidadLimitsAlo() {
-  const albergue = 'maestro';
-  const input = document.getElementById(`cantidad-alo-${albergue}`);
-  if (!input) return;
-  
-  input.min = '1';
-  input.max = capacidades[albergue]; // 92 para maestro
-  input.placeholder = `máx ${capacidades[albergue]}`;
-  
-  input.addEventListener('input', () => {
-    let v = parseInt(input.value, 10);
-    if (isNaN(v) || v < 1) v = 1;
-    if (v > capacidades[albergue]) v = capacidades[albergue];
-    input.value = v;
-  });
-}*/
 
 function setupCantidadLimitsAlo() {
   const albergue = 'maestro';
@@ -2725,4 +2248,395 @@ function validarLimiteRangoAlo(albergue, range) {
     return false;
   }
   return true;
+}
+
+
+// ========================== CONTROL DE PASOS ALOJAMIENTO ==========================
+
+// Abrir modal de alojamiento
+function openAlojamientoModal(albergue) {
+  const modalId = `modal-alojamiento-${albergue}`;
+  const modalEl = document.getElementById(modalId);
+  if (!modalEl) return;
+
+  modalEl.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  resetFormAlo(albergue);
+  resetCalendarAloToToday(albergue);
+  resetOcupacionUIAlo(albergue);
+  fechasOcupadasAlo[albergue] = [];
+  generarCalendarioAlo(albergue);
+
+  // Inicializar pasos
+  initPasoFlujoAlo(albergue);
+  setupPasoListenersAlo(albergue);
+}
+
+// Inicializa los pasos al abrir el modal
+function initPasoFlujoAlo(albergue) {
+  pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+  updateProgresoAlo(albergue);
+
+  // Al abrir: solo Paso 1 habilitado
+  enableStepAlo(albergue, 1);
+  disableStepAlo(albergue, 2);
+  disableStepAlo(albergue, 3);
+  disableStepAlo(albergue, 4);
+
+  const btnSubmit = document.getElementById('btn-submit-alo-maestro');
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.classList.add('disabled');
+    btnSubmit.classList.remove('enabled');
+  }
+}
+
+// Control de avance paso a paso
+function completePasoAlo(albergue, pasoNum) {
+  if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+
+  // Evitar duplicados
+  if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
+    pasoEstadoAlo[albergue].completed.push(pasoNum);
+  }
+
+  // Deshabilitar todos los pasos antes de decidir cuál habilitar
+  disableStepAlo(albergue, 1);
+  disableStepAlo(albergue, 2);
+  disableStepAlo(albergue, 3);
+  disableStepAlo(albergue, 4);
+
+  // Lógica de habilitación del paso siguiente
+  const nextStep = pasoNum + 1;
+
+  switch (pasoNum) {
+    case 1: // después de ingresar cantidad
+      enableStepAlo(albergue, 2);
+      pasoEstadoAlo[albergue].current = 2;
+      break;
+
+    case 2: // después de seleccionar delegación
+      enableStepAlo(albergue, 3);
+      pasoEstadoAlo[albergue].current = 3;
+      break;
+
+    case 3: // después de seleccionar fechas
+      if (todasFechasVerdes(albergue)) {
+        enableStepAlo(albergue, 4);
+        pasoEstadoAlo[albergue].current = 4;
+      } else {
+        pasoEstadoAlo[albergue].current = 3;
+        console.log('🔒 Paso 4 bloqueado: faltan días en verde.');
+      }
+      break;
+
+    case 4: // Paso final
+      const btnSubmit = document.getElementById('btn-submit-alo-maestro');
+      if (btnSubmit) {
+        btnSubmit.disabled = false;
+        btnSubmit.classList.remove('disabled');
+        btnSubmit.classList.add('enabled');
+      }
+      pasoEstadoAlo[albergue].current = 4;
+      break;
+  }
+
+  updateProgresoAlo(albergue);
+}
+
+// Bloquea visualmente un paso
+function disableStepAlo(albergue, pasoNum) {
+  switch (pasoNum) {
+    case 1: {
+      const input = document.getElementById(`cantidad-alo-${albergue}`);
+      if (input) {
+        input.disabled = true;
+        input.classList.add('disabled');
+      }
+      break;
+    }
+    case 2: {
+      const select = document.getElementById('delegacion-alo-maestro');
+      if (select) {
+        select.disabled = true;
+        select.classList.add('disabled');
+      }
+      break;
+    }
+    case 3: {
+      const grid = document.getElementById(`calendario-alo-${albergue}`);
+      const navPrev = document.getElementById(`nav-prev-alo-${albergue}`);
+      const navNext = document.getElementById(`nav-next-alo-${albergue}`);
+      if (grid) grid.classList.add('disabled');
+      if (navPrev) navPrev.disabled = true;
+      if (navNext) navNext.disabled = true;
+      generarCalendarioAlo(albergue); // regenera calendario sin listeners
+      break;
+    }
+    case 4: {
+      ['institucion-alo-maestro', 'responsable-alo-maestro', 'dni-alo-maestro', 'contacto-alo-maestro'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.disabled = true;
+          el.classList.add('disabled');
+        }
+      });
+      break;
+    }
+  }
+}
+
+// Habilita visualmente un paso
+function enableStepAlo(albergue, pasoNum) {
+  switch (pasoNum) {
+    case 1: {
+      const input = document.getElementById(`cantidad-alo-${albergue}`);
+      if (input) {
+        input.disabled = false;
+        input.classList.remove('disabled');
+      }
+      break;
+    }
+    case 2: {
+      const select = document.getElementById('delegacion-alo-maestro');
+      if (select) {
+        select.disabled = false;
+        select.classList.remove('disabled');
+      }
+      break;
+    }
+    case 3: {
+      const grid = document.getElementById(`calendario-alo-${albergue}`);
+      const navPrev = document.getElementById(`nav-prev-alo-${albergue}`);
+      const navNext = document.getElementById(`nav-next-alo-${albergue}`);
+      if (grid) grid.classList.remove('disabled');
+      if (navPrev) navPrev.disabled = false;
+      if (navNext) navNext.disabled = false;
+      generarCalendarioAlo(albergue); // regenera con listeners activos
+      break;
+    }
+    case 4: {
+      ['institucion-alo-maestro', 'responsable-alo-maestro', 'dni-alo-maestro', 'contacto-alo-maestro'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.disabled = false;
+          el.classList.remove('disabled');
+        }
+      });
+      break;
+    }
+  }
+}
+
+// Detecta eventos y controla el flujo entre pasos
+/*
+function setupPasoListenersAlo(albergue) {
+  // Paso 1
+  const cantidadEl = document.getElementById(`cantidad-alo-${albergue}`);
+  if (cantidadEl) {
+    cantidadEl.addEventListener('blur', () => {
+      const v = parseInt(cantidadEl.value, 10);
+      if (Number.isFinite(v) && v > 0) {
+        cantidadEl.disabled = true;
+        cantidadEl.classList.add('disabled');
+        completePasoAlo(albergue, 1);
+      }
+    });
+  }
+
+  // Paso 2
+  const delEl = document.getElementById('delegacion-alo-maestro');
+  if (delEl) {
+    delEl.addEventListener('change', () => {
+      if (delEl.value && delEl.value.trim() !== '') {
+        delEl.disabled = true;
+        delEl.classList.add('disabled');
+        completePasoAlo(albergue, 2);
+      }
+    });
+  }
+
+  // Paso 3
+  document.addEventListener('rangoAloConfirmado', (ev) => {
+    const a = (ev && ev.detail && ev.detail.albergue) || albergue;
+    if (a === albergue) completePasoAlo(albergue, 3);
+  });
+
+  // Paso 4
+  const campos = {
+    institucion: document.getElementById(`institucion-alo-${albergue}`),
+    responsable: document.getElementById(`responsable-alo-${albergue}`),
+    dni: document.getElementById(`dni-alo-maestro`),
+    contacto: document.getElementById(`contacto-alo-maestro`)
+  };
+
+  function validarCamposPaso4() {
+    if (!campos.institucion || !campos.responsable || !campos.dni || !campos.contacto) return false;
+    const instit = campos.institucion.value.trim();
+    const resp = campos.responsable.value.trim();
+    const dniVal = (campos.dni.value || '').replace(/\D/g, '');
+    const cont = (campos.contacto.value || '').replace(/\D/g, '');
+    const dniOk = dniVal.length === 8;
+    const contOk = cont.length >= 7 && cont.length <= 15;
+    const baseOk = instit.length > 0 && resp.length > 0;
+    return baseOk && dniOk && contOk;
+  }
+
+  ['input', 'blur', 'paste'].forEach(evt => {
+    Object.values(campos).forEach(el => {
+      if (!el) return;
+      el.addEventListener(evt, () => {
+        if (!pasoEstadoAlo[albergue] || !pasoEstadoAlo[albergue].completed.includes(3)) return;
+        if (!todasFechasVerdes(albergue)) return;
+
+        if (validarCamposPaso4()) {
+          completePasoAlo(albergue, 4);
+        } else {
+          const btn = document.getElementById('btn-submit-alo-maestro');
+          if (btn) {
+            btn.disabled = true;
+            btn.classList.add('disabled');
+            btn.classList.remove('enabled');
+          }
+        }
+      });
+    });
+  });
+
+  if (campos.dni) {
+    campos.dni.addEventListener('blur', () => {
+      const v = (campos.dni.value || '').replace(/\D/g, '');
+      if (v.length !== 8 && v.length !== 0) {
+        showSnackbar('DNI debe tener exactamente 8 números.', 'error', 3000);
+      }
+    });
+  }
+}
+*/
+// Comprueba si todas las fechas seleccionadas en el rango están en verde
+function todasFechasVerdes(albergue) {
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  if (!grid) return false;
+  const diasEnRango = grid.querySelectorAll('.en-rango');
+  if (diasEnRango.length === 0) return false;
+  return Array.from(diasEnRango).every(d => d.classList.contains('verde'));
+}
+function setupPasoListenersAlo(albergue) {
+  // ----- Paso 1 -----
+  const cantidadEl = document.getElementById(`cantidad-alo-${albergue}`);
+  if (cantidadEl) {
+    cantidadEl.addEventListener('blur', () => {
+      const v = parseInt(cantidadEl.value, 10);
+      if (Number.isFinite(v) && v > 0) {
+        cantidadEl.disabled = true;
+        cantidadEl.classList.add('disabled');
+        completePasoAlo(albergue, 1);
+      }
+    });
+  }
+
+  // ----- Paso 2 -----
+  const delEl = document.getElementById('delegacion-alo-maestro');
+  if (delEl) {
+    delEl.addEventListener('change', () => {
+      if (delEl.value && delEl.value.trim() !== '') {
+        delEl.disabled = true;
+        delEl.classList.add('disabled');
+        completePasoAlo(albergue, 2);
+      }
+    });
+  }
+
+  // ----- Paso 3 -----
+  document.addEventListener('rangoAloConfirmado', (ev) => {
+    const a = (ev && ev.detail && ev.detail.albergue) || albergue;
+    if (a === albergue) completePasoAlo(albergue, 3);
+  });
+
+  // ----- Paso 4 -----
+  const campos = {
+    institucion: document.getElementById(`institucion-alo-${albergue}`),
+    responsable: document.getElementById(`responsable-alo-maestro`),
+    dni: document.getElementById(`dni-alo-maestro`),
+    contacto: document.getElementById(`contacto-alo-maestro`)
+  };
+
+  // Función para validar y devolver los mensajes faltantes
+  function validarCamposPaso4() {
+    const mensajes = [];
+    if (!campos.responsable || !campos.dni || !campos.contacto) return { ok: false, mensajes };
+
+    const resp = campos.responsable.value.trim();
+    const dniVal = (campos.dni.value || '').replace(/\D/g, '');
+    const cont = (campos.contacto.value || '').replace(/\D/g, '');
+
+    // Responsable: al menos dos palabras
+    const palabras = resp.split(/\s+/).filter(p => p.length > 0);
+    if (palabras.length < 2) {
+      mensajes.push('Ingrese nombre y apellido del responsable.');
+    }
+
+    // DNI: exactamente 8 números
+    if (dniVal.length < 8) {
+      mensajes.push('El DNI debe tener 8 números.');
+    }
+
+    // Contacto: al menos 7 números
+    if (cont.length < 7) {
+      mensajes.push('El contacto debe tener al menos 7 números.');
+    }
+
+    const ok = mensajes.length === 0;
+    return { ok, mensajes };
+  }
+
+  // Contenedor para mostrar los mensajes
+  let infoDiv = document.getElementById('info-validacion-alo');
+  if (!infoDiv) {
+    infoDiv = document.createElement('div');
+    infoDiv.id = 'info-validacion-alo';
+    infoDiv.style.color = '#d9534f';
+    infoDiv.style.fontSize = '0.9em';
+    infoDiv.style.marginTop = '6px';
+    const ref = document.getElementById('btn-submit-alo-maestro');
+    if (ref && ref.parentNode) ref.parentNode.insertBefore(infoDiv, ref);
+  }
+
+  // Escucha cambios en los campos del Paso 4
+  ['input', 'blur', 'paste'].forEach(evt => {
+    Object.values(campos).forEach(el => {
+      if (!el) return;
+      el.addEventListener(evt, () => {
+        // Solo validar si paso 3 completado y fechas verdes
+        if (!pasoEstadoAlo[albergue] || !pasoEstadoAlo[albergue].completed.includes(3)) return;
+        if (!todasFechasVerdes(albergue)) return;
+
+        const { ok, mensajes } = validarCamposPaso4();
+        const btn = document.getElementById('btn-submit-alo-maestro');
+
+        if (ok) {
+          infoDiv.textContent = '';
+          completePasoAlo(albergue, 4);
+        } else {
+          if (btn) {
+            btn.disabled = true;
+            btn.classList.add('disabled');
+            btn.classList.remove('enabled');
+          }
+          infoDiv.innerHTML = mensajes.map(m => `• ${m}`).join('<br>');
+        }
+      });
+    });
+  });
+
+  // Aviso de DNI incorrecto al salir del campo
+  if (campos.dni) {
+    campos.dni.addEventListener('blur', () => {
+      const v = (campos.dni.value || '').replace(/\D/g, '');
+      if (v.length !== 8 && v.length !== 0) {
+        showSnackbar('DNI debe tener exactamente 8 números.', 'error', 3000);
+      }
+    });
+  }
 }
