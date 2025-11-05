@@ -1976,3 +1976,50 @@ input[readonly], select[disabled] {
 }
 
 
+/* --- APLICAR COLORES DE RESERVA TAMBIÉN A LOS BOTONES .btn-submit --- */
+
+/* Estilo base de .btn-submit igual a .btn-reservar */
+.btn-submit {
+  width: 100%;
+  background: linear-gradient(to right, var(--azul), #004a8c);
+  color: var(--blanco);
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: 'Roboto', sans-serif;
+  box-shadow: 0 4px 8px rgba(0, 92, 162, 0.2);
+  margin-bottom: 20px;
+}
+
+/* Versiones personalizadas por albergue */
+#btn-submit-maestro,
+#btn-submit-alo-maestro {
+  background: linear-gradient(to right, var(--azul), #004a8c);
+  color: var(--blanco);
+}
+
+#btn-submit-tinku,
+#btn-submit-alo-tinku {
+  background: linear-gradient(to right, var(--celeste), #6abde6);
+  color: var(--azul);
+}
+
+#btn-submit-aquilina,
+#btn-submit-alo-aquilina {
+  background: linear-gradient(to right, var(--amarillo), #e6b500);
+  color: var(--gris-oscuro);
+}
+
+/* Hover y Active (heredados del estilo .btn-reservar) */
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.btn-submit:active {
+  transform: translateY(0);
+}
