@@ -1093,13 +1093,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.getElementById('close-cancel-modal');
   const cancelForm = document.getElementById('cancelForm');
 
-const btnAlo = document.querySelector('.btn-alo');
-if (btnAlo) {
-  btnAlo.addEventListener('click', function() {
-    const albergue = this.dataset.albergue || 'maestro'; // Usa data o fallback
-    openAlojamientoModal(albergue);
+// const btnAlo = document.querySelector('.btn-alo');
+// if (btnAlo) {
+//   btnAlo.addEventListener('click', function() {
+//     const albergue = this.dataset.albergue || 'maestro'; // Usa data o fallback
+//     openAlojamientoModal(albergue);
+//   });
+// }
+
+document.querySelectorAll('.btn-alo').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const albergue = this.dataset.albergue;
+    if (albergue) openAlojamientoModal(albergue);
   });
-}
+});
+
 
 
   if (openBtn)  openBtn.addEventListener('click', openCancelModal);
@@ -1196,7 +1204,10 @@ async function cancelarReservaEnGoogleSheets(idReserva, dni){
 
 // Estado para calendario de alojamiento (solo maestro )
 const estadoCalendarioAlo = {
-  maestro: { mes: new Date().getMonth(), año: new Date().getFullYear(), startISO: null, endISO: null, range: [], diasValidos: [] }
+  maestro: { mes: new Date().getMonth(), año: new Date().getFullYear(), startISO: null, endISO: null, range: [], diasValidos: [] },
+  tinku: { mes: new Date().getMonth(), año: new Date().getFullYear(), startISO: null, endISO: null, range: [], diasValidos: [] },
+  aquilina: { mes: new Date().getMonth(), año: new Date().getFullYear(), startISO: null, endISO: null, range: [], diasValidos: [] }
+
 };
 
 const showStepErrorsAlo = { maestro: false };
