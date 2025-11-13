@@ -724,10 +724,18 @@
                         <label for="dni-alo-maestro">DNI (Solo números)</label>
                         <input type="tel" id="dni-alo-maestro" class="form-control" required>
                     </div>
+
+
                     <div class="form-group">
-                        <label for="contacto-alo-maestro">Contacto (Nro. Telefónico)</label>
-                        <input type="tel" id="contacto-alo-maestro" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
-                    </div>                                   
+  <label>Contacto (Nro. Telefónico)</label>
+  <div class="phone-input-group">
+    <span class="phone-prefix">0</span>
+    <input type="text" id="prefijo-alo-maestro" class="form-control phone-part" maxlength="4" placeholder="381" required pattern="\d{3,4}">
+    <span class="phone-prefix">15</span>
+    <input type="text" id="numero-alo-maestro" class="form-control phone-part" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
+    <input type="hidden" id="contacto-alo-maestro">
+  </div>
+</div>                              
 
             <!-- Botón Submit (deshabilitado inicialmente) -->
             <button type="submit" form="aloFormMaestro" class="btn-submit" id="btn-submit-alo-maestro" disabled>
@@ -866,10 +874,17 @@
             <label for="dni-alo-tinku">DNI (Solo números)</label>
             <input type="tel" id="dni-alo-tinku" class="form-control" required>
           </div>
-          <div class="form-group">
-            <label for="contacto-alo-tinku">Contacto (Nro. Telefónico)</label>
-            <input type="tel" id="contacto-alo-tinku" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
-          </div>
+
+         <div class="form-group">
+  <label>Contacto (Nro. Telefónico)</label>
+  <div class="phone-input-group">
+    <span class="phone-prefix">0</span>
+    <input type="text" id="prefijo-alo-tinku" class="form-control phone-part" maxlength="4" placeholder="381" required pattern="\d{3,4}">
+    <span class="phone-prefix">15</span>
+    <input type="text" id="numero-alo-tinku" class="form-control phone-part" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
+    <input type="hidden" id="contacto-alo-tinku">
+  </div>
+</div>
 
           <button type="submit" form="aloFormTinku" class="btn-submit" id="btn-submit-alo-tinku" disabled>
             <span class="btn-label">Confirmar Reserva</span>
@@ -986,10 +1001,18 @@
             <label for="dni-alo-aquilina">DNI (Solo números)</label>
             <input type="tel" id="dni-alo-aquilina" class="form-control" required>
           </div>
+
+
           <div class="form-group">
-            <label for="contacto-alo-aquilina">Contacto (Nro. Telefónico)</label>
-            <input type="tel" id="contacto-alo-aquilina" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
-          </div>
+  <label>Contacto (Nro. Telefónico)</label>
+  <div class="phone-input-group">
+    <span class="phone-prefix">0</span>
+    <input type="text" id="prefijo-alo-aquilina" class="form-control phone-part" maxlength="4" placeholder="381" required pattern="\d{3,4}">
+    <span class="phone-prefix">15</span>
+    <input type="text" id="numero-alo-aquilina" class="form-control phone-part" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
+    <input type="hidden" id="contacto-alo-aquilina">
+  </div>
+</div>
 
           <button type="submit" form="aloFormAquilina" class="btn-submit" id="btn-submit-alo-aquilina" disabled>
             <span class="btn-label">Confirmar Reserva</span>
