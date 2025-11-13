@@ -277,7 +277,7 @@
 
 
 
-    <!-- VISITA Modal para  Albergue Maestro José Fierro -->
+<!-- VISITA Modal para  Albergue Maestro José Fierro -->
     
 <div id="modal-maestro" class="modal">
   <div class="modal-content">
@@ -494,7 +494,7 @@
   </div>
 </div>
 
-    <!-- VISITA Modal para  Aquilina -->
+<!-- VISITA Modal para  Aquilina -->
     
 <div id="modal-aquilina" class="modal">
   <div class="modal-content">
@@ -622,10 +622,10 @@
                   <i class="fas fa-tasks"></i>  <!-- Ícono nuevo: representa pasos/tareas obligatorias -->
                   Complete los siguientes pasos:
               </label>
-                <div class="step-indicator" id="step-1"><span>1</span></div>
-                <div class="step-indicator" id="step-2"><span>2</span></div>
-                <div class="step-indicator" id="step-3"><span>3</span></div>
-                <div class="step-indicator" id="step-4"><span>4</span></div>
+                <div class="step-indicator" id="step-1-maestro"><span>1</span></div>
+                <div class="step-indicator" id="step-2-maestro"><span>2</span></div>
+                <div class="step-indicator" id="step-3-maestro"><span>3</span></div>        
+                <div class="step-indicator" id="step-4-maestro"><span>4</span></div>
                 <div class="progress-bar">
                     <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
                 </div>
@@ -706,18 +706,7 @@
         <i class="fas fa-sign-out-alt"></i>
         <span>Salida a 18:30 hs</span>
       </div>
-
-
-
-
-
-
-
-
 </div>
-
-            
-
             <!-- Paso 4: Datos Adicionales -->
 
             <div class="step-container step-4">
@@ -738,19 +727,12 @@
                     <div class="form-group">
                         <label for="contacto-alo-maestro">Contacto (Nro. Telefónico)</label>
                         <input type="tel" id="contacto-alo-maestro" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
-                    </div>
-                                   
+                    </div>                                   
 
             <!-- Botón Submit (deshabilitado inicialmente) -->
             <button type="submit" form="aloFormMaestro" class="btn-submit" id="btn-submit-alo-maestro" disabled>
                 <span class="btn-label">Confirmar Reserva</span>
-            </button>
-
-
-                
-            
-
-           
+            </button>          
 
             <!-- Botón Reset -->
             <button type="button" class="btn-reset" id="btn-reset-alo-maestro" onclick="resetAllAlo('maestro')">
@@ -798,7 +780,9 @@
           <label for="cantidad-alo-tinku">
             <i class="fas fa-bed"></i> 1. Cantidad de camas a reservar:
           </label>
-          <input type="number" id="cantidad-alo-tinku" name="cantidad" min="1" max="49" required placeholder="máx. 49">
+          <input type="number" id="cantidad-alo-tinku" name="cantidad" min="1" max="49"
+       required placeholder="máx. 49" class="form-control">
+
         </div>
       </div>
 
@@ -808,13 +792,16 @@
           <label for="delegacion-alo-tinku">
             <i class="fas fa-users"></i> 2. Tipo de Delegación:
           </label>
-          <select id="delegacion-alo-tinku" name="delegacion" required>
+          <select id="delegacion-alo-tinku" name="delegacion" required class="form-control">
             <option value="">Seleccione tipo</option>
             <option value="escuelas">Escuelas (hasta 4 días)</option>
             <option value="otra">Otra Institución (hasta 3 días)</option>
           </select>
         </div>
       </div>
+
+
+      
 
       <!-- Paso 3: Fechas -->
       <div class="step-container step-3">
@@ -834,12 +821,17 @@
           </button>
         </div>
 
+
+        
+
         <div id="cal-loader-alo-tinku" class="cal-loader" hidden aria-busy="false">
           <div class="spinner" role="status" aria-label="Cargando disponibilidad"></div>
           <span id="loader-text-alo-tinku" class="loader-text">Buscando...</span>
         </div>
 
         <div id="calendario-alo-tinku" class="calendario-grid"></div>
+
+        
 
         <div class="fecha-range-info step-3" id="fecha-range-display-alo-tinku">
           <span class="leyenda-color">
@@ -919,7 +911,9 @@
           <label for="cantidad-alo-aquilina">
             <i class="fas fa-bed"></i> 1. Cantidad de camas a reservar:
           </label>
-          <input type="number" id="cantidad-alo-aquilina" name="cantidad" min="1" max="58" required placeholder="máx. 58">
+          <input type="number" id="cantidad-alo-aquilina" name="cantidad" min="1" max="58"
+       required placeholder="máx. 58" class="form-control">
+
         </div>
       </div>
 
@@ -928,7 +922,7 @@
           <label for="delegacion-alo-aquilina">
             <i class="fas fa-users"></i> 2. Tipo de Delegación:
           </label>
-          <select id="delegacion-alo-aquilina" name="delegacion" required>
+          <select id="delegacion-alo-aquilina" name="delegacion" required class="form-control">
             <option value="">Seleccione tipo</option>
             <option value="escuelas">Escuelas (hasta 4 días)</option>
             <option value="otra">Otra Institución (hasta 3 días)</option>
