@@ -2098,6 +2098,7 @@ input[readonly], select[disabled] {
 .cal-loader { display:flex; gap:8px; align-items:center; justify-content:center; }
 
 
+/* === GRUPO GENERAL === */
 .phone-input-group {
   display: flex;
   align-items: center;
@@ -2105,28 +2106,41 @@ input[readonly], select[disabled] {
   flex-wrap: nowrap;
 }
 
+/* === PREFIJOS (0 y 15) === */
 .phone-prefix {
   font-weight: bold;
   color: #005ca2;
   font-size: 1rem;
   background: #f0f4f8;
-  padding: 0 8px;
+  padding: 0 10px;
   height: 38px;
   display: flex;
   align-items: center;
   border: 1px solid #ccc;
-  border-radius: 4px 0 0 4px;
+  border-radius: 6px;     /* ← más redondeado como un form-control */
 }
 
+/* === INPUTS (prefijo y número) === */
 .phone-part {
-  width: 80px !important;
   text-align: center;
+  height: 38px;
+  border-radius: 6px !important; /* ← iguales al resto de los campos */
+  border: 1px solid #ccc;
+  padding: 0 8px;
+  outline: none;
 }
 
-.phone-input-group .phone-part:first-of-type {
-  border-radius: 0;
+/* === Tamaño del campo de prefijo === */
+.phone-input-group .phone-part.prefijo {
+  width: 65px !important;  /* entra 3–4 dígitos */
 }
 
-.phone-input-group .phone-part:last-of-type {
-  border-radius: 0 4px 4px 0;
+/* === Tamaño del campo de número === */
+.phone-input-group .phone-part.numero {
+  width: 150px !important; /* entra perfecto 6–7 dígitos */
+}
+
+/* Quitar bordes raros si el navegador intenta unirlos */
+.phone-input-group input {
+  border-radius: 6px !important;
 }
