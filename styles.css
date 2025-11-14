@@ -2096,3 +2096,37 @@ input[readonly], select[disabled] {
   opacity: 0.9;
 }
 .cal-loader { display:flex; gap:8px; align-items:center; justify-content:center; }
+
+
+.phone-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.phone-prefix {
+  font-weight: bold;
+  color: #005ca2;
+  font-size: 1rem;
+  background: #f0f4f8;
+  padding: 0 8px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccc;
+  border-radius: 4px 0 0 4px;
+}
+
+.phone-part {
+  width: 80px !important;
+  text-align: center;
+}
+
+.phone-input-group .phone-part:first-of-type {
+  border-radius: 0;
+}
+
+.phone-input-group .phone-part:last-of-type {
+  border-radius: 0 4px 4px 0;
+}

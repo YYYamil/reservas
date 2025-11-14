@@ -2500,3 +2500,64 @@ function habilitarBotonReservaAlo(albergue) {
   console.log(`✅ Botón de reserva habilitado para ${albergue}`);
 }
 
+// === TELÉFONO ALOJAMIENTO: Prefijo 3-4 + Número 6-7 = Total 9 o 10 ===
+document.querySelectorAll('[id^="modal-alojamiento-"]').forEach(modal => {
+  const albergue = modal.id.replace('modal-alojamiento-', '');
+  
+  const prefijoInput = document.getElementById(`prefijo-alo-${albergue}`);
+  const numeroInput = document.getElementById(`numero-alo-${albergue}`);
+  const hiddenInput = document.getElementById(`contacto-alo-${albergue}`);
+
+  if (!prefijoInput || !numeroInput || !hiddenInput) return;
+
+  const updateHidden = () => {
+    // Limpiar: solo números
+    const prefijo = prefijoInput.value.replace(/\D/g, '').slice(0, 4);
+    const numero = numeroInput.value.replace(/\D/g, '').slice(0, 7);
+
+    // Actualizar visualmente
+    prefijoInput.value = prefijo;
+    numeroInput.value = numero;
+
+    // Validar longitudes
+    const prefijoOk = prefijo.length === 3 || prefijo.length === 4;
+    const numeroOk = numero.length === 6 || numero.length === 7;
+    const total = prefijo + numero;
+    const totalOk = total.length === 9 || total.length === 10;
+
+    if (prefijoOk && numeroOk && totalOk) {
+      hiddenInput.value = total;
+    } else {
+      hiddenInput.value = '';
+    }
+  };
+
+  prefijoInput.addEventListener('input', updateHidden);
+  numeroInput.addEventListener('input', updateHidden);
+
+  // Validación al enviar
+  const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      updateHidden();
+      const total = hiddenInput.value;
+
+      if (!/^\d{9,10}$/.test(total)) {
+        e.preventDefault();
+        alert('Error en el contacto:\n\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos\n• Total: debe ser 9 o 10 dígitos\n\nEjemplos válidos:\n381500600 (9)\n3811500600 (10)\n3815006000 (10)\n38115006000 (11 → no)\n\nCombinaciones válidas:\n3+6=9 | 4+6=10 | 3+7=10');
+        return;
+      }
+
+      // Extraer partes según total
+      const is10Digits = total.length === 10;
+      const numeroLength = is10Digits ? (total.slice(0, 4).length === 4 ? 6 : 7) : 6;
+      const numero = total.slice(-numeroLength);
+      const prefijo = total.slice(0, total.length - numeroLength);
+
+      if (!/^\d{3,4}$/.test(prefijo) || !/^\d{6,7}$/.test(numero)) {
+        e.preventDefault();
+        alert('Formato inválido. Verifica:\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos');
+      }
+    });
+  }
+});
