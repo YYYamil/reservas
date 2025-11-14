@@ -346,10 +346,20 @@
           </div>
 
           <!-- Tercera fila: Contacto y Cantidad de Personas -->
-          <div class="form-group">
-            <label for="contacto-maestro">Contacto (Número Telefónico)</label>
-            <input type="tel" id="contacto-maestro" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
-          </div>
+ <div class="form-group">
+  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
+  <div class="phone-input-group">
+    <span class="phone-prefix">0</span>
+<input type="text" id="prefijo-visita-maestro" 
+       class="form-control phone-part prefijo"
+       maxlength="4" placeholder="381">
+    <span class="phone-prefix">15</span>
+<input type="text" id="numero-visita-maestro" 
+       class="form-control phone-part numero"
+       maxlength="7" placeholder="500600">
+    <input type="hidden" id="contacto-maestro">
+  </div>
+</div>
 
           <div class="form-group">
             <label for="cantidad-maestro">Cantidad de Personas</label>
@@ -456,9 +466,20 @@
 
           <!-- Tercera fila: Contacto y Cantidad de Personas -->
           <div class="form-group">
-            <label for="contacto-tinku">Contacto (Número Telefónico)</label>
-            <input type="tel" id="contacto-tinku" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
-          </div>
+  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
+  <div class="phone-input-group">
+    <span class="phone-prefix">0</span>
+<input type="text" id="prefijo-visita-tinku" 
+       class="form-control phone-part prefijo"
+       maxlength="4" placeholder="381">
+    <span class="phone-prefix">15</span>
+<input type="text" id="numero-visita-tinku" 
+       class="form-control phone-part numero"
+       maxlength="7" placeholder="500600">
+    <input type="hidden" id="contacto-tinku">
+  </div>
+</div>
+
 
           <div class="form-group">
             <label for="cantidad-tinku">Cantidad de Personas</label>
@@ -564,9 +585,19 @@
 
           <!-- Tercera fila: Contacto y Cantidad de Personas -->
           <div class="form-group">
-            <label for="contacto-aquilina">Contacto (Número Telefónico)</label>
-            <input type="tel" id="contacto-aquilina" class="form-control" required pattern="\d{9}" placeholder="Ej: 381500600">
-          </div>
+  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
+  <div class="phone-input-group">
+    <span class="phone-prefix">0</span>
+<input type="text" id="prefijo-visita-aquilina" 
+       class="form-control phone-part prefijo"
+       maxlength="4" placeholder="381">
+    <span class="phone-prefix">15</span>
+<input type="text" id="numero-visita-aquilina" 
+       class="form-control phone-part numero"
+       maxlength="7" placeholder="500600">
+    <input type="hidden" id="contacto-aquilina">
+  </div>
+</div>
 
           <div class="form-group">
             <label for="cantidad-aquilina">Cantidad de Personas</label>
@@ -727,12 +758,12 @@
 
 
                     <div class="form-group">
-  <label>Contacto (Nro. Telefónico)</label>
+  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
   <div class="phone-input-group">
     <span class="phone-prefix">0</span>
-    <input type="text" id="prefijo-alo-maestro" class="form-control phone-part" maxlength="4" placeholder="381" required pattern="\d{3,4}">
+    <input type="text" id="prefijo-alo-maestro" class="form-control phone-part prefijo" maxlength="4" placeholder="381" required pattern="\d{3,4}">
     <span class="phone-prefix">15</span>
-    <input type="text" id="numero-alo-maestro" class="form-control phone-part" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
+    <input type="text" id="numero-alo-maestro" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
     <input type="hidden" id="contacto-alo-maestro">
   </div>
 </div>                              
@@ -876,12 +907,12 @@
           </div>
 
          <div class="form-group">
-  <label>Contacto (Nro. Telefónico)</label>
+  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
   <div class="phone-input-group">
     <span class="phone-prefix">0</span>
-    <input type="text" id="prefijo-alo-tinku" class="form-control phone-part" maxlength="4" placeholder="381" required pattern="\d{3,4}">
+    <input type="text" id="prefijo-alo-tinku" class="form-control phone-part prefijo" maxlength="4" placeholder="381" required pattern="\d{3,4}">
     <span class="phone-prefix">15</span>
-    <input type="text" id="numero-alo-tinku" class="form-control phone-part" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
+    <input type="text" id="numero-alo-tinku" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
     <input type="hidden" id="contacto-alo-tinku">
   </div>
 </div>
@@ -1004,12 +1035,12 @@
 
 
           <div class="form-group">
-  <label>Contacto (Nro. Telefónico)</label>
+  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
   <div class="phone-input-group">
     <span class="phone-prefix">0</span>
-    <input type="text" id="prefijo-alo-aquilina" class="form-control phone-part" maxlength="4" placeholder="381" required pattern="\d{3,4}">
+    <input type="text" id="prefijo-alo-aquilina" class="form-control phone-part prefijo" maxlength="4" placeholder="381" required pattern="\d{3,4}">
     <span class="phone-prefix">15</span>
-    <input type="text" id="numero-alo-aquilina" class="form-control phone-part" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
+    <input type="text" id="numero-alo-aquilina" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
     <input type="hidden" id="contacto-alo-aquilina">
   </div>
 </div>

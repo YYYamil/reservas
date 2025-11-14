@@ -121,20 +121,20 @@ function closeModal(albergue) {
 }
 
 // Cerrar al click fuera (extendido para ambos tipos de modales)
-window.onclick = function(event) {
-  if (event.target.classList.contains('modal') && event.target.classList.contains('active')) {
-    const idParts = event.target.id.split('-');
-    if (idParts[1] === 'alojamiento') {
-      // Modal de alojamiento: modal-alojamiento-{albergue}
-      const albergue = idParts[2]; // e.g., 'maestro'
-      if (albergue) closeAlojamientoModal(albergue);
-    } else {
-      // Modal regular: modal-{albergue}
-      const albergue = idParts[1]; // e.g., 'maestro'
-      if (albergue) closeModal(albergue);
-    }
-  }
-};
+// window.onclick = function(event) {
+//   if (event.target.classList.contains('modal') && event.target.classList.contains('active')) {
+//     const idParts = event.target.id.split('-');
+//     if (idParts[1] === 'alojamiento') {
+//       // Modal de alojamiento: modal-alojamiento-{albergue}
+//       const albergue = idParts[2]; // e.g., 'maestro'
+//       if (albergue) closeAlojamientoModal(albergue);
+//     } else {
+//       // Modal regular: modal-{albergue}
+//       const albergue = idParts[1]; // e.g., 'maestro'
+//       if (albergue) closeModal(albergue);
+//     }
+//   }
+// };
 
 // Configuración de listeners de formularios
 function setupFormListeners() {
@@ -250,21 +250,13 @@ function mostrarConfirmacion(albergue, formData, idReserva) {
     aquilina: 'Albergue Aquilina Soldati'
   };
 
-  // alert(`¡Reserva #${idReserva} realizada con éxito!\n\n` +
-  //       `Institución: ${formData.institucion}\n` +
-  //       `Responsable: ${formData.responsable}\n` +
-  //       `Contacto: ${formData.contacto}\n` +
-  //       `Cantidad: ${formData.cantidad} personas\n` +
-  //       `Albergue: ${nombresAlbergues[albergue]}\n` +
-  //       `Ingreso: ${formData.fechaIngreso} a las ${formData.horaIngreso}\n` +
-  //       `Pernocta: ${formData.pernocta ? 'Sí' : 'No'}`);
+  
 }
 
 function resetForm(albergue) {
   const form = document.getElementById(`reservaForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
   form.reset();
-  // No hay checkbox para resetear (pernocta siempre true)
-  //console.log(`Formulario reseteado para ${albergue}, Pernocta: true (siempre activado)`);
+  
 }
 
 
@@ -548,11 +540,11 @@ async function fetchDisponiblesMaestro(fechaISO) {
 
   const json = await resp.json();
   if (!json.success) throw new Error(json.message || 'Error en servidor');
-  return json; // {fecha, albergue, capacidad, ocupados, disponibles}
+  return json; 
 }
 
 
-// Llamalo cuando el usuario hace click en un día del calendario del modal "Maestro José Fierro"
+
 async function onCalendarDayClickMaestro(dateObj) {
   try {
     const fechaISO = toISODateYMD(dateObj);
@@ -652,21 +644,21 @@ function getSubmitButton(albergue){
   return form ? form.querySelector('.btn-submit') : null;
 }
 
-function setBtnLoading(btn, texto = 'Guardando...') { // texto por default, custom para Alojamiento
+function setBtnLoading(btn, texto = 'Guardando...') { 
   if (!btn) return;
   btn.disabled = true;
   btn.innerHTML = `
     <span class="btn-icon spinner" aria-hidden="true"></span>
     <span class="btn-label">${texto}</span>
   `;
-  //console.log(`Botón en loading: ${texto}`); // DEBUG opcional
+  
 }
 
 function setBtnSuccess(btn, text='Reservado'){
   if(!btn) return;
   const lbl = btn.querySelector('.btn-label');
   if (lbl) lbl.textContent = text;
-  btn.classList.remove('is-loading','is-error'); // <- importante
+  btn.classList.remove('is-loading','is-error'); 
   btn.classList.add('is-success');
   btn.disabled = true;
 }
@@ -816,35 +808,63 @@ function setupFieldGuards(){
     });
   });
 
-  // Contacto: solo números (7 a 15 dígitos)
-  document.querySelectorAll('input[id^="contacto-"]').forEach(el => {
-    el.setAttribute('inputmode','numeric');
-    el.setAttribute('pattern','\\d{7,15}');
-    el.setAttribute('maxlength','15');
+  // === TELÉFONO VISITAS: Prefijo 3-4 + Número 6-7 = Total 9 o 10 ===
+document.querySelectorAll('#modal-maestro, #modal-tinku, #modal-aquilina').forEach(modal => {
+const albergue = modal.id.replace('modal-', '');
+  
+  const prefijoInput = document.getElementById(`prefijo-visita-${albergue}`);
+  const numeroInput = document.getElementById(`numero-visita-${albergue}`);
+  const hiddenInput = document.getElementById(`contacto-${albergue}`);
 
-    el.addEventListener('input', () => {
-      const clean = sanitizeTelefono(el.value);
-      if (clean !== el.value) el.value = clean;
-      el.setCustomValidity('');
-    });
+  if (!prefijoInput || !numeroInput || !hiddenInput) return;
 
-    el.addEventListener('blur', () => {
-      const ok = /^\d{7,15}$/.test(el.value);
-      el.setCustomValidity(ok ? '' : 'Ingrese solo números (7 a 15 dígitos).');
-    });
+  const updateHidden = () => {
+    const prefijo = prefijoInput.value.replace(/\D/g, '').slice(0, 4);
+    const numero = numeroInput.value.replace(/\D/g, '').slice(0, 7);
 
-    // Limpia el portapapeles al pegar (solo números)
-    el.addEventListener('paste', (e) => {
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData('text');
-      const clean = sanitizeTelefono(text);
-      // inserta el texto saneado
-      const start = el.selectionStart ?? el.value.length;
-      const end   = el.selectionEnd ?? el.value.length;
-      el.value = el.value.slice(0,start) + clean + el.value.slice(end);
-      el.dispatchEvent(new Event('input', {bubbles:true}));
+    prefijoInput.value = prefijo;
+    numeroInput.value = numero;
+
+    const prefijoOk = prefijo.length === 3 || prefijo.length === 4;
+    const numeroOk = numero.length === 6 || numero.length === 7;
+    const total = prefijo + numero;
+    const totalOk = total.length === 9 || total.length === 10;
+
+    if (prefijoOk && numeroOk && totalOk) {
+      hiddenInput.value = total;
+    } else {
+      hiddenInput.value = '';
+    }
+  };
+
+  prefijoInput.addEventListener('input', updateHidden);
+  numeroInput.addEventListener('input', updateHidden);
+
+  // Validación al enviar
+  const form = modal.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      updateHidden();
+      const total = hiddenInput.value;
+
+      if (!/^\d{9,10}$/.test(total)) {
+        e.preventDefault();
+        alert('Error en el contacto:\n\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos\n• Total: debe ser 9 o 10 dígitos\n\nEjemplos válidos:\n381500600 (9)\n3811500600 (10)\n3815006000 (10)');
+        return;
+      }
+
+      const is10Digits = total.length === 10;
+      const numeroLength = is10Digits ? (total.slice(0, 4).length === 4 ? 6 : 7) : 6;
+      const numero = total.slice(-numeroLength);
+      const prefijo = total.slice(0, total.length - numeroLength);
+
+      if (!/^\d{3,4}$/.test(prefijo) || !/^\d{6,7}$/.test(numero)) {
+        e.preventDefault();
+        alert('Formato inválido. Verifica:\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos');
+      }
     });
-  });
+  }
+});
 // DNI: solo números, exactamente 8 dígitos
 document.querySelectorAll('input[id^="dni-"]').forEach(el => {
   el.placeholder = 'Ej: 12345678';
@@ -859,7 +879,7 @@ document.querySelectorAll('input[id^="dni-"]').forEach(el => {
     const v = parseInt(el.value, 10);
     if (isNaN(v) || v.toString().length !== 8) {
       el.value = ''; // Limpia si no es 8 dígitos válidos
-      //showSnackbar('DNI debe ser exactamente 8 números.', 'error', 3000);
+      
     }
   });
 });
@@ -880,7 +900,6 @@ document.addEventListener('DOMContentLoaded', () => {
   setupFieldGuards();
 });
 
-//Contro en los campos Cantidad de personsa-LIMITES por albergue
 
 const LIMITES_SIN_PERNOCTA = { maestro: 300, tinku: 100, aquilina: 100 };
 const LIMITES_PERNOCTA     = { maestro: 92,  tinku: 49,  aquilina: 58  };
@@ -983,13 +1002,11 @@ function applyHospedajeState(albergue){
   const isHospedaje = !!(chk && chk.checked);
 
   if (isHospedaje) {
-    // guardo la última hora elegida (si no era "Hospedarse")
+    
     if (selEg.value && selEg.value !== 'Hospedarse') {
       selEg.dataset.prevValue = selEg.value;
     }
-    // selEg.value = 'Hospedarse';
-    // selEg.disabled = true;              // bloquea interacción
-    // selEg.classList.add('locked-select');
+   
   } else {
     selEg.disabled = false;
     selEg.classList.remove('locked-select');
@@ -998,7 +1015,7 @@ function applyHospedajeState(albergue){
     if (prev && prev !== 'Hospedarse') {
       selEg.value = prev;
     } else {
-      selEg.selectedIndex = 0;          // "Seleccione hora"
+      selEg.selectedIndex = 0;          
     }
   }
 }
@@ -1173,14 +1190,6 @@ async function cancelarReservaEnGoogleSheets(idReserva, dni){
 
 
 
-
-
-
-
-
-
-
-
 /*//////////////////////// II parte Alojamiento//////////////////////////////////////////////////*/
 
 // Estado para calendario de alojamiento
@@ -1208,33 +1217,7 @@ const formSubmissionStateAlo = {
   aquilina: { isSubmitting: false }
 };
 
-/*
-function handleFormSubmitAlo(e, albergue) {
-  if (e && e.preventDefault) e.preventDefault();
-  if (!albergue) albergue = 'maestro';
-  if (formSubmissionStateAlo[albergue]?.isSubmitting) return;
 
-  // 🔍 Usamos el estado correcto de pasos (compatibilidad con ambos)
-  const pasos =
-    estadoPasosAlo?.[albergue] ||
-    pasoEstadoAlo?.[albergue] || 
-    { current: 0, completed: [] };
-
-  console.log(`[VALIDACIÓN] ${albergue}: pasos actuales`, pasos);
-
-  // Validación consistente
-  if (!pasos.completed || pasos.completed.length < 4) {
-    showStepErrorsAlo[albergue] = true;
-    updateProgresoAlo?.(albergue);
-    showSnackbar?.('Debe completar los 4 PASOS antes de confirmar.', 'error', 4000);
-    return;
-  }
-
-  formSubmissionStateAlo[albergue].isSubmitting = true;
-  submitFormAlo(albergue).finally(() => {
-    formSubmissionStateAlo[albergue].isSubmitting = false;
-  });
-}*/
 
 function handleFormSubmitAlo(e, albergue) {
   if (e && e.preventDefault) e.preventDefault();
@@ -1260,15 +1243,15 @@ function handleFormSubmitAlo(e, albergue) {
 
 
 // Cerrar al click fuera (igual)
-window.onclick = (function(original) {
-  return function(event) {
-    original.call(this, event);
-    if (event.target.classList.contains('modal') && event.target.id.startsWith('modal-alojamiento-')) {
-      const albergue = event.target.id.split('-')[2];
-      closeAlojamientoModal(albergue);
-    }
-  };
-})(window.onclick || function(){});
+// window.onclick = (function(original) {
+//   return function(event) {
+//     original.call(this, event);
+//     if (event.target.classList.contains('modal') && event.target.id.startsWith('modal-alojamiento-')) {
+//       const albergue = event.target.id.split('-')[2];
+//       closeAlojamientoModal(albergue);
+//     }
+//   };
+// })(window.onclick || function(){});
 
 document.addEventListener('DOMContentLoaded', function() {
   ['maestro','tinku','aquilina'].forEach(albergue => {
@@ -2427,6 +2410,7 @@ function todasFechasVerdes(albergue) {
   if (diasEnRango.length === 0) return false;
   return Array.from(diasEnRango).every(d => d.classList.contains('verde'));
 }
+
 function setupPasoListenersAlo(albergue) {
   // Paso 1: cantidad
   const cantidadEl = document.getElementById(`cantidad-alo-${albergue}`);
