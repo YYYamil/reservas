@@ -722,7 +722,7 @@
 
 
 /* Paso 3 mantiene su tamaño normal */
-.step-container.step-3 {
+.step-container.paso-box {
   position: relative;
   display: block; /* evita que el flex afecte su contenido */
 }
@@ -1874,8 +1874,9 @@ input[readonly], select[disabled] {
 }
 
 /*fondo gris calendario*/
+
 /* Fondo gris para calendario de Alojamiento (matching con modal regular) */
-.step-container.step-3 {
+.step-container.paso-box {
   background-color: white; /* Gris claro */
   border-radius: 8px; /* Bordes redondeados suaves */
   padding: 15px; /* Espaciado interno */
@@ -2143,4 +2144,33 @@ input[readonly], select[disabled] {
 /* Quitar bordes raros si el navegador intenta unirlos */
 .phone-input-group input {
   border-radius: 6px !important;
+}
+
+/*PASOS/*
+
+/* contenedor general del paso (mantiene padding sin colorear todo) */
+.paso-box {
+  border-left: 4px solid #d0d0d0; /* gris por defecto */
+  padding: 12px 12px;
+  transition: border-color 200ms ease, background 200ms ease;
+  background: transparent; /* importante: no colorear todo el recuadro */
+  border-radius: 6px;
+}
+
+/* estado ENABLED (naranja lineal solo en la línea) */
+.paso-box.enabled {
+  border-left-color: #ff9800; /* naranja */
+  background: rgba(255,152,0,0.03); /* muy sutil, opcional */
+}
+
+/* estado COMPLETED (verde solo en la línea) */
+.paso-box.completed {
+  border-left-color: #28a745; /* verde */
+  background: rgba(40,167,69,0.02); /* muy sutil, opcional */
+}
+
+/* Si querés que el contenido texte cambie color cuando esté completed, opcional */
+.paso-box.completed .form-row label,
+.paso-box.completed .form-group label {
+  color: #2e7d32; /* tono de verde para labels (opcional) */
 }

@@ -1544,14 +1544,14 @@ if (todosVerdes && validarLimiteRangoAlo(albergue, range)) {
 
   // 🔹 Marca paso 3 completado y activa paso 4 (visual + lógica)
   completePasoAlo?.(albergue, 3);
-  enableStepAlo?.(albergue, 4);
+  //enableStepAlo?.(albergue, 4);
 
  // 🔹 Asegurar estado de pasos lógico
-if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 0, completed: [] };
-pasoEstadoAlo[albergue].current = 4;
-if (!pasoEstadoAlo[albergue].completed.includes(4)) {
-  pasoEstadoAlo[albergue].completed.push(4);
-}
+//if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 0, completed: [] };
+//pasoEstadoAlo[albergue].current = 4;
+//if (!pasoEstadoAlo[albergue].completed.includes(4)) {
+//  pasoEstadoAlo[albergue].completed.push(4);
+//}
 
 
 
@@ -1571,12 +1571,12 @@ if (!pasoEstadoAlo[albergue].completed.includes(4)) {
 
 
   // 🔹 Asegurar estado persistente del flujo
-if (!window.pasoEstadoAlo) window.pasoEstadoAlo = {};
-if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 4, completed: [1, 2, 3, 4] };
-else {
-  pasoEstadoAlo[albergue].current = 4;
-  pasoEstadoAlo[albergue].completed = [1, 2, 3, 4];
-}
+// if (!window.pasoEstadoAlo) window.pasoEstadoAlo = {};
+// if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 4, completed: [1, 2, 3, 4] };
+// else {
+//   pasoEstadoAlo[albergue].current = 4;
+//   pasoEstadoAlo[albergue].completed = [1, 2, 3, 4];
+// }
 
 console.log('[PASOS GUARDADOS]', albergue, pasoEstadoAlo[albergue]);
 
@@ -1950,6 +1950,9 @@ function resetAllAlo(albergue) {
   disableStepAlo(albergue, 2);
   disableStepAlo(albergue, 3);
   disableStepAlo(albergue, 4);
+
+  
+
   enableStepAlo(albergue, 1);
 
   // 7) Reinicia botón submit
@@ -1999,6 +2002,8 @@ function showCalendarLoadingAlo(albergue) {
   if (grid) grid.classList.add('loading');
 }
 
+
+
 function hideCalendarLoadingAlo(albergue) {
   const loader = document.getElementById(`cal-loader-alo-${albergue}`);
   if (!loader) return;
@@ -2007,6 +2012,9 @@ function hideCalendarLoadingAlo(albergue) {
   const grid = document.getElementById(`calendario-alo-${albergue}`);
   if (grid) grid.classList.remove('loading');
 }
+
+
+
 
 function updateOcupacionUIAlo(albergue, ocupados, capacidad) {
   const percent = capacidad > 0 ? Math.round((ocupados / capacidad) * 100) : 0;
@@ -2255,6 +2263,17 @@ function initPasoFlujoAlo(albergue) {
   updateProgresoAlo(albergue);
 
   // Al abrir: solo Paso 1 habilitado
+  // Limpia pasos visuales (círculos y recuadros)
+for (let n = 1; n <= 4; n++) {
+  const c = document.getElementById(`step-${n}-${albergue}`);
+  const b = document.getElementById(`paso-box-${n}-${albergue}`);
+
+  if (c) c.classList.remove("completed");
+  if (b) {
+    b.classList.remove("completed");
+    b.classList.remove("enabled");
+  }
+}
   enableStepAlo(albergue, 1);
   disableStepAlo(albergue, 2);
   disableStepAlo(albergue, 3);
@@ -2272,7 +2291,7 @@ function initPasoFlujoAlo(albergue) {
 
 // Control de avance paso a paso
 
-
+/*
 function completePasoAlo(albergue, pasoNum) {
   console.log('[completePasoAlo] entrada', albergue, pasoNum, pasoEstadoAlo[albergue]);
 
@@ -2321,9 +2340,60 @@ function completePasoAlo(albergue, pasoNum) {
   updateProgresoAlo(albergue);
   console.log('[completePasoAlo] salida', albergue, pasoNum, pasoEstadoAlo[albergue]);
 
-}
-// Bloquea visualmente un paso
+}*/
+// Marca un paso como completado y habilita el siguiente
 
+function completePasoAlo(albergue, pasoNum) {
+  // Guardado seguro del estado
+  if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+  if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
+    pasoEstadoAlo[albergue].completed.push(pasoNum);
+  }
+
+  // Actualiza current (siguiente paso)
+  pasoEstadoAlo[albergue].current = Math.max(pasoNum + 1, pasoEstadoAlo[albergue].current);
+
+  // MARCA CÍRCULO (step-indicator) y RECUADRO (paso-box) — clases sin cambiar estilos de loader/blur
+  const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
+  if (circle) circle.classList.add("completed");
+
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+  if (box) box.classList.add("completed");
+
+  // Habilita el siguiente paso (no tocará loader/blur)
+  enableStepAlo(albergue, pasoNum + 1);
+
+  // Si fue el paso 3, asegurar que todas las fechas estén en verde antes de avanzar
+  if (pasoNum === 3) {
+    if (!todasFechasVerdes(albergue)) {
+      // si no están todas verdes, dejamos el estado como está y no habilitamos 4 visualmente
+      console.log(`[completePasoAlo] Paso 3: no todas las fechas verdes para ${albergue}`);
+      // refrescar indicadores para asegurar consistencia visual
+      updateProgresoAlo(albergue);
+      return;
+    }
+  }
+
+  // Si llegamos explícitamente al paso 4, habilitar botón (manteniendo tu lógica actual)
+  if (pasoNum === 4) {
+    const btnSubmit = document.getElementById(`btn-submit-alo-${albergue}`);
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.classList.remove('disabled');
+      btnSubmit.classList.add('enabled');
+    }
+  }
+
+  // IMPORTANT: actualizar progreso (esto sincroniza los círculos y la barra)
+  updateProgresoAlo(albergue);
+
+  console.log('[completePasoAlo] salida', albergue, pasoNum, pasoEstadoAlo[albergue]);
+}
+
+
+
+// Bloquea visualmente un paso
+/*
 function disableStepAlo(albergue, pasoNum) {
   switch (pasoNum) {
     case 1: {
@@ -2356,9 +2426,21 @@ function disableStepAlo(albergue, pasoNum) {
     }
   }
 }
+*/
+function disableStepAlo(albergue, pasoNum) {
+  const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+
+  if (circle) circle.classList.remove("completed");
+  if (box) {
+    box.classList.remove("completed");
+    box.classList.remove("enabled");
+  }
+}
 
 
 // Habilita visualmente un paso
+/*
 function enableStepAlo(albergue, pasoNum) {
   switch (pasoNum) {
     case 1: {
@@ -2401,13 +2483,62 @@ function enableStepAlo(albergue, pasoNum) {
     }
   }
 }
+*/
+function enableStepAlo(albergue, pasoNum) {
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+  if (box) box.classList.add("enabled");
+
+  switch (pasoNum) {
+    case 1:
+      const c = document.getElementById(`cantidad-alo-${albergue}`);
+      if (c) { c.disabled = false; c.classList.remove("disabled"); }
+    break;
+
+    case 2:
+      const d = document.getElementById(`delegacion-alo-${albergue}`);
+      if (d) { d.disabled = false; d.classList.remove("disabled"); }
+    break;
+
+    case 3:
+      const grid = document.getElementById(`calendario-alo-${albergue}`);
+      const prev = document.getElementById(`nav-prev-alo-${albergue}`);
+      const next = document.getElementById(`nav-next-alo-${albergue}`);
+
+      if (grid) grid.classList.remove("disabled");
+      if (prev) prev.disabled = false;
+      if (next) next.disabled = false;
+
+      generarCalendarioAlo(albergue);
+    break;
+
+    case 4:
+      ["institucion","responsable","dni","contacto"].forEach(campo => {
+        const el = document.getElementById(`${campo}-alo-${albergue}`);
+        if (el) { el.disabled = false; el.classList.remove("disabled"); }
+      });
+    break;
+  }
+}
+
 
 // Comprueba si todas las fechas seleccionadas en el rango están en verde
+/*
 function todasFechasVerdes(albergue) {
   const grid = document.getElementById(`calendario-alo-${albergue}`);
   if (!grid) return false;
   const diasEnRango = grid.querySelectorAll('.en-rango');
   if (diasEnRango.length === 0) return false;
+  return Array.from(diasEnRango).every(d => d.classList.contains('verde'));
+}
+*/
+
+function todasFechasVerdes(albergue) {
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  if (!grid) return false;
+
+  const diasEnRango = grid.querySelectorAll('.en-rango');
+  if (diasEnRango.length === 0) return false;
+
   return Array.from(diasEnRango).every(d => d.classList.contains('verde'));
 }
 
@@ -2452,20 +2583,48 @@ function setupPasoListenersAlo(albergue) {
   });
 
   // Paso 4: form submit (dinámico)
-  const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
-  if (form) {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      // Ejecuta la acción final (tu función handleFormSubmitAlo o similar)
-      if (typeof handleFormSubmitAlo === 'function') {
-        handleFormSubmitAlo(e, albergue);
-      } else {
-        // fallback: solo reset
-        resetAllAlo(albergue);
-        closeAlojamientoModal(albergue);
-      }
-    });
-  }
+  // const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
+  // if (form) {
+  //   form.addEventListener('submit', (e) => {
+  //     e.preventDefault();
+  //     // Ejecuta la acción final (tu función handleFormSubmitAlo o similar)
+  //     if (typeof handleFormSubmitAlo === 'function') {
+  //       handleFormSubmitAlo(e, albergue);
+  //     } else {
+  //       // fallback: solo reset
+  //       resetAllAlo(albergue);
+  //       closeAlojamientoModal(albergue);
+  //     }
+  //   });
+  // }
+
+  // Paso 4: form submit
+const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
+if (form) {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Validar campos obligatorios del paso 4
+    const inst = document.getElementById(`institucion-alo-${albergue}`)?.value.trim();
+    const resp = document.getElementById(`responsable-alo-${albergue}`)?.value.trim();
+    const dni  = document.getElementById(`dni-alo-${albergue}`)?.value.trim();
+    const cont = document.getElementById(`contacto-alo-${albergue}`)?.value.trim();
+
+    if (inst && resp && dni && cont) {
+      // 🔥 AQUÍ MARCAMOS EL PASO 4 COMO COMPLETO
+      completePasoAlo(albergue, 4);
+    }
+
+    // Ejecuta tu lógica original
+    if (typeof handleFormSubmitAlo === 'function') {
+      handleFormSubmitAlo(e, albergue);
+    } else {
+      resetAllAlo(albergue);
+      closeAlojamientoModal(albergue);
+    }
+  });
+}
+
 }
 
 
