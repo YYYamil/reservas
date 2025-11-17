@@ -1226,12 +1226,12 @@ function handleFormSubmitAlo(e, albergue) {
 
   console.log('[VALIDACIÓN]', albergue, 'pasos actuales', pasoEstadoAlo[albergue]);
 
-  if (!pasoEstadoAlo[albergue] || pasoEstadoAlo[albergue].completed.length < 4) {
-    showStepErrorsAlo[albergue] = true;
-    updateProgresoAlo(albergue);
-    showSnackbar('Debe completar los 4 PASOS antes de confirmar.', 'error', 4000);
-    return;
-  }
+  // if (!pasoEstadoAlo[albergue] || pasoEstadoAlo[albergue].completed.length < 4) {
+  //   showStepErrorsAlo[albergue] = true;
+  //   updateProgresoAlo(albergue);
+  //   showSnackbar('Debe completar los 4 PASOS antes de confirmar.', 'error', 4000);
+  //   return;
+  // }
 
   formSubmissionStateAlo[albergue].isSubmitting = true;
   submitFormAlo(albergue).finally(() => {
@@ -1570,14 +1570,7 @@ if (todosVerdes && validarLimiteRangoAlo(albergue, range)) {
 }
 
 
-  // 🔹 Asegurar estado persistente del flujo
-// if (!window.pasoEstadoAlo) window.pasoEstadoAlo = {};
-// if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 4, completed: [1, 2, 3, 4] };
-// else {
-//   pasoEstadoAlo[albergue].current = 4;
-//   pasoEstadoAlo[albergue].completed = [1, 2, 3, 4];
-// }
-
+ 
 console.log('[PASOS GUARDADOS]', albergue, pasoEstadoAlo[albergue]);
 
     return;
@@ -1917,34 +1910,23 @@ function resetAllAlo(albergue) {
   if (navNext) navNext.disabled = false;
 
   // 5) Regenerar calendario y reasignar listeners
-  generarCalendarioAlo(albergue);
-  const calendario = document.getElementById(`calendario-alo-${albergue}`);
-  if (calendario) {
-    calendario.querySelectorAll('.dia').forEach(dia => {
-      // remueve listeners previos si acaso
-      dia.replaceWith(dia.cloneNode(true));
-    });
-    // re-obtener calendario y volver a asignar
-    const newCalendario = document.getElementById(`calendario-alo-${albergue}`);
-    if (newCalendario) {
-      newCalendario.querySelectorAll('.dia').forEach(dia => {
-        // agregar handler solo si está habilitado (no aria-disabled)
-        if (!dia.classList.contains('inactiva') && !dia.classList.contains('ocupado')) {
-          dia.addEventListener('click', () => handleClickDiaAlo(albergue, dia.dataset.iso, dia));
-          dia.tabIndex = 0;
-          dia.removeAttribute('aria-disabled');
-        } else {
-          dia.tabIndex = -1;
-          dia.setAttribute('aria-disabled','true');
-        }
-      });
-    }
+generarCalendarioAlo(albergue);
 
-    if (estadoPasosAlo[albergue]) {
-  estadoPasosAlo[albergue] = { current: 1, completed: [] };
+const newCalendario = document.getElementById(`calendario-alo-${albergue}`);
+if (newCalendario) {
+  newCalendario.querySelectorAll('.dia').forEach(dia => {
+    // asignar listener SOLO si el día es seleccionable
+    if (!dia.classList.contains('inactiva') && !dia.classList.contains('ocupado')) {
+      dia.addEventListener('click', () => handleClickDiaAlo(albergue, dia.dataset.iso, dia));
+      dia.tabIndex = 0;
+      dia.removeAttribute('aria-disabled');
+    } else {
+      dia.tabIndex = -1;
+      dia.setAttribute('aria-disabled','true');
+    }
+  });
 }
 
-  }
 
   // 6) Asegura que pasos vuelvan al inicio
   disableStepAlo(albergue, 2);
@@ -2289,60 +2271,9 @@ for (let n = 1; n <= 4; n++) {
 }
 
 
-// Control de avance paso a paso
 
-/*
-function completePasoAlo(albergue, pasoNum) {
-  console.log('[completePasoAlo] entrada', albergue, pasoNum, pasoEstadoAlo[albergue]);
-
-  if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 1, completed: [] };
-
-  if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
-    pasoEstadoAlo[albergue].completed.push(pasoNum);
-  }
-
-  // Deshabilita / habilita según flujo
-  disableStepAlo(albergue, 1);
-  disableStepAlo(albergue, 2);
-  disableStepAlo(albergue, 3);
-  disableStepAlo(albergue, 4);
-
-  switch (pasoNum) {
-    case 1:
-      enableStepAlo(albergue, 2);
-      pasoEstadoAlo[albergue].current = 2;
-      break;
-    case 2:
-      enableStepAlo(albergue, 3);
-      pasoEstadoAlo[albergue].current = 3;
-      break;
-    case 3:
-      if (todasFechasVerdes(albergue)) {
-        enableStepAlo(albergue, 4);
-        pasoEstadoAlo[albergue].current = 4;
-      } else {
-        pasoEstadoAlo[albergue].current = 3;
-        console.log('🔒 Paso 4 bloqueado: faltan días en verde.');
-      }
-      break;
-    case 4:
-      // Habilita el botón submit específico del albergue
-      const btnSubmit = document.getElementById(`btn-submit-alo-${albergue}`);
-      if (btnSubmit) {
-        btnSubmit.disabled = false;
-        btnSubmit.classList.remove('disabled');
-        btnSubmit.classList.add('enabled');
-      }
-      pasoEstadoAlo[albergue].current = 4;
-      break;
-  }
-
-  updateProgresoAlo(albergue);
-  console.log('[completePasoAlo] salida', albergue, pasoNum, pasoEstadoAlo[albergue]);
-
-}*/
 // Marca un paso como completado y habilita el siguiente
-
+/*
 function completePasoAlo(albergue, pasoNum) {
   // Guardado seguro del estado
   if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 1, completed: [] };
@@ -2390,43 +2321,9 @@ function completePasoAlo(albergue, pasoNum) {
   console.log('[completePasoAlo] salida', albergue, pasoNum, pasoEstadoAlo[albergue]);
 }
 
-
-
-// Bloquea visualmente un paso
-/*
-function disableStepAlo(albergue, pasoNum) {
-  switch (pasoNum) {
-    case 1: {
-      const input = document.getElementById(`cantidad-alo-${albergue}`);
-      if (input) { input.disabled = true; input.classList.add('disabled'); }
-      break;
-    }
-    case 2: {
-      const select = document.getElementById(`delegacion-alo-${albergue}`);
-      if (select) { select.disabled = true; select.classList.add('disabled'); }
-      break;
-    }
-    case 3: {
-      const grid = document.getElementById(`calendario-alo-${albergue}`);
-      const navPrev = document.getElementById(`nav-prev-alo-${albergue}`);
-      const navNext = document.getElementById(`nav-next-alo-${albergue}`);
-      if (grid) grid.classList.add('disabled');
-      if (navPrev) navPrev.disabled = true;
-      if (navNext) navNext.disabled = true;
-      // Regenerar calendario sin listeners para reflejar bloqueo
-      generarCalendarioAlo(albergue);
-      break;
-    }
-    case 4: {
-      ['institucion','responsable','dni','contacto'].forEach(campo => {
-        const el = document.getElementById(`${campo}-alo-${albergue}`);
-        if (el) { el.disabled = true; el.classList.add('disabled'); }
-      });
-      break;
-    }
-  }
-}
 */
+/*
+
 function disableStepAlo(albergue, pasoNum) {
   const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
   const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
@@ -2437,53 +2334,9 @@ function disableStepAlo(albergue, pasoNum) {
     box.classList.remove("enabled");
   }
 }
-
-
-// Habilita visualmente un paso
-/*
-function enableStepAlo(albergue, pasoNum) {
-  switch (pasoNum) {
-    case 1: {
-      const input = document.getElementById(`cantidad-alo-${albergue}`);
-      if (input) { input.disabled = false; input.classList.remove('disabled'); }
-      break;
-    }
-    case 2: {
-      const select = document.getElementById(`delegacion-alo-${albergue}`);
-      if (select) { select.disabled = false; select.classList.remove('disabled'); }
-      break;
-    }
-    case 3: {
-      const grid = document.getElementById(`calendario-alo-${albergue}`);
-      const navPrev = document.getElementById(`nav-prev-alo-${albergue}`);
-      const navNext = document.getElementById(`nav-next-alo-${albergue}`);
-      if (grid) {
-        grid.classList.remove('disabled');
-        grid.classList.remove('step-completed'); // importante limpiar marca de paso completado
-      }
-      if (navPrev) navPrev.disabled = false;
-      if (navNext) navNext.disabled = false;
-      // Regenera calendario y vuelve a asignar listeners
-      generarCalendarioAlo(albergue);
-      // Reasigna handlers sobre celdas (fallback)
-      const calendario = document.getElementById(`calendario-alo-${albergue}`);
-      if (calendario) {
-        calendario.querySelectorAll('.dia').forEach(dia => {
-          dia.addEventListener('click', () => handleClickDiaAlo(albergue, dia.dataset.iso, dia));
-        });
-      }
-      break;
-    }
-    case 4: {
-      ['institucion','responsable','dni','contacto'].forEach(campo => {
-        const el = document.getElementById(`${campo}-alo-${albergue}`);
-        if (el) { el.disabled = false; el.classList.remove('disabled'); }
-      });
-      break;
-    }
-  }
-}
 */
+
+/*
 function enableStepAlo(albergue, pasoNum) {
   const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
   if (box) box.classList.add("enabled");
@@ -2520,17 +2373,156 @@ function enableStepAlo(albergue, pasoNum) {
   }
 }
 
-
-// Comprueba si todas las fechas seleccionadas en el rango están en verde
-/*
-function todasFechasVerdes(albergue) {
-  const grid = document.getElementById(`calendario-alo-${albergue}`);
-  if (!grid) return false;
-  const diasEnRango = grid.querySelectorAll('.en-rango');
-  if (diasEnRango.length === 0) return false;
-  return Array.from(diasEnRango).every(d => d.classList.contains('verde'));
-}
 */
+
+function completePasoAlo(albergue, pasoNum) {
+
+  // Asegura estado
+  if (!pasoEstadoAlo[albergue]) 
+      pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+
+  // Guardar paso como completado
+  if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
+      pasoEstadoAlo[albergue].completed.push(pasoNum);
+  }
+
+  // Marcar círculo y recuadro en verde
+  const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
+  if (circle) circle.classList.add("completed");
+
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+  if (box) box.classList.add("completed");
+
+
+  // 🚫 DESHABILITAR todos los pasos SIEMPRE antes de habilitar el que corresponde
+  disableStepAlo(albergue, 1);
+  disableStepAlo(albergue, 2);
+  disableStepAlo(albergue, 3);
+  disableStepAlo(albergue, 4);
+
+  // 🔥 LOGICA DE FLUJO — SOLO UN PASO HABILITADO A LA VEZ
+  switch (pasoNum) {
+
+      case 1:
+          // Habilitar SOLO paso 2
+          enableStepAlo(albergue, 2);
+          pasoEstadoAlo[albergue].current = 2;
+          break;
+
+      case 2:
+          // Habilitar SOLO paso 3
+          enableStepAlo(albergue, 3);
+          pasoEstadoAlo[albergue].current = 3;
+          break;
+
+      case 3:
+          // Requiere validar días verdes
+          if (!todasFechasVerdes(albergue)) {
+              console.warn(`Paso 3 incompleto en ${albergue}: días no verdes`);
+              // Mantener paso 3 activo
+              enableStepAlo(albergue, 3);
+              break;
+          }
+          // Todo OK → habilitar solo paso 4
+          enableStepAlo(albergue, 4);
+          pasoEstadoAlo[albergue].current = 4;
+          break;
+
+      case 4:
+          // Habilitar botón submit (solo visual)
+          const btn = document.getElementById(`btn-submit-alo-${albergue}`);
+          if (btn) {
+              btn.disabled = false;
+              btn.classList.remove('disabled');
+              btn.classList.add('enabled');
+          }
+          break;
+  }
+
+  updateProgresoAlo(albergue);
+}
+function disableStepAlo(albergue, pasoNum) {
+
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+  if (box) {
+    box.classList.remove("enabled");
+    box.classList.remove("completed");
+    box.classList.add("disabled-step");   // 🔥 clase visual para grisado
+  }
+
+  const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
+  if (circle) circle.classList.remove("completed");
+
+  switch (pasoNum) {
+
+    case 1:
+      const c = document.getElementById(`cantidad-alo-${albergue}`);
+      if (c) c.disabled = true;
+      break;
+
+    case 2:
+      const d = document.getElementById(`delegacion-alo-${albergue}`);
+      if (d) d.disabled = true;
+      break;
+
+    case 3:
+      const grid = document.getElementById(`calendario-alo-${albergue}`);
+      const prev = document.getElementById(`nav-prev-alo-${albergue}`);
+      const next = document.getElementById(`nav-next-alo-${albergue}`);
+
+      if (grid) grid.classList.add("disabled");
+      if (prev) prev.disabled = true;
+      if (next) next.disabled = true;
+      break;
+
+    case 4:
+      ["institucion","responsable","dni","contacto"].forEach(campo => {
+        const el = document.getElementById(`${campo}-alo-${albergue}`);
+        if (el) el.disabled = true;
+      });
+      break;
+  }
+}
+function enableStepAlo(albergue, pasoNum) {
+
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+  if (box) {
+    box.classList.add("enabled");
+    box.classList.remove("disabled-step");
+  }
+
+  switch (pasoNum) {
+
+    case 1:
+      const c = document.getElementById(`cantidad-alo-${albergue}`);
+      if (c) c.disabled = false;
+      break;
+
+    case 2:
+      const d = document.getElementById(`delegacion-alo-${albergue}`);
+      if (d) d.disabled = false;
+      break;
+
+    case 3:
+      const grid = document.getElementById(`calendario-alo-${albergue}`);
+      const prev = document.getElementById(`nav-prev-alo-${albergue}`);
+      const next = document.getElementById(`nav-next-alo-${albergue}`);
+
+      if (grid) grid.classList.remove("disabled");
+      if (prev) prev.disabled = false;
+      if (next) next.disabled = false;
+      break;
+
+    case 4:
+      ["institucion","responsable","dni","contacto"].forEach(campo => {
+        const el = document.getElementById(`${campo}-alo-${albergue}`);
+        if (el) el.disabled = false;
+      });
+      break;
+  }
+}
+
+
 
 function todasFechasVerdes(albergue) {
   const grid = document.getElementById(`calendario-alo-${albergue}`);
@@ -2582,21 +2574,7 @@ function setupPasoListenersAlo(albergue) {
     }
   });
 
-  // Paso 4: form submit (dinámico)
-  // const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
-  // if (form) {
-  //   form.addEventListener('submit', (e) => {
-  //     e.preventDefault();
-  //     // Ejecuta la acción final (tu función handleFormSubmitAlo o similar)
-  //     if (typeof handleFormSubmitAlo === 'function') {
-  //       handleFormSubmitAlo(e, albergue);
-  //     } else {
-  //       // fallback: solo reset
-  //       resetAllAlo(albergue);
-  //       closeAlojamientoModal(albergue);
-  //     }
-  //   });
-  // }
+  
 
   // Paso 4: form submit
 const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);

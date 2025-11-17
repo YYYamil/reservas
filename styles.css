@@ -772,6 +772,16 @@
 }
 
 
+/* Igualar estilo de labels en Paso 4 */
+#paso-box-4-maestro label {
+    color: #005ca2;
+    font-weight: 600;
+}
+
+#paso-box-4-maestro label i {
+    color: #005ca2;
+}
+
 
 
 
@@ -2171,6 +2181,76 @@ input[readonly], select[disabled] {
 
 /* Si querés que el contenido texte cambie color cuando esté completed, opcional */
 .paso-box.completed .form-row label,
+.paso-box.completed label i,
+.paso-box.completed i,
 .paso-box.completed .form-group label {
   color: #2e7d32; /* tono de verde para labels (opcional) */
+}
+
+
+/* Unificar estilo de textos de todos los pasos */
+.paso-box label {
+    color: #005ca2 !important;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: 16px;
+}
+
+/* Cuando un paso está completo, todos los textos internos se ponen verdes */
+.paso-box.completed label,
+.paso-box.completed i,
+.paso-box.completed span,
+.paso-box.completed .form-group label {
+    color: #28a745 !important;
+}
+
+/* Bordes verdes a inputs cuando el paso está completo */
+.paso-box.completed input {
+    border-color: #28a745 !important;
+}
+
+/* Mantener los indicadores de paso como círculos perfectos */
+.step-indicator {
+    width: 38px !important;
+    height: 38px !important;
+    aspect-ratio: 1/1; /* siempre círculo */
+    min-width: 38px;
+    min-height: 38px;
+
+    border-radius: 50%;
+    /*/border: 2px solid #005bbf; /* azul */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+    font-weight: 700;
+    /*color: #005bbf;*/
+
+    flex-shrink: 0; /* evita que se achiquen */
+}
+
+/* Cuando están completos → verde */
+.step-indicator.completed {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+/* —— Ajustes para pantallas pequeñas —— */
+@media (max-width: 480px) {
+    .step-indicator {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px;
+        min-height: 32px;
+
+        font-size: 14px;
+    }
 }
