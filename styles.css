@@ -1449,6 +1449,10 @@
 }
 .btn-cancelar-roja.is-error{ background: #c9302c; }
 
+button.btn-submit.btn-cancelar-roja {
+  background: linear-gradient(to right, #d9534f, #c9302c) !important;
+  color: #fff !important;
+}
 
 
 /*Estilos para la X del css*/
@@ -2254,3 +2258,30 @@ input[readonly], select[disabled] {
         font-size: 14px;
     }
 }
+
+#snackbar {
+  visibility: hidden;
+  min-width: 260px;
+  margin-left: -130px;
+  background: #333;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 12px;
+  position: fixed;
+  z-index: 99999;
+  left: 50%;
+  bottom: 30px;
+  font-size: 15px;
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+
+#snackbar.show {
+  visibility: visible;
+  opacity: 1;
+}
+
+#snackbar.error { background: #c62828; }
+#snackbar.success { background: #2e7d32; }
+
