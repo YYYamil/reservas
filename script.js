@@ -2,9 +2,10 @@
 const CONFIG = {
   secretKey: "cristiano1988",
 
-  // googleScriptUrl: "https://script.google.com/macros/s/AKfycbwUo0ouoBIxBhYl89tEy1NartJHSg-HIknuwN4Vc0YRnb601c5BDrq9-CHLNIEG1Y_L/exec",
+  
   googleScriptUrl: "https://script.google.com/macros/s/AKfycby27iY1bq_o5I-UiDFZifgCxdFteWrd_7PcA6Itu30TPrOg7oF-07IxWgwgdPJHz7PYfQ/exec",
-  googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbyZY6xzwd9iaamv0h1L8GYvZ7GqXwNy1FNOratjdme0MONHGp4Bq6nRl4tkp-jXydnq/exec",
+  
+  googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycby4d9Y8OL_nq2_CfJlY5BqiMicf_-KyGBtLKUuThjGWoN8RocrWa7ipXpgdNngbEOAR/exec",
 
   meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
   diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
@@ -867,7 +868,7 @@ const albergue = modal.id.replace('modal-', '');
 });
 // DNI: solo números, exactamente 8 dígitos
 document.querySelectorAll('input[id^="dni-"]').forEach(el => {
-  el.placeholder = 'Ej: 12345678';
+  el.placeholder = 'Ej: 22333444';
   el.min = '0';
   el.max = '99999999'; // Límite superior para 8 dígitos
   el.addEventListener('input', () => {
@@ -1497,6 +1498,17 @@ async function handleClickDiaAlo(albergue, iso, celda) {
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       range.push(d.toISOString().split('T')[0]);
     }
+
+    // 🔍 Validación ANTES de consultar disponibilidad
+if (!validarLimiteRangoAlo(albergue, range)) {
+  showSnackbar?.(
+    `No puede seleccionar tantos dias para su delegación.`,
+    'error',
+    6000
+  );
+  return; // detener flujo
+}
+
 
     estado.endISO = iso;
     estado.range = range;
@@ -2157,7 +2169,7 @@ function validarLimiteRangoAlo(albergue, range) {
   
   const maxDias = tipo === 'escuelas' ? 4 : 3;
   if (range.length > maxDias) {
-    alert(`Límite excedido para ${tipo === 'escuelas' ? 'Escuelas' : 'Otra Institución'}: hasta ${maxDias} días. El rango se ha reseteado.`);
+    //alert(`Límite excedido para ${tipo === 'escuelas' ? 'Escuelas' : 'Otra Institución'}: hasta ${maxDias} días. El rango se ha reseteado.`);
     resetRangoAlo(albergue);
     return false;
   }
@@ -2271,109 +2283,6 @@ for (let n = 1; n <= 4; n++) {
 }
 
 
-
-// Marca un paso como completado y habilita el siguiente
-/*
-function completePasoAlo(albergue, pasoNum) {
-  // Guardado seguro del estado
-  if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 1, completed: [] };
-  if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
-    pasoEstadoAlo[albergue].completed.push(pasoNum);
-  }
-
-  // Actualiza current (siguiente paso)
-  pasoEstadoAlo[albergue].current = Math.max(pasoNum + 1, pasoEstadoAlo[albergue].current);
-
-  // MARCA CÍRCULO (step-indicator) y RECUADRO (paso-box) — clases sin cambiar estilos de loader/blur
-  const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
-  if (circle) circle.classList.add("completed");
-
-  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
-  if (box) box.classList.add("completed");
-
-  // Habilita el siguiente paso (no tocará loader/blur)
-  enableStepAlo(albergue, pasoNum + 1);
-
-  // Si fue el paso 3, asegurar que todas las fechas estén en verde antes de avanzar
-  if (pasoNum === 3) {
-    if (!todasFechasVerdes(albergue)) {
-      // si no están todas verdes, dejamos el estado como está y no habilitamos 4 visualmente
-      console.log(`[completePasoAlo] Paso 3: no todas las fechas verdes para ${albergue}`);
-      // refrescar indicadores para asegurar consistencia visual
-      updateProgresoAlo(albergue);
-      return;
-    }
-  }
-
-  // Si llegamos explícitamente al paso 4, habilitar botón (manteniendo tu lógica actual)
-  if (pasoNum === 4) {
-    const btnSubmit = document.getElementById(`btn-submit-alo-${albergue}`);
-    if (btnSubmit) {
-      btnSubmit.disabled = false;
-      btnSubmit.classList.remove('disabled');
-      btnSubmit.classList.add('enabled');
-    }
-  }
-
-  // IMPORTANT: actualizar progreso (esto sincroniza los círculos y la barra)
-  updateProgresoAlo(albergue);
-
-  console.log('[completePasoAlo] salida', albergue, pasoNum, pasoEstadoAlo[albergue]);
-}
-
-*/
-/*
-
-function disableStepAlo(albergue, pasoNum) {
-  const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
-  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
-
-  if (circle) circle.classList.remove("completed");
-  if (box) {
-    box.classList.remove("completed");
-    box.classList.remove("enabled");
-  }
-}
-*/
-
-/*
-function enableStepAlo(albergue, pasoNum) {
-  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
-  if (box) box.classList.add("enabled");
-
-  switch (pasoNum) {
-    case 1:
-      const c = document.getElementById(`cantidad-alo-${albergue}`);
-      if (c) { c.disabled = false; c.classList.remove("disabled"); }
-    break;
-
-    case 2:
-      const d = document.getElementById(`delegacion-alo-${albergue}`);
-      if (d) { d.disabled = false; d.classList.remove("disabled"); }
-    break;
-
-    case 3:
-      const grid = document.getElementById(`calendario-alo-${albergue}`);
-      const prev = document.getElementById(`nav-prev-alo-${albergue}`);
-      const next = document.getElementById(`nav-next-alo-${albergue}`);
-
-      if (grid) grid.classList.remove("disabled");
-      if (prev) prev.disabled = false;
-      if (next) next.disabled = false;
-
-      generarCalendarioAlo(albergue);
-    break;
-
-    case 4:
-      ["institucion","responsable","dni","contacto"].forEach(campo => {
-        const el = document.getElementById(`${campo}-alo-${albergue}`);
-        if (el) { el.disabled = false; el.classList.remove("disabled"); }
-      });
-    break;
-  }
-}
-
-*/
 
 function completePasoAlo(albergue, pasoNum) {
 
@@ -2665,7 +2574,7 @@ document.querySelectorAll('[id^="modal-alojamiento-"]').forEach(modal => {
 
       if (!/^\d{9,10}$/.test(total)) {
         e.preventDefault();
-        alert('Error en el contacto:\n\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos\n• Total: debe ser 9 o 10 dígitos\n\nEjemplos válidos:\n381500600 (9)\n3811500600 (10)\n3815006000 (10)\n38115006000 (11 → no)\n\nCombinaciones válidas:\n3+6=9 | 4+6=10 | 3+7=10');
+        alert('Error en el contacto:\n\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos\n• Total: debe ser 9 o 10 dígitos\n\nEjemplos válidos:\n3815600700 (9)\n3811500600 (10)\n3815006000 (10)\n38115006000 (11 → no)\n\nCombinaciones válidas:\n3+6=9 | 4+6=10 | 3+7=10');
         return;
       }
 
