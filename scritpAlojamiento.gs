@@ -1,175 +1,208 @@
 function doPost(e) {
   try {
-    const data = (e && e.parameter) ? e.parameter : {};
+    const data = (e?.parameter) || {};
+
     if ((data.secret || "") !== "cristiano1988") {
-      return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Acceso denegado" }))
-        .setMimeType(ContentService.MimeType.TEXT);
+      return respuesta({ success: false, message: "Acceso denegado" });
     }
 
     if (data.action === "crearReservaAlojamiento") {
-      const ss = SpreadsheetApp.openById("1WnkUA0wMXlsamLUtMtHSPG2GeHcagQLJcdbvIrnG4U4");  // Confirma este ID
-      //const hojaReservas = ss.getSheetByName("ReservasAlojamiento");
-      const hojaReservas = ss.getSheets().find(sh => sh.getName().trim().toLowerCase() === "reservasalojamiento");
-if (!hojaReservas) throw new Error("No se encontró la hoja 'ReservasAlojamiento'");
 
-      const hojaDisponibilidad = ss.getSheetByName("DisponibilidadAlojamiento");
+      const ss = SpreadsheetApp.openById("1WnkUA0wMXlsamLUtMtHSPG2GeHcagQLJcdbvIrnG4U4");
+      const hojaReservas = ss.getSheets().find(sh => sh.getName().trim().toLowerCase() === "reservasalojamiento");
+      const hojaDisp = ss.getSheetByName("DisponibilidadAlojamiento");
       const hojaConfig = ss.getSheetByName("ConfiguracionesAlojamiento");
 
-      if (!hojaReservas || !hojaDisponibilidad || !hojaConfig) {
+      if (!hojaReservas || !hojaDisp || !hojaConfig) {
         throw new Error("Faltan hojas en el spreadsheet");
       }
 
       const albergue = (data.albergue || "").trim();
-      Logger.log(`Albergue recibido: ${albergue}`);  // Log para depurar mismatch
-
       const cantidad = Math.max(0, parseInt(data.cantidad, 10) || 0);
+
       const rangoStr = (data.rangoFechas || "").trim();
       const rango = rangoStr.split(',').map(f => f.trim()).filter(f => f);
 
+      // Cargar configuración una sola vez
       const cfg = hojaConfig.getDataRange().getValues();
-      //const fila = cfg.find(r => (r[2] || "").trim() === albergue);
       const fila = cfg.find(r => (r[2] || "").trim().toLowerCase() === albergue.toLowerCase());
 
-      if (!fila) {
-        throw new Error(`Albergue no encontrado en config: ${albergue}`);
-      }
+      if (!fila) throw new Error(`Albergue no encontrado: ${albergue}`);
+
       const capacidadMax = parseInt(fila[1], 10) || 0;
 
       if (capacidadMax <= 0 || cantidad > capacidadMax) {
-        return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Capacidad inválida" }))
-          .setMimeType(ContentService.MimeType.TEXT);
+        return respuesta({ success: false, message: "Capacidad inválida" });
       }
 
-      const nuevoId = (new Date().getTime() % 10000);
+      const nuevoId = Date.now() % 10000;
+
+      // Cargar DISPONIBILIDAD UNA SOLA VEZ
+      const datosDisp = hojaDisp.getDataRange().getValues();
 
       let ok = true;
-      for (let fecha of rango) {
-        const disp = hojaDisponibilidad.getDataRange().getValues();
+
+      for (const fecha of rango) {
+
         let totalPrevio = 0;
-        for (let i = 1; i < disp.length; i++) {
-          const rowFecha = (disp[i][0] instanceof Date)
-            ? Utilities.formatDate(disp[i][0], Session.getScriptTimeZone(), "yyyy-MM-dd")
-            : (disp[i][0] || "").trim();
-          const rowA = (disp[i][1] || "").trim();
+
+        for (let i = 1; i < datosDisp.length; i++) {
+          const row = datosDisp[i];
+
+          const rowFecha = (row[0] instanceof Date)
+            ? Utilities.formatDate(row[0], Session.getScriptTimeZone(), "yyyy-MM-dd")
+            : (row[0] || "").trim();
+
+          const rowA = (row[1] || "").trim();
+
           if (rowFecha === fecha && rowA === albergue) {
-            totalPrevio += parseInt(disp[i][3], 10) || 0;
+            totalPrevio += parseInt(row[3], 10) || 0;
           }
         }
+
         const nuevoTotal = totalPrevio + cantidad;
         const nuevosDisp = capacidadMax - nuevoTotal;
-        if (nuevosDisp < 0) { ok = false; break; }
-        hojaDisponibilidad.appendRow([fecha, albergue, nuevoTotal, cantidad, nuevosDisp, nuevoId]);
+
+        if (nuevosDisp < 0) {
+          ok = false;
+          break;
+        }
+
+        // Se escribe una sola vez por fecha
+        hojaDisp.appendRow([fecha, albergue, nuevoTotal, cantidad, nuevosDisp, nuevoId]);
       }
 
-      if (!ok) {
-        return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Sin disponibilidad" }))
-          .setMimeType(ContentService.MimeType.TEXT);
-      }
+      if (!ok) return respuesta({ success: false, message: "Sin disponibilidad" });
 
+      // Registrar reserva
       hojaReservas.appendRow([
         nuevoId,
         new Date(),
         albergue,
-        data.institucion || '',
-        data.responsable || '',
-        data.dni || '',
-        data.contacto || '',
+        data.institucion || "",
+        data.responsable || "",
+        data.dni || "",
+        data.contacto || "",
         cantidad,
         rangoStr,
         "Pre-Reserva"
       ]);
 
-      Logger.log(`Intentando escribir reserva en hojaReservas: ${albergue}, ${data.institucion}, ${rangoStr}`);
-      Logger.log(`✅ Reserva guardada correctamente en hojaReservas`);
+      // 🧹 limpiar disponibilidad vieja (más de 2 meses)
+      limpiarDisponibilidadVieja_(hojaDisp);
 
-
-
-      Logger.log(`Reserva guardada: ID ${nuevoId}, Albergue ${albergue}`);  // Log éxito
-
-      return ContentService.createTextOutput(JSON.stringify({
-        success: true,
-        idReserva: nuevoId
-      })).setMimeType(ContentService.MimeType.TEXT);
+      return respuesta({ success: true, idReserva: nuevoId });
     }
 
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Acción inválida" }))
-      .setMimeType(ContentService.MimeType.TEXT);
+    return respuesta({ success: false, message: "Acción inválida" });
 
   } catch (err) {
     Logger.log("Error: " + err.message + " | Stack: " + err.stack);
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: err.message }))
-      .setMimeType(ContentService.MimeType.TEXT);
+    return respuesta({ success: false, message: err.message });
   }
 }
-
 
 function doGet(e) {
   try {
-    const data = (e && e.parameter) ? e.parameter : {};
+    const data = e?.parameter || {};
 
     if ((data.secret || "") !== "cristiano1988") {
-      return ContentService.createTextOutput(JSON.stringify({ success: false }))
-        .setMimeType(ContentService.MimeType.TEXT);
+      return respuesta({ success: false });
     }
 
-    // Action para disponibilidad por día (ahora en GET para evitar preflight)
     if (data.action === "obtenerDisponibilidadDiaAlojamiento") {
+
       const fechaISO = (data.fecha || "").trim();
       const albergue = (data.albergue || "").trim();
-      const resultado = obtenerDisponibilidadDiaAlo_(fechaISO, albergue);
-      return ContentService.createTextOutput(JSON.stringify({
+
+      const r = obtenerDisponibilidadDiaAlo_(fechaISO, albergue);
+
+      return respuesta({
         success: true,
         fecha: fechaISO,
-        albergue: albergue,
-        capacidad: resultado.capacidad,
-        ocupados: resultado.ocupados,
-        disponibles: resultado.disponibles
-      })).setMimeType(ContentService.MimeType.TEXT);
+        albergue,
+        capacidad: r.capacidad,
+        ocupados: r.ocupados,
+        disponibles: r.disponibles
+      });
     }
 
-    return ContentService.createTextOutput(JSON.stringify({ success: false, message: "Use POST for create, GET for get" }))
-      .setMimeType(ContentService.MimeType.TEXT);
+    return respuesta({ success: false, message: "Use POST para crear y GET para consultar" });
 
-  } catch (error) {
-    Logger.log("Error in doGet: " + error);
-    return ContentService.createTextOutput(JSON.stringify({ success: false }))
-      .setMimeType(ContentService.MimeType.TEXT);
+  } catch (err) {
+    return respuesta({ success: false, message: err.message });
   }
 }
+function obtenerDisponibilidadDiaAlo_(fechaISO, albergue) {
 
-// Función helper (sin cambios)
-function obtenerDisponibilidadDiaAlo_(fechaISO, albergueFullName) {
-  //const ss = SpreadsheetApp.getActiveSpreadsheet();
   const ss = SpreadsheetApp.openById("1WnkUA0wMXlsamLUtMtHSPG2GeHcagQLJcdbvIrnG4U4");
 
   const hojaDisp = ss.getSheetByName("DisponibilidadAlojamiento");
   const hojaConfig = ss.getSheetByName("ConfiguracionesAlojamiento");
-  if (!hojaDisp || !hojaConfig) throw new Error("Faltan hojas");
 
-  // Capacidad
   const cfg = hojaConfig.getDataRange().getValues();
-  let capacidadMax = 0;
+  let capacidad = 0;
+
   for (let i = 1; i < cfg.length; i++) {
-    if ((cfg[i][2] || "").trim() === albergueFullName) {
-      capacidadMax = parseInt(cfg[i][1], 10) || 0;
+    if ((cfg[i][2] || "").trim() === albergue) {
+      capacidad = parseInt(cfg[i][1], 10) || 0;
       break;
     }
   }
 
-  // Total reservado (suma col 4 por fecha/albergue)
   const datos = hojaDisp.getDataRange().getValues();
-  let totalReservado = 0;
+  let total = 0;
+
   for (let i = 1; i < datos.length; i++) {
-    const rowFecha = (datos[i][0] instanceof Date) 
-      ? Utilities.formatDate(datos[i][0], Session.getScriptTimeZone(), "yyyy-MM-dd") 
-      : (datos[i][0] || "").trim();
-    const rowAlbergue = (datos[i][1] || "").trim();
-    if (rowFecha === fechaISO && rowAlbergue === albergueFullName) {
-      totalReservado += parseInt(datos[i][3], 10) || 0;
+
+    const row = datos[i];
+    const rowFecha = row[0] instanceof Date
+      ? Utilities.formatDate(row[0], Session.getScriptTimeZone(), "yyyy-MM-dd")
+      : (row[0] || "").trim();
+
+    if (rowFecha === fechaISO && (row[1] || "").trim() === albergue) {
+      total += parseInt(row[3], 10) || 0;
     }
   }
 
-  const ocupados = totalReservado;
-  const disponibles = Math.max(0, capacidadMax - totalReservado);
-  return { capacidad: capacidadMax, ocupados, disponibles };
+  return {
+    capacidad,
+    ocupados: total,
+    disponibles: Math.max(0, capacidad - total)
+  };
+}
+function respuesta(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.TEXT);
+}
+
+function limpiarDisponibilidadVieja_(hojaDisp) {
+  try {
+    const hoy = new Date();
+    const limite = new Date(hoy.getFullYear(), hoy.getMonth() - 2, hoy.getDate());
+    const data = hojaDisp.getDataRange().getValues();
+
+    // Comenzar desde abajo para evitar conflictos al eliminar filas
+    for (let i = data.length - 1; i >= 1; i--) {
+
+      const fechaRaw = data[i][0];
+
+      let fechaFila = null;
+
+      if (fechaRaw instanceof Date) {
+        fechaFila = fechaRaw;
+      } else if (typeof fechaRaw === "string" && fechaRaw.includes("-")) {
+        fechaFila = new Date(fechaRaw);
+      }
+
+      if (!fechaFila || isNaN(fechaFila)) continue;
+
+      // si es más vieja que el límite = borrar
+      if (fechaFila < limite) {
+        hojaDisp.deleteRow(i + 1);  
+      }
+    }
+  } catch (err) {
+    Logger.log("Error al limpiar disponibilidad vieja: " + err);
+  }
 }

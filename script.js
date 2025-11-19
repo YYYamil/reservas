@@ -5,7 +5,7 @@ const CONFIG = {
   
   googleScriptUrl: "https://script.google.com/macros/s/AKfycbwv0h1ykWG65v5ePsH56OVS46paor0p8xBWf_Ub4W6jcjvLzBTdJvwouCEvi26Sg1m3/exec",
   
-  googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbyaIwL2dUIckcTVDpuJhGX7mSYsgQRlQ4V3EESqDklt5Qb5J7RdfIEio2RbWH_pBqJG/exec",
+  googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbzcPOPmQEkSsrqUNkQRARCwSD5ed6kkxHCx1qMQn00rp4M3rh4n3OY0_shVhlkx3IQ/exec",
 
   meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
   diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
