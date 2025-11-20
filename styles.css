@@ -2285,3 +2285,41 @@ input[readonly], select[disabled] {
 #snackbar.error { background: #c62828; }
 #snackbar.success { background: #2e7d32; }
 
+
+
+
+    .header-content {
+    display: flex; /* Enable flexbox for alignment */
+    justify-content: space-between; /* Logo on left, button on right */
+    align-items: center; /* Vertically center items */
+    /* Add any other styles if needed, e.g., padding or width */
+}
+.reglamento-btn {
+    border-radius: 40px;
+    background-image: linear-gradient(to bottom, #FEC800, #FEC800);
+    padding: 10px; /* Sets left/right to 10px; top/bottom overridden below */
+    font-weight: bold;
+    font-size: 15px;
+    border: 2px solid #FEC800;
+    width: 163px;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    color: #4d4d4d; /* Retained from previous for text color */
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    text-decoration: none; /* Remove underline if using <a> */
+    cursor: pointer; /* Make it look clickable */
+    transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; /* Smooth animation */
+    justify-content: center; /* Center text horizontally */
+}
+
+.reglamento-btn:hover {
+    background-color: #FFC100; /* Slightly darker yellow on hover; adjust if needed */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+
+
