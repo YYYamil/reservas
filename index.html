@@ -23,8 +23,9 @@
                 <div class="logo">
                     <img src="Img/Blanco.png" alt="Ministerio de Educación de Tucumán">
                 </div>
-                
             </div>
+            <!-- New button added here -->
+            <a href="reglamento.html" class="reglamento-btn">Uso y Reglamento</a>
         </div>
     </div>
 </header>
@@ -1084,14 +1085,9 @@
   </div>
 </div>
 
-
-
-
-  
- </div>
-
-
 <!-- Botón cancelar (ancho tarjeta) -->
+
+<div>
 <div class="container">
   <button class="btn-cancelar" id="open-cancel-modal">
     Cancelar reserva
@@ -1099,53 +1095,59 @@
 </div>
 
 <!-- Modal cancelar reserva -->
-<div id="modal-cancelar" class="modal">
-  <div class="modal-content">
-    <div class="modal-header" style="background:#d9534f; color:#fff;">
-      <h3 class="modal-title">Para cancelar su reserva ingrese:</h3>
-      <button class="close-modal" id="close-cancel-modal">&times;</button>
-    </div>
-    <div class="modal-body">
-      <form id="cancelForm">
-        <div class="form-grid">
-          
-                    <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="cancel-id">Número de reserva:</label>
-                    
-                    <input 
-                      type="number" 
-                      id="cancel-id" 
-                      class="form-control no-spinners" 
-                      placeholder="Ej: 1234" 
-                      min="0" 
-                      max="9999" 
-                      required
-                    >
-                    
-                    <label for="cancel-dni">DNI responsable:</label>
-                    <input 
-                      type="number" 
-                      id="cancel-dni" 
-                      class="form-control no-spinners" 
-                      placeholder="Ej: 30300400" 
-                       
-                      required
-                    >
+            <div id="modal-cancelar" class="modal">
+              <div class="modal-content">
+                <div class="modal-header" style="background:#d9534f; color:#fff;">
+                  <h3 class="modal-title">Para cancelar su reserva ingrese:</h3>
+                  <button class="close-modal" id="close-cancel-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                  <form id="cancelForm">
+                    <div class="form-grid">
+                      
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                <label for="cancel-id">Número de reserva:</label>
+                                
+                                <input 
+                                  type="number" 
+                                  id="cancel-id" 
+                                  class="form-control no-spinners" 
+                                  placeholder="Ej: 1234" 
+                                  min="0" 
+                                  max="9999" 
+                                  required
+                                >
+                                
+                                <label for="cancel-dni">DNI responsable:</label>
+                                <input 
+                                  type="number" 
+                                  id="cancel-dni" 
+                                  class="form-control no-spinners" 
+                                  placeholder="Ej: 30300400" 
+                                  
+                                  required
+                                >
 
+
+                                </div>
 
                     </div>
 
-        </div>
+                    <button type="submit" class="btn-submit btn-cancelar-roja" id="btn-cancelar-enviar">
+                      <span class="btn-icon" aria-hidden="true"></span>
+                      <span class="btn-label">Eliminar Reserva</span>
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </div>
 
-        <button type="submit" class="btn-submit btn-cancelar-roja" id="btn-cancelar-enviar">
-          <span class="btn-icon" aria-hidden="true"></span>
-          <span class="btn-label">Eliminar Reserva</span>
-        </button>
-      </form>
-    </div>
-  </div>
 </div>
+ 
+ </div>
 
+
+ 
 
     <footer>
         <div class="container">
