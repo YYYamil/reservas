@@ -1,7 +1,12 @@
 // Configuración global
 const CONFIG = {
   secretKey: "cristiano1988",
-  googleScriptUrl: "https://script.google.com/macros/s/AKfycbwUo0ouoBIxBhYl89tEy1NartJHSg-HIknuwN4Vc0YRnb601c5BDrq9-CHLNIEG1Y_L/exec",
+
+  
+  googleScriptUrl: "https://script.google.com/macros/s/AKfycbwv0h1ykWG65v5ePsH56OVS46paor0p8xBWf_Ub4W6jcjvLzBTdJvwouCEvi26Sg1m3/exec",
+  
+  googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbzcPOPmQEkSsrqUNkQRARCwSD5ed6kkxHCx1qMQn00rp4M3rh4n3OY0_shVhlkx3IQ/exec",
+
   meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
   diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
   diasSemanaCortos: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
@@ -54,30 +59,20 @@ const formSubmissionState = {
 
 // Inicialización cuando se carga la página
 document.addEventListener('DOMContentLoaded', function() {
-
-
 const notice = document.getElementById('site-notice');
   if (!notice) return;
-
   const closeBtn = notice.querySelector('.notice-close');
   const backdrop = notice.querySelector('.notice-backdrop');
-
   // Mostrar al iniciar
   notice.classList.add('show');
   document.body.style.overflow = 'hidden'; // evita scroll del fondo
-
   function hideNotice(){
     notice.classList.remove('show');
-    document.body.style.overflow = '';
-    // Opcional: recordá que ya se mostró (para no mostrarlo de nuevo)
-    // localStorage.setItem('siteNoticeSeen','1');
+    document.body.style.overflow = '';    
   }
 
   closeBtn.addEventListener('click', hideNotice);
   backdrop.addEventListener('click', hideNotice);
-
-
-
 
   document.querySelectorAll('.glide').forEach(el => {
     if (!window.Glide) {
@@ -89,7 +84,7 @@ const notice = document.getElementById('site-notice');
       perView: 1,
       autoplay: 4000,     // 4s
       hoverpause: true,   // pausa al pasar el mouse (mejor UX)
-      animationDuration: 6600,
+      animationDuration: 5000,
       gap: 0
     }).mount();
 
@@ -110,28 +105,37 @@ const notice = document.getElementById('site-notice');
 function openModal(albergue) {
     resetOcupacionUI(albergue);
 
-  console.log(`Abriendo modal para ${albergue}`);
+  //console.log(`Abriendo modal para ${albergue}`);
   document.getElementById(`modal-${albergue}`).classList.add('active');
   document.body.style.overflow = 'hidden';
   resetForm(albergue); // Reset form when opening modal
-    resetCalendarToToday(albergue);                      // ⬅️ NUEVO
+    resetCalendarToToday(albergue);                      
 
   generarCalendario(albergue);
 }
 
 function closeModal(albergue) {
-  console.log(`Cerrando modal para ${albergue}`);
+  //console.log(`Cerrando modal para ${albergue}`);
   document.getElementById(`modal-${albergue}`).classList.remove('active');
   document.body.style.overflow = 'auto';
   resetForm(albergue); // Reset form when closing modal
 }
 
-window.onclick = function(event) {
-  if (event.target.classList.contains('modal') && event.target.classList.contains('active')) {
-    const albergue = event.target.id.split('-')[1];
-    closeModal(albergue);
-  }
-};
+// Cerrar al click fuera (extendido para ambos tipos de modales)
+// window.onclick = function(event) {
+//   if (event.target.classList.contains('modal') && event.target.classList.contains('active')) {
+//     const idParts = event.target.id.split('-');
+//     if (idParts[1] === 'alojamiento') {
+//       // Modal de alojamiento: modal-alojamiento-{albergue}
+//       const albergue = idParts[2]; // e.g., 'maestro'
+//       if (albergue) closeAlojamientoModal(albergue);
+//     } else {
+//       // Modal regular: modal-{albergue}
+//       const albergue = idParts[1]; // e.g., 'maestro'
+//       if (albergue) closeModal(albergue);
+//     }
+//   }
+// };
 
 // Configuración de listeners de formularios
 function setupFormListeners() {
@@ -161,10 +165,10 @@ function handleFormSubmit(e) {
 }
 
 async function submitForm(albergue) {
-  console.log(`Iniciando envío de formulario para ${albergue}`);
+  //console.log(`Iniciando envío de formulario para ${albergue}`);
 
   const formData = getFormData(albergue);
-  if (!formData.institucion || !formData.responsable || !formData.contacto ||
+  if (!formData.institucion || !formData.responsable || !formData.dni || !formData.contacto ||
       !formData.cantidad || !formData.fechaIngreso || !formData.horaIngreso|| !formData.horaEgreso) {
     alert("Por favor complete todos los campos del formulario");
     return;
@@ -175,16 +179,23 @@ async function submitForm(albergue) {
 
   try {
     const resultado = await enviarReservaAGoogleSheets(formData);
+    
+    console.log('📤 Datos enviados a Google Sheets:', formData);
+    console.log('📥 Respuesta recibida:', resultado);
 
-    if (resultado.success) {
+
+    //if (resultado.success) {
+    if (resultado && resultado.success) {
+
       mostrarConfirmacion(albergue, formData, resultado.idReserva);
       setBtnSuccess(btn);
-// showSnackbar('PRE-Reserva Realizada: Para su confirmación, llamar al (0381)452-6408.', 'success', 10000);
+
 showSnackbar(
-  `PRE-Reserva realizada \n Conserve su Nro.: ${resultado.idReserva}\n Para su confirmación, llamar al:\n (0381)452-6408.`,
+  `PRE-Reserva Realizada \n Nro: ${resultado.idReserva}.\n Para su confirmación, llamar al:\n (0381)452-6408.`,
   'success',
-  60000
+  55000
 );
+
 
 
       setTimeout(() => {
@@ -213,49 +224,40 @@ showSnackbar(`Error al guardar la reserva: ${resultado.message || 'Intente nueva
 function getFormData(albergue) {
   const pernoctaCheckbox = document.getElementById(`pernocta-${albergue}`);
   const pernoctaValue = pernoctaCheckbox ? pernoctaCheckbox.checked : false;
-  console.log(`Pernocta para ${albergue}: ${pernoctaValue}`);
+  //console.log(`Pernocta para ${albergue}: ${pernoctaValue}`);
   return {
     albergue,
     institucion: document.getElementById(`institucion-${albergue}`).value,
     responsable: document.getElementById(`responsable-${albergue}`).value,
+    dni: document.getElementById(`dni-${albergue}`).value,
     contacto: document.getElementById(`contacto-${albergue}`).value,
     cantidad: document.getElementById(`cantidad-${albergue}`).value,
     fechaIngreso: document.getElementById(`fechaIngreso-${albergue}`).value,
     horaIngreso: document.getElementById(`horaIngreso-${albergue}`).value,
+
     horaEgreso: document.getElementById(`horaEgreso-${albergue}`).value,
-    //pernocta: document.getElementById('pernocta-maestro').checked // <-- BOOLEANO nativo
-    pernocta: pernoctaValue
+    
+    pernocta: true //siempre en true para guardar la visita
+
 
   };
 }
 
 function mostrarConfirmacion(albergue, formData, idReserva) {
-  console.log(`Mostrando confirmación para ${albergue}, ID: ${idReserva}, Pernocta: ${formData.pernocta}`);
+  //console.log(`Mostrando confirmación para ${albergue}, ID: ${idReserva}, Pernocta: ${formData.pernocta}`);
   const nombresAlbergues = {
     maestro: 'Albergue Maestro José Fierro',
     tinku: 'Albergue Tinku Huasi',
     aquilina: 'Albergue Aquilina Soldati'
   };
 
-  // alert(`¡Reserva #${idReserva} realizada con éxito!\n\n` +
-  //       `Institución: ${formData.institucion}\n` +
-  //       `Responsable: ${formData.responsable}\n` +
-  //       `Contacto: ${formData.contacto}\n` +
-  //       `Cantidad: ${formData.cantidad} personas\n` +
-  //       `Albergue: ${nombresAlbergues[albergue]}\n` +
-  //       `Ingreso: ${formData.fechaIngreso} a las ${formData.horaIngreso}\n` +
-  //       `Pernocta: ${formData.pernocta ? 'Sí' : 'No'}`);
+  
 }
 
 function resetForm(albergue) {
   const form = document.getElementById(`reservaForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
   form.reset();
-  // Ensure checkbox is unchecked
-  const pernoctaCheckbox = document.getElementById(`pernocta-${albergue}`);
-  if (pernoctaCheckbox) {
-    pernoctaCheckbox.checked = false;
-  }
-  console.log(`Formulario reseteado para ${albergue}, Pernocta: ${pernoctaCheckbox ? pernoctaCheckbox.checked : 'No checkbox'}`);
+  
 }
 
 
@@ -272,7 +274,7 @@ function setupDateListeners() {
     const ingresoInput = document.getElementById(`fechaIngreso-${albergue}`);
     if (ingresoInput) {
       ingresoInput.addEventListener('change', function() {
-        // No need to set min for salidaInput since it's removed
+        
       });
     }
   });
@@ -353,10 +355,14 @@ function generarCalendario(albergue) {
 
     const esPasado = fechaActual < hoy;
 
+    const esHoy = fechaActual.getTime() === hoy.getTime(); // NUEVO: Detecta hoy explícitamente
+
     // Clases
     let clases = [];
     if (estaOcupado) clases.push('ocupado');
-    if (esPasado)    clases.push('inactiva');
+    //if (esPasado)    clases.push('inactiva');
+
+    if (esPasado || esHoy) clases.push('inactiva'); // NUEVO: Hoy también inactivo
 
     const dia = crearDiaElemento(i, clases.join(' '));
     dia.dataset.iso = iso;
@@ -371,7 +377,8 @@ function generarCalendario(albergue) {
     }
 
     // Click SOLO si no es pasado ni ocupado
-    if (!esPasado && !estaOcupado) {
+   //f (!esPasado && !estaOcupado) {
+   if (!esPasado && !esHoy && !estaOcupado) {
       dia.addEventListener('click', () => {
         setSelectedDate(albergue, iso, dia);
         mostrarInfoDia(albergue, año, mes, i);
@@ -395,7 +402,7 @@ function generarCalendario(albergue) {
   // Título del mes
   const titulo = document.getElementById(`mes-actual-${albergue}`);
   if (titulo) titulo.textContent = `${CONFIG.meses[mes]} ${año}`;
-  console.log(`Calendario generado para ${albergue}, mes: ${CONFIG.meses[mes]} ${año}`);
+  //console.log(`Calendario generado para ${albergue}, mes: ${CONFIG.meses[mes]} ${año}`);
 }
 
 function crearDiaElemento(numero, claseExtra = '') {
@@ -406,62 +413,48 @@ function crearDiaElemento(numero, claseExtra = '') {
 }
 
 
-
-
-
 async function mostrarInfoDia(albergue, año, mes0, dia) {
   const fecha = new Date(año, mes0, dia);
   const fechaISO = `${año}-${String(mes0 + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-  const diaSemana = CONFIG.diasSemana[fecha.getDay()];
-  const mesNombre = CONFIG.meses[mes0];
 
-  console.log(`mostrarInfoDia llamado para albergue: ${albergue}, fecha: ${fechaISO}`);
+  // Mostrar info previa (si existe) mientras carga
+  const cachedDisp = getDisponiblesValue(albergue);
+  if (!isNaN(cachedDisp)) {
+    const spanDisp = document.getElementById(`disponibles-${albergue}`);
+    if (spanDisp) spanDisp.textContent = cachedDisp;
+  }
 
-  // ⬇️ Mostrar loader y bloquear interacción
-  showCalendarLoading(albergue);
+  showCalendarLoading(albergue); // empieza animación
+  const start = performance.now();
 
   try {
-  // 1) Pedir disponibilidad real al GS
   const disponibilidad = await obtenerDisponibilidadDia(albergue, fechaISO);
-
-  // 2) Tomar capacidad/disponibles y derivar ocupados = capacidad - disponibles
   const capBase = Number(capacidades[albergue]) || 0;
   const capacidad   = Number(disponibilidad?.capacidad ?? capBase) || 0;
   const disponibles = Number(disponibilidad?.disponibles ?? capacidad) || 0;
-  const ocupados    = Math.max(0, Math.min(capacidad, capacidad - disponibles));
-// al final de mostrarInfoDia(...)
-setCantidadMaxFor(albergue);
+  const ocupados    = Math.max(0, capacidad - disponibles);
 
-  // Mantener cache local si lo usás
+  setCantidadMaxFor(albergue);
   ocupacionActual[albergue] = ocupados;
 
-  // 3) Actualizar el modal con ids genéricos
+  // ✅ Actualizar UI solo si los elementos existen
   const spanDisp = document.getElementById(`disponibles-${albergue}`);
+  const spanCap  = document.getElementById(`capacidad-${albergue}`);
+
   if (spanDisp) spanDisp.textContent = disponibles;
-  const spanCap = document.getElementById(`capacidad-${albergue}`);
-  if (spanCap) spanCap.textContent = capacidad;
+  if (spanCap)  spanCap.textContent  = capacidad;
 
-  // // 4) (Opcional) Cartel informativo
-  // const estaOcupado = fechasOcupadas[albergue].some(f => f.toDateString() === fecha.toDateString());
-  // const mensaje = `Fecha seleccionada: ${diaSemana}, ${dia} de ${mesNombre} de ${año}\n` +
-  //                 `Estado: ${estaOcupado ? 'No disponible' : 'Disponible'}\n` +
-  //                 `Capacidad total: ${capacidad} personas\n` +
-  //                 `Personas ocupadas: ${ocupados} personas\n` +
-  //                 `Disponibles: ${disponibles} personas`;
-  // alert(mensaje);
+  // Si usás barra de ocupación u otro indicador
+  updateOcupacionUI?.(albergue, ocupados, capacidad);
 
-  // 5) Actualizar barra y texto "X/Cap personas ocupadas"
-  updateOcupacionUI(albergue, ocupados, capacidad);
+} catch (e) {
+  console.error('Error al obtener disponibilidad:', e);
+} finally {
+  const elapsed = performance.now() - start;
+  const minDelay = 400;
+  setTimeout(() => hideCalendarLoading(albergue), Math.max(0, minDelay - elapsed));
+}
 
-  // (opcional) tu alert informativo
-    // ...
-  } catch (e) {
-    console.error('Error al obtener disponibilidad:', e);
-    // Podés mostrar un mensaje inline si querés
-  } finally {
-    // ⬇️ Siempre ocultar loader y habilitar interacción
-    hideCalendarLoading(albergue);
-  }
 }
 
 
@@ -497,6 +490,7 @@ async function enviarReservaAGoogleSheets(data) {
                data.albergue === 'tinku' ? 'Tinku Huasi' : 'Aquilina Soldati',
       institucion: data.institucion,
       responsable: data.responsable,
+      dni: data.dni,
       contacto: data.contacto,
       cantidad: parseInt(data.cantidad),
       fechaIngreso: data.fechaIngreso,
@@ -505,7 +499,7 @@ async function enviarReservaAGoogleSheets(data) {
       pernocta: data.pernocta // Send boolean value
     };
 
-    console.log(`Enviando datos a Google Sheets: ${JSON.stringify(payload)}`);
+    //console.log(`Enviando datos a Google Sheets: ${JSON.stringify(payload)}`);
     const response = await fetch(CONFIG.googleScriptUrl, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -513,7 +507,7 @@ async function enviarReservaAGoogleSheets(data) {
     });
 
     const result = await response.json();
-    console.log(`Respuesta de Google Sheets: ${JSON.stringify(result)}`);
+    //console.log(`Respuesta de Google Sheets: ${JSON.stringify(result)}`);
     return result;
   } catch (error) {
     console.error(`Error al enviar reserva para ${data.albergue}: ${error}`);
@@ -547,11 +541,11 @@ async function fetchDisponiblesMaestro(fechaISO) {
 
   const json = await resp.json();
   if (!json.success) throw new Error(json.message || 'Error en servidor');
-  return json; // {fecha, albergue, capacidad, ocupados, disponibles}
+  return json; 
 }
 
 
-// Llamalo cuando el usuario hace click en un día del calendario del modal "Maestro José Fierro"
+
 async function onCalendarDayClickMaestro(dateObj) {
   try {
     const fechaISO = toISODateYMD(dateObj);
@@ -607,7 +601,7 @@ function updateOcupacionUI(albergue, ocupados, capacidad) {
   if (fill) fill.style.width = `${percent}%`;
 
   const info = document.getElementById(`ocupacion-info-${albergue}`);
-  if (info) info.textContent = `${ocupados}/${capacidad} Camas ocupadas`;
+  if (info) info.textContent = `${ocupados}/${capacidad} De ocupacion`;
 }
 
 
@@ -650,21 +644,22 @@ function getSubmitButton(albergue){
   const form = document.getElementById(`reservaForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
   return form ? form.querySelector('.btn-submit') : null;
 }
-function setBtnLoading(btn){
-  if(!btn) return;
-  const lbl = btn.querySelector('.btn-label');
-  if (lbl) lbl.textContent = 'Confirmar Reserva';
-  // limpiar otros estados
-  btn.classList.remove('is-success','is-error');
-  // activar loading
-  btn.classList.add('is-loading');
+
+function setBtnLoading(btn, texto = 'Guardando...') { 
+  if (!btn) return;
   btn.disabled = true;
+  btn.innerHTML = `
+    <span class="btn-icon spinner" aria-hidden="true"></span>
+    <span class="btn-label">${texto}</span>
+  `;
+  
 }
+
 function setBtnSuccess(btn, text='Reservado'){
   if(!btn) return;
   const lbl = btn.querySelector('.btn-label');
   if (lbl) lbl.textContent = text;
-  btn.classList.remove('is-loading','is-error'); // <- importante
+  btn.classList.remove('is-loading','is-error'); 
   btn.classList.add('is-success');
   btn.disabled = true;
 }
@@ -697,23 +692,6 @@ function ensureSnackbar() {
   return bar;
 }
 
-// function showSnackbar(message, type = 'success', duration = 1800) {
-//   const bar = ensureSnackbar();
-//   bar.classList.remove('success','error','show');
-//   bar.classList.add(type === 'error' ? 'error' : 'success');
-//   bar.textContent = message;
-
-//   // mostrar
-//   // (forzamos reflow para reiniciar la transición si ya estaba visible)
-//   void bar.offsetWidth;
-//   bar.classList.add('show');
-
-//   // ocultar
-//   clearTimeout(bar._hideTimer);
-//   bar._hideTimer = setTimeout(() => {
-//     bar.classList.remove('show');
-//   }, duration);
-// }
 
 function showSnackbar(message, type = 'success', duration = 10000) {
   const bar = ensureSnackbar();
@@ -748,9 +726,6 @@ function showSnackbar(message, type = 'success', duration = 10000) {
     bar.classList.remove('show');
   }, duration);
 }
-
-
-
 
 // Llama a esta función una vez (p. ej. al cargar la página)
 function lockFechaInputs() {
@@ -789,8 +764,7 @@ function populateHourSelects() {
 
   // Egreso: mismas horas + “Hospedarse” al final
   const htmlEgreso =
-    htmlIngreso +
-    '<option value="Hospedarse">Pasar la noche</option>';
+    htmlIngreso ;
 
   keys.forEach(key => {
     const selIng = document.getElementById(`horaIngreso-${key}`);
@@ -815,12 +789,15 @@ function sanitizeTelefono(v){
   return v.replace(/\D/g, '');
 }
 
+
 // --- Instalación de validaciones para todos los formularios ---
 function setupFieldGuards(){
   // Nombre del responsable: solo letras y espacios
   document.querySelectorAll('input[id^="responsable-"]').forEach(el => {
     el.addEventListener('input', () => {
-      const clean = sanitizeNombre(el.value);
+      let clean = sanitizeNombre(el.value);
+      // NUEVO: Limita a 50 chars
+      if (clean.length > 50) clean = clean.slice(0, 50);
       if (clean !== el.value) el.value = clean;
       // borra error si ya es válido
       el.setCustomValidity('');
@@ -832,77 +809,120 @@ function setupFieldGuards(){
     });
   });
 
-  // Contacto: solo números (7 a 15 dígitos)
-  document.querySelectorAll('input[id^="contacto-"]').forEach(el => {
-    el.setAttribute('inputmode','numeric');
-    el.setAttribute('pattern','\\d{7,15}');
-    el.setAttribute('maxlength','15');
+  // === TELÉFONO VISITAS: Prefijo 3-4 + Número 6-7 = Total 9 o 10 ===
+document.querySelectorAll('#modal-maestro, #modal-tinku, #modal-aquilina').forEach(modal => {
+const albergue = modal.id.replace('modal-', '');
+  
+  const prefijoInput = document.getElementById(`prefijo-visita-${albergue}`);
+  const numeroInput = document.getElementById(`numero-visita-${albergue}`);
+  const hiddenInput = document.getElementById(`contacto-${albergue}`);
 
-    el.addEventListener('input', () => {
-      const clean = sanitizeTelefono(el.value);
-      if (clean !== el.value) el.value = clean;
-      el.setCustomValidity('');
-    });
+  if (!prefijoInput || !numeroInput || !hiddenInput) return;
 
-    el.addEventListener('blur', () => {
-      const ok = /^\d{7,15}$/.test(el.value);
-      el.setCustomValidity(ok ? '' : 'Ingrese solo números (7 a 15 dígitos).');
-    });
+  const updateHidden = () => {
+    const prefijo = prefijoInput.value.replace(/\D/g, '').slice(0, 4);
+    const numero = numeroInput.value.replace(/\D/g, '').slice(0, 7);
 
-    // Limpia el portapapeles al pegar (solo números)
-    el.addEventListener('paste', (e) => {
-      e.preventDefault();
-      const text = (e.clipboardData || window.clipboardData).getData('text');
-      const clean = sanitizeTelefono(text);
-      // inserta el texto saneado
-      const start = el.selectionStart ?? el.value.length;
-      const end   = el.selectionEnd ?? el.value.length;
-      el.value = el.value.slice(0,start) + clean + el.value.slice(end);
-      el.dispatchEvent(new Event('input', {bubbles:true}));
+    prefijoInput.value = prefijo;
+    numeroInput.value = numero;
+
+    const prefijoOk = prefijo.length === 3 || prefijo.length === 4;
+    const numeroOk = numero.length === 6 || numero.length === 7;
+    const total = prefijo + numero;
+    const totalOk = total.length === 9 || total.length === 10;
+
+    if (prefijoOk && numeroOk && totalOk) {
+      hiddenInput.value = total;
+    } else {
+      hiddenInput.value = '';
+    }
+  };
+
+  prefijoInput.addEventListener('input', updateHidden);
+  numeroInput.addEventListener('input', updateHidden);
+
+  // Validación al enviar
+  const form = modal.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      updateHidden();
+      const total = hiddenInput.value;
+
+      if (!/^\d{9,10}$/.test(total)) {
+        e.preventDefault();
+        alert('Error en el contacto:\n\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos\n• Total: debe ser 9 o 10 dígitos\n\nEjemplos válidos:\n381500600 (9)\n3811500600 (10)\n3815006000 (10)');
+        return;
+      }
+
+      const is10Digits = total.length === 10;
+      const numeroLength = is10Digits ? (total.slice(0, 4).length === 4 ? 6 : 7) : 6;
+      const numero = total.slice(-numeroLength);
+      const prefijo = total.slice(0, total.length - numeroLength);
+
+      if (!/^\d{3,4}$/.test(prefijo) || !/^\d{6,7}$/.test(numero)) {
+        e.preventDefault();
+        alert('Formato inválido. Verifica:\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos');
+      }
     });
+  }
+});
+// DNI: solo números, exactamente 8 dígitos
+document.querySelectorAll('input[id^="dni-"]').forEach(el => {
+  el.placeholder = 'Ej: 22333444';
+  el.min = '0';
+  el.max = '99999999'; // Límite superior para 8 dígitos
+  el.addEventListener('input', () => {
+    let v = el.value.replace(/\D/g, ''); // Solo números
+    if (v.length > 8) v = v.slice(0, 8); // Corta a 8 dígitos
+    el.value = v;
   });
+  el.addEventListener('blur', () => {
+    const v = parseInt(el.value, 10);
+    if (isNaN(v) || v.toString().length !== 8) {
+      el.value = ''; // Limpia si no es 8 dígitos válidos
+      
+    }
+  });
+});
+
+// NUEVO: Institución: limita a 50 chars (sin más restricciones)
+document.querySelectorAll('input[id^="institucion-"]').forEach(el => {
+  el.addEventListener('input', () => {
+    let v = el.value;
+    if (v.length > 30) v = v.slice(0, 50);
+    if (v !== el.value) el.value = v;
+  });
+});
+
 }
 
-// Llamalo junto con tus otros inits
-document.addEventListener('DOMContentLoaded', () => {
-  // ... tus otras inicializaciones ...
+
+document.addEventListener('DOMContentLoaded', () => {  
   setupFieldGuards();
 });
 
-//Contro en los campos Cantidad de personsa-LIMITES por albergue
 
 const LIMITES_SIN_PERNOCTA = { maestro: 300, tinku: 100, aquilina: 100 };
 const LIMITES_PERNOCTA     = { maestro: 92,  tinku: 49,  aquilina: 58  };
 
-// si ya tenés un registro ALBERGUES, podés derivar de ahí; si no:
+
 const ALBERGUE_KEYS = ['maestro','tinku','aquilina'];
 
 function setCantidadMaxFor(albergue){
   const input = document.getElementById(`cantidad-${albergue}`);
-  const chk   = document.getElementById(`pernocta-${albergue}`);
   if (!input) return;
 
-  const pernocta = !!(chk && chk.checked);
+  // límites base (definir si no existen)
+  //const LIMITES_PERNOCTA = { maestro: 92, tinku: 49, aquilina: 58 };
 
-  // límites base
-  const maxSinPernocta = LIMITES_SIN_PERNOCTA[albergue];  // 300/100/100
-  const maxPernoctaCap = LIMITES_PERNOCTA[albergue];      // 92/49/58
+  // Tomar la disponibilidad del día (si existe). Si no hay, caer a la capacidad.
+  const disp = getDisponiblesValue(albergue); // leído del <span id="disponibles-...">
+  let max;
 
-  let max, placeholderText;
-
-  if (pernocta) {
-    // Tomar la disponibilidad del día (si existe). Si no hay, caer a la capacidad por pernocta.
-    const disp = getDisponiblesValue(albergue); // leído del <span id="disponibles-...">
-    if (Number.isFinite(disp)) {
-      max = Math.max(0, Math.min(maxPernoctaCap, disp));
-      placeholderText = `disponibles: ${disp}`;
-    } else {
-      max = maxPernoctaCap;
-      placeholderText = `máx ${maxPernoctaCap}`;
-    }
+  if (Number.isFinite(disp)) {
+    max = disp;
   } else {
-    max = maxSinPernocta;
-    placeholderText = `máx ${maxSinPernocta}`;
+    max = disp;
   }
 
   // atributos del input
@@ -910,7 +930,7 @@ function setCantidadMaxFor(albergue){
   input.max = String(max);
   input.step = '1';
   input.inputMode = 'numeric';
-  input.placeholder = placeholderText;
+  input.placeholder = '';
 
   // clamp + mensaje
   let v = parseInt(input.value, 10);
@@ -921,7 +941,7 @@ function setCantidadMaxFor(albergue){
   if (v < 1) v = 1;
   if (v > max) {
     v = max;
-    input.setCustomValidity(`El máximo permitido es ${max}.`);
+    input.setCustomValidity(`El máximo permitido es ${max} (disponibles: ${disp || max}).`);
   } else {
     input.setCustomValidity('');
   }
@@ -983,13 +1003,11 @@ function applyHospedajeState(albergue){
   const isHospedaje = !!(chk && chk.checked);
 
   if (isHospedaje) {
-    // guardo la última hora elegida (si no era "Hospedarse")
+    
     if (selEg.value && selEg.value !== 'Hospedarse') {
       selEg.dataset.prevValue = selEg.value;
     }
-    selEg.value = 'Hospedarse';
-    selEg.disabled = true;              // bloquea interacción
-    selEg.classList.add('locked-select');
+   
   } else {
     selEg.disabled = false;
     selEg.classList.remove('locked-select');
@@ -998,7 +1016,7 @@ function applyHospedajeState(albergue){
     if (prev && prev !== 'Hospedarse') {
       selEg.value = prev;
     } else {
-      selEg.selectedIndex = 0;          // "Seleccione hora"
+      selEg.selectedIndex = 0;          
     }
   }
 }
@@ -1066,7 +1084,9 @@ function openCancelModal(){
   if (!m) return;
   // limpia input y botón
   const inp = document.getElementById('cancel-id');
+  const dni = document.getElementById('cancel-dni');
   if (inp) inp.value = '';
+  if (dni) dni.value = '';
   const btn = document.getElementById('btn-cancelar-enviar');
   if (btn) resetBtn(btn, 'Confirmar cancelación');
 
@@ -1086,6 +1106,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeBtn = document.getElementById('close-cancel-modal');
   const cancelForm = document.getElementById('cancelForm');
 
+
+document.querySelectorAll('.btn-alo').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const albergue = this.dataset.albergue;
+    if (albergue) openAlojamientoModal(albergue);
+  });
+});
+
+
+
   if (openBtn)  openBtn.addEventListener('click', openCancelModal);
   if (closeBtn) closeBtn.addEventListener('click', closeCancelModal);
 
@@ -1098,48 +1128,55 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (cancelForm){
-    cancelForm.addEventListener('submit', async (e)=>{
-      e.preventDefault();
+  cancelForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
 
-      const idVal = document.getElementById('cancel-id')?.value?.trim();
-      if (!idVal){
-        showSnackbar('Ingrese un ID válido', 'error', 2500);
-        return;
-      }
+    const idVal = document.getElementById('cancel-id')?.value?.trim();
+    const dniVal = document.getElementById('cancel-dni')?.value?.trim();
 
-      const btn = document.getElementById('btn-cancelar-enviar');
-      setBtnLoading(btn);
+    if (!idVal){
+      showSnackbar('Ingrese un ID válido', 'error', 2500);
+      return;
+    }
+    if (!dniVal){
+      showSnackbar('Ingrese el DNI del responsable', 'error', 2500);
+      return;
+    }
 
-      try{
-        const result = await cancelarReservaEnGoogleSheets(idVal);
-        if (result.success){
-          setBtnSuccess(btn, 'Cancelada');
-          showSnackbar(`Reserva ${idVal} cancelada correctamente.`, 'success', 8200);
-          setTimeout(() => {
-            closeCancelModal();
-            resetBtn(btn, 'Confirmar cancelación');
-          }, 900);
-        }else{
-          setBtnError(btn, 'Error');
-          showSnackbar(result.message || 'No se pudo cancelar la reserva', 'error', 8200);
-          setTimeout(() => resetBtn(btn, 'Confirmar cancelación'), 1200);
-        }
-      }catch(err){
-        console.error(err);
+    const btn = document.getElementById('btn-cancelar-enviar');
+    setBtnLoading(btn);
+
+    try{
+      const result = await cancelarReservaEnGoogleSheets(idVal, dniVal);
+      if (result && result.success){
+        setBtnSuccess(btn, 'Cancelada');
+        showSnackbar(result.message || `Reserva ${idVal} cancelada correctamente.`, 'success', 8200);
+        setTimeout(() => {
+          closeCancelModal();
+          resetBtn(btn, 'Confirmar cancelación');
+        }, 900);
+      } else {
         setBtnError(btn, 'Error');
-        showSnackbar('Error de conexión al cancelar', 'error', 3200);
+        showSnackbar(result.message || 'No se pudo cancelar la reserva', 'error', 8200);
         setTimeout(() => resetBtn(btn, 'Confirmar cancelación'), 1200);
       }
-    });
-  }
+    }catch(err){
+      console.error(err);
+      setBtnError(btn, 'Error');
+      showSnackbar('Error de conexión al cancelar', 'error', 3200);
+      setTimeout(() => resetBtn(btn, 'Confirmar cancelación'), 1200);
+    }
+  });
+}
+
 });
 
-// Llamada al Apps Script para cancelar
-async function cancelarReservaEnGoogleSheets(idReserva){
+async function cancelarReservaEnGoogleSheets(idReserva, dni){
   const payload = new URLSearchParams({
     secret: CONFIG.secretKey,
     action: 'cancelarReserva',
-    idReserva: String(idReserva)
+    idReserva: String(idReserva),
+    dni: String(dni)
   });
 
   const resp = await fetch(CONFIG.googleScriptUrl, {
@@ -1151,8 +1188,1406 @@ async function cancelarReservaEnGoogleSheets(idReserva){
   return resp.json();
 }
 
-document.getElementById("cancel-id").addEventListener("input", function() {
-  if (this.value.length > 4) {
-    this.value = this.value.slice(0, 4); // limita a 4 dígitos
+
+
+
+/*//////////////////////// II parte Alojamiento//////////////////////////////////////////////////*/
+
+// Estado para calendario de alojamiento
+const estadoCalendarioAlo = {
+  maestro: { mes: new Date().getMonth(), año: new Date().getFullYear(), startISO: null, endISO: null, range: [], diasValidos: [] },
+  tinku: { mes: new Date().getMonth(), año: new Date().getFullYear(), startISO: null, endISO: null, range: [], diasValidos: [] },
+  aquilina: { mes: new Date().getMonth(), año: new Date().getFullYear(), startISO: null, endISO: null, range: [], diasValidos: [] }
+
+};
+
+const showStepErrorsAlo = { maestro: false };
+
+// Estado global para pasos (por albergue)
+const pasoEstadoAlo = {
+  maestro:  { current: 1, completed: [] },
+  tinku:    { current: 1, completed: [] },
+  aquilina: { current: 1, completed: [] }
+};
+
+let fechasOcupadasAlo = { maestro: [], tinku: [], aquilina: [] };
+let ocupacionActualAlo = { maestro: 0, tinku: 0, aquilina: 0 };
+const formSubmissionStateAlo = {
+  maestro:  { isSubmitting: false },
+  tinku:    { isSubmitting: false },
+  aquilina: { isSubmitting: false }
+};
+
+
+
+function handleFormSubmitAlo(e, albergue) {
+  if (e && e.preventDefault) e.preventDefault();
+  if (!albergue) albergue = 'maestro';
+  if (formSubmissionStateAlo[albergue].isSubmitting) return;
+
+  console.log('[VALIDACIÓN]', albergue, 'pasos actuales', pasoEstadoAlo[albergue]);
+
+  // if (!pasoEstadoAlo[albergue] || pasoEstadoAlo[albergue].completed.length < 4) {
+  //   showStepErrorsAlo[albergue] = true;
+  //   updateProgresoAlo(albergue);
+  //   showSnackbar('Debe completar los 4 PASOS antes de confirmar.', 'error', 4000);
+  //   return;
+  // }
+
+  formSubmissionStateAlo[albergue].isSubmitting = true;
+  submitFormAlo(albergue).finally(() => {
+    formSubmissionStateAlo[albergue].isSubmitting = false;
+  });
+}
+
+
+
+
+// Cerrar al click fuera (igual)
+// window.onclick = (function(original) {
+//   return function(event) {
+//     original.call(this, event);
+//     if (event.target.classList.contains('modal') && event.target.id.startsWith('modal-alojamiento-')) {
+//       const albergue = event.target.id.split('-')[2];
+//       closeAlojamientoModal(albergue);
+//     }
+//   };
+// })(window.onclick || function(){});
+
+document.addEventListener('DOMContentLoaded', function() {
+  ['maestro','tinku','aquilina'].forEach(albergue => {
+    const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
+    if (form) form.addEventListener('submit', (e) => {
+      e.preventDefault();
+          setupPasoListenersAlo(albergue);
+
+      // llama al handler general con albergue dinámico
+      handleFormSubmitAlo(e, albergue);
+    });
+  });
+
+  setupCantidadLimitsAlo();
+  setupDelegacionListenerAlo();
+  setupCantidadListenerAlo();
+});
+
+function closeAlojamientoModal(albergue) {
+  const modal = document.getElementById(`modal-alojamiento-${albergue}`);
+  if (!modal) return;
+
+  modal.classList.remove('active');
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+
+  // Limpiar todo estado residual
+  resetRangoAlo(albergue);
+  resetFormAlo(albergue);
+  fechasOcupadasAlo[albergue] = [];
+  console.log(`[CLOSE] Modal ALOJAMIENTO cerrado → ${albergue}`);
+}
+
+
+
+async function submitFormAlo(albergue) {
+  try {
+    const formData = getFormDataAlo(albergue);
+    if (!formData || formData.range.length === 0 || formData.cantidad <= 0) {
+      showSnackbar?.("Complete cantidad, institución y seleccione un rango válido.", "error", 4000);
+      return;
+    }
+
+    const btn = getSubmitButtonAlo(albergue);
+    if (!btn) {
+      console.error(`[ERROR] Botón submit no encontrado para ${albergue}`);
+      return;
+    }
+
+    // 🔒 Evitar clics múltiples
+    if (btn.disabled) {
+      console.warn(`[BLOCK] Botón submit de ${albergue} ya está en proceso.`);
+      return;
+    }
+
+    btn.disabled = true;
+    setBtnLoading(btn, "Guardando Reserva...");
+
+    console.log(`[ENVÍO] Enviando datos de reserva para ${albergue}:`, formData);
+
+    // 🔹 Llamada al backend/Sheets
+    const resultado = await enviarReservaAlojamientoAGoogleSheets(formData);
+
+    if (resultado?.success) {
+      console.log(`[ÉXITO] Reserva registrada en ${albergue}: ID ${resultado.idReserva}`);
+
+      setBtnSuccess(btn);
+      mostrarConfirmacionAlo?.(albergue, formData, resultado.idReserva);
+
+      showSnackbar?.(
+        `✅ PRE-Reserva Realizada\nNro: ${resultado.idReserva}\nPara confirmar comuníquese al (0381) 452-6408.`,
+        "success",
+        15000
+      );
+
+      // 🔄 Limpiar e iniciar cierre
+      setTimeout(() => {
+        resetFormAlo?.(albergue);
+        closeAlojamientoModal?.(albergue);
+        resetBtn?.(btn);
+        btn.disabled = false;
+      }, 1000);
+    } else {
+      console.error(`[ERROR] Fallo en reserva ${albergue}:`, resultado);
+      setBtnError(btn, "Error");
+      showSnackbar?.(`Error: ${resultado?.message || "No se pudo registrar la reserva."}`, "error", 4000);
+      setTimeout(() => {
+        resetBtn?.(btn);
+        btn.disabled = false;
+      }, 1500);
+    }
+  } catch (err) {
+    console.error(`[EXCEPCIÓN] submitFormAlo(${albergue}):`, err);
+    showSnackbar?.(`Error de conexión o sistema: ${err.message || "Desconocido"}`, "error", 4000);
+
+    const btn = getSubmitButtonAlo(albergue);
+    if (btn) {
+      setBtnError(btn, "Error");
+      setTimeout(() => {
+        resetBtn?.(btn);
+        btn.disabled = false;
+      }, 1500);
+    }
+  }
+}
+
+
+function getFormDataAlo(albergue) {
+  if (!estadoCalendarioAlo || !estadoCalendarioAlo[albergue]) {
+    console.error(`Estado Alo no definido para ${albergue}`);
+    return null;
+  }
+  const estado = estadoCalendarioAlo[albergue];
+  const cantidad = parseInt((document.getElementById(`cantidad-alo-${albergue}`) || {}).value, 10) || 0;
+  const delegacionEl = document.getElementById(`delegacion-alo-${albergue}`);
+  const delegacion = delegacionEl ? delegacionEl.value : '';
+  if (!delegacion) {
+    alert('Seleccione tipo de delegación');
+    return null;
+  }
+
+  return {
+    albergue,
+    institucion: (document.getElementById(`institucion-alo-${albergue}`) || {}).value.trim() || '',
+    responsable: (document.getElementById(`responsable-alo-${albergue}`) || {}).value.trim() || '',
+    dni: (document.getElementById(`dni-alo-${albergue}`) || {}).value.trim() || '',
+    contacto: (document.getElementById(`contacto-alo-${albergue}`) || {}).value.trim() || '',
+    cantidad,
+    range: estado.range || []
+  };
+}
+
+function mostrarConfirmacionAlo(albergue, formData, idReserva) {
+  console.log(`Confirmación alojamiento ${albergue}, ID: ${idReserva}, Rango: ${formData.range.join(', ')}`);
+  
+}
+
+
+// ---------- mostrarInfoRangoAlo (con loader y retorno de diasValidos) ----------
+async function mostrarInfoRangoAlo(albergue, range) {
+  if (!Array.isArray(range) || range.length === 0) return [];
+
+  const estado = estadoCalendarioAlo[albergue];
+  const cap = capacidades[albergue];
+  const cantidad = parseInt(document.getElementById(`cantidad-alo-${albergue}`).value, 10) || 0;
+
+  if (cantidad <= 0) {
+    showSnackbar('Ingrese la cantidad de personas antes de seleccionar fechas.', 'error', 4000);
+    return [];
+  }
+
+  // marcar que estamos verificando
+  estado.disponibilidadConfirmada = false;
+  estado.diasValidos = [];
+
+  // mostrar loader (blur) del calendario
+  showCalendarLoadingAlo(albergue);
+
+  // consultas en paralelo (seguro)
+  const resultados = await Promise.all(range.map(async iso => {
+    try {
+      const resp = await obtenerDisponibilidadDiaAlo(albergue, iso);
+      // resp puede venir { disponibles: N } o similar; fallback a 0 si undefined
+      const disponibles = (resp && typeof resp.disponibles === 'number') ? resp.disponibles : 0;
+      return { iso, disponibles };
+    } catch (err) {
+      console.warn(`[DISP] Error al pedir ${iso} para ${albergue}:`, err);
+      // fallback conservador: 0 disponibles para no falsear el ok
+      return { iso, disponibles: 0 };
+    }
+  }));
+
+  // ocultar loader
+  hideCalendarLoadingAlo(albergue);
+
+  // calcular diasValidos y minDisp
+  let minDisp = Infinity;
+  resultados.forEach(r => {
+    if (typeof r.disponibles === 'number' && r.disponibles < minDisp) minDisp = r.disponibles;
+    if (r.disponibles >= cantidad) estado.diasValidos.push(r.iso);
+  });
+  if (!isFinite(minDisp)) minDisp = 0;
+
+  estado.disponibilidadConfirmada = true;
+
+  // actualizar ocupación y UI summary
+  updateOcupacionUIAlo?.(albergue, (cap - minDisp) >= 0 ? (cap - minDisp) : 0, cap);
+  const span = document.getElementById(`disponibles-alo-${albergue}`);
+  if (span) span.textContent = minDisp;
+
+  console.log(`[CHECK] ${albergue} diasValidos=`, estado.diasValidos, 'minDisp=', minDisp);
+
+  return estado.diasValidos;
+}
+
+async function handleClickDiaAlo(albergue, iso, celda) {
+  if (!iso || typeof iso !== 'string') {
+    console.warn('handleClickDiaAlo ignorado: iso inválido', iso);
+    return;
+  }
+
+  const estado = estadoCalendarioAlo[albergue];
+  if (!estado) return;
+  const cont = document.getElementById(`calendario-alo-${albergue}`);
+  if (!cont) return;
+
+  console.log(`[CLICK] ${albergue} → ISO=${iso}, start=${estado.startISO}, end=${estado.endISO}`);
+
+  // 🔹 PRIMER CLICK → Selecciona inicio
+  if (!estado.startISO) {
+    estado.startISO = iso;
+    estado.endISO = null;
+    estado.range = [iso];
+    estado.disponibilidadConfirmada = false;
+    estado.diasValidos = [];
+
+    cont.querySelectorAll('.inicio-rango, .fin-rango, .en-rango, .azul-seleccion, .verde, .rojo')
+      .forEach(el => el.classList.remove('inicio-rango','fin-rango','en-rango','azul-seleccion','verde','rojo'));
+
+    celda.classList.add('inicio-rango', 'en-rango', 'azul-seleccion');
+    updateRangeDisplay?.(albergue, estado.range);
+    return;
+  }
+
+  // 🔹 SEGUNDO CLICK → Define fin y crea rango
+  if (!estado.endISO) {
+    const [sy, sm, sd] = estado.startISO.split('-').map(Number);
+    const startDate = new Date(sy, sm - 1, sd);
+    const [ey, em, ed] = iso.split('-').map(Number);
+    const endDate = new Date(ey, em - 1, ed);
+
+    if (endDate < startDate) {
+      // Si clic anterior al start, se reinicia
+      estado.startISO = iso;
+      estado.endISO = null;
+      estado.range = [iso];
+      generarCalendarioAlo(albergue);
+      return;
+    }
+
+    // Generar rango
+    const range = [];
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+      range.push(d.toISOString().split('T')[0]);
+    }
+
+    // 🔍 Validación ANTES de consultar disponibilidad
+if (!validarLimiteRangoAlo(albergue, range)) {
+  showSnackbar?.(
+    `No puede seleccionar tantos dias para su delegación.`,
+    'error',
+    6000
+  );
+  return; // detener flujo
+}
+
+
+    estado.endISO = iso;
+    estado.range = range;
+    estado.disponibilidadConfirmada = false;
+    estado.diasValidos = [];
+
+    // 🔵 Pintar rango azul mientras se consulta disponibilidad
+    range.forEach(f => {
+      const c = cont.querySelector(`[data-date="${f}"]`);
+      if (c) c.classList.add('en-rango', 'azul-seleccion');
+    });
+
+    updateRangeDisplay?.(albergue, estado.range);
+
+    // ✅ VERIFICAR DISPONIBILIDAD
+    try {
+      // Muestra loader y espera disponibilidad
+      showCalendarLoadingAlo?.(albergue);
+      await mostrarInfoRangoAlo(albergue, range);
+    } catch (err) {
+      console.error('Error en mostrarInfoRangoAlo:', err);
+    } finally {
+      hideCalendarLoadingAlo?.(albergue);
+    }
+
+    // 🔁 Colorear días según disponibilidad
+    cont.querySelectorAll('.azul-seleccion').forEach(el => el.classList.remove('azul-seleccion'));
+    range.forEach(f => {
+      const c = cont.querySelector(`[data-date="${f}"]`);
+      if (!c) return;
+      if (estado.diasValidos && estado.diasValidos.includes(f)) {
+        c.classList.add('verde');
+      } else {
+        c.classList.add('rojo');
+      }
+    });
+
+    // ✅ Si todos los días están verdes → avanzar al Paso 4
+const todosVerdes = estado.diasValidos && estado.diasValidos.length === range.length;
+if (todosVerdes && validarLimiteRangoAlo(albergue, range)) {
+  console.log('✅ Todos los días verdes → habilitando paso 4');
+
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  if (grid) grid.classList.add('step-completed');
+
+  // 🔹 Marca paso 3 completado y activa paso 4 (visual + lógica)
+  completePasoAlo?.(albergue, 3);
+  //enableStepAlo?.(albergue, 4);
+
+ // 🔹 Asegurar estado de pasos lógico
+//if (!pasoEstadoAlo[albergue]) pasoEstadoAlo[albergue] = { current: 0, completed: [] };
+//pasoEstadoAlo[albergue].current = 4;
+//if (!pasoEstadoAlo[albergue].completed.includes(4)) {
+//  pasoEstadoAlo[albergue].completed.push(4);
+//}
+
+
+
+  // 🔹 Habilitar botón de envío
+  const btn = document.getElementById(`btn-submit-alo-${albergue}`);
+  if (btn) {
+    btn.disabled = false;
+    btn.classList.remove('disabled');
+    btn.classList.add('enabled');
+  }
+
+  console.log(`[PASO4] ${albergue} marcado como completado → botón habilitado`);
+} else {
+  console.log('⚠️ Algunos días no tienen disponibilidad suficiente.');
+  showSnackbar?.('El rango seleccionado no tiene disponibilidad completa.', 'error', 6000);
+}
+
+
+ 
+console.log('[PASOS GUARDADOS]', albergue, pasoEstadoAlo[albergue]);
+
+    return;
+  }
+
+  // 🔁 TERCER CLICK → Reinicio
+  estado.startISO = null;
+  estado.endISO = null;
+  estado.range = [];
+  estado.diasValidos = [];
+  estado.disponibilidadConfirmada = false;
+  generarCalendarioAlo(albergue);
+}
+
+
+
+function generarCalendarioAlo(albergue) {
+  const estado = estadoCalendarioAlo[albergue];
+  const { mes, año } = estado;
+
+  const primerDia = new Date(año, mes, 1);
+  const ultimoDia = new Date(año, mes + 1, 0);
+  const primerDiaSemana = primerDia.getDay();
+  const diasEnMes = ultimoDia.getDate();
+
+  const contenedor = document.getElementById(`calendario-alo-${albergue}`);
+  if (!contenedor) return;
+  contenedor.innerHTML = '';
+
+  // Encabezado de días
+  CONFIG.diasSemanaCortos.forEach(dia => {
+    const head = document.createElement('div');
+    head.className = 'dia-header';
+    head.textContent = dia;
+    contenedor.appendChild(head);
+  });
+
+  // Espacios vacíos iniciales
+  for (let k = 0; k < primerDiaSemana; k++) {
+    contenedor.appendChild(crearDiaElementoAlo('', 'otro-mes'));
+  }
+
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+  for (let i = 1; i <= diasEnMes; i++) {
+    const fechaActual = new Date(año, mes, i);
+    fechaActual.setHours(0,0,0,0);
+    const iso = fechaActual.toISOString().split('T')[0];
+
+    const estaOcupado = Array.isArray(fechasOcupadasAlo[albergue]) &&
+      fechasOcupadasAlo[albergue].some(f => f.toDateString() === fechaActual.toDateString());
+
+    const esPasado = fechaActual < hoy;
+    const clases = [];
+
+    if (estaOcupado) clases.push('ocupado');
+    if (esPasado) clases.push('inactiva');
+
+    // Colores según estado actual
+    if (estado.range?.includes(iso)) {
+      clases.push('en-rango');
+      if (estado.startISO === iso) clases.push('inicio-rango');
+      if (estado.endISO === iso) clases.push('fin-rango');
+
+      if (estado.disponibilidadConfirmada) {
+        if (estado.diasValidos?.includes(iso)) clases.push('verde');
+        else clases.push('rojo');
+      } else {
+        clases.push('azul-seleccion');
+      }
+    }
+
+    const celda = document.createElement('div');
+    celda.className = `dia ${clases.join(' ')}`;
+    celda.dataset.date = iso; // 👈 FIX: atributo correcto
+    celda.textContent = i;
+
+    // Vincular evento click (solo si válido)
+    if (!esPasado && !estaOcupado) {
+      celda.onclick = () => handleClickDiaAlo(albergue, iso, celda);
+    }
+
+    contenedor.appendChild(celda);
+  }
+
+  // Rellenar hasta 42 celdas
+  const total = 42 - (primerDiaSemana + diasEnMes);
+  for (let i = 0; i < total; i++) {
+    contenedor.appendChild(crearDiaElementoAlo('', 'otro-mes'));
+  }
+
+  // Título del mes
+  const titulo = document.getElementById(`mes-actual-alo-${albergue}`);
+  if (titulo) titulo.textContent = `${CONFIG.meses[mes]} ${año}`;
+}
+
+
+
+
+async function mostrarInfoDiaAlo(albergue, iso) {
+  showCalendarLoadingAlo(albergue);
+
+  try {
+    const disp = await obtenerDisponibilidadDiaAlo(albergue, iso);
+    const cap = capacidades[albergue];
+    const ocupados = cap - disp.disponibles;
+
+    updateOcupacionUIAlo(albergue, ocupados, cap);
+
+    const spanDisp = document.getElementById(`disponibles-alo-${albergue}`);
+    if (spanDisp) spanDisp.textContent = disp.disponibles;
+
+    // ✅ Guardar resultado de disponibilidad
+    const estado = estadoCalendarioAlo[albergue];
+    if (!estado.diasValidos) estado.diasValidos = [];
+
+    // Si el día tiene disponibilidad, lo agregamos a los válidos
+    if (disp.disponibles > 0 && !estado.diasValidos.includes(iso)) {
+      estado.diasValidos.push(iso);
+    }
+
+    // Si no tiene disponibilidad, lo quitamos de válidos
+    if (disp.disponibles <= 0) {
+      estado.diasValidos = estado.diasValidos.filter(d => d !== iso);
+    }
+
+    // Marcar que ya se verificó disponibilidad para actualizar colores
+    estado.disponibilidadConfirmada = true;
+
+    // 🔄 Regenerar calendario → pinta verde o rojo
+    generarCalendarioAlo(albergue);
+
+  } catch (e) {
+    console.error("Error al obtener disponibilidad:", e);
+  } finally {
+    hideCalendarLoadingAlo(albergue);
+  }
+}
+
+
+
+function resetFormAlo(albergue) {
+  const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
+  if (form) form.reset();
+  const qtyEl = document.getElementById(`cantidad-alo-${albergue}`);
+  if (qtyEl) { qtyEl.value = ''; qtyEl.disabled = false; qtyEl.classList.remove('disabled'); }
+
+  // reset hidden delegacion
+  const hidden = document.getElementById(`delegacion-hidden-alo-${albergue}`);
+  if (hidden) hidden.value = '';
+
+  // reset inputs paso 4
+  ['institucion','responsable','dni','contacto'].forEach(c => {
+    const el = document.getElementById(`${c}-alo-${albergue}`);
+    if (el) { el.value = ''; el.disabled = false; el.classList.remove('disabled'); }
+  });
+
+  resetRangoAlo(albergue);
+}
+
+function setupCantidadListenerAlo() {
+  ['maestro','tinku','aquilina'].forEach(albergue => {
+    const input = document.getElementById(`cantidad-alo-${albergue}`);
+    if (!input) return;
+    input.addEventListener('input', () => {
+      const cantidad = parseInt(input.value, 10) || 0;
+      const estado = estadoCalendarioAlo[albergue];
+      if (estado && estado.range && estado.range.length > 0 && cantidad > 0) {
+        mostrarInfoRangoAlo(albergue, estado.range);
+      }
+    });
+  });
+}
+
+
+
+// Helpers para botones (igual)
+function getSubmitButtonAlo(albergue) {
+  const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
+  return form ? form.querySelector('.btn-submit') : null;
+}
+
+
+
+
+
+function crearDiaElementoAlo(numero, claseExtra = '') {
+  const dia = document.createElement('div');
+  dia.className = `dia ${claseExtra}`;
+  dia.textContent = numero;
+  return dia;
+}
+
+function updateCalendarHighlightsAlo(albergue) {
+  generarCalendarioAlo(albergue);
+}
+
+function updateRangeDisplay(albergue, range) {
+  const display = document.getElementById(`fecha-range-display-alo-${albergue}`);
+  if (!display) return;
+  
+  if (range.length === 0) {
+    display.innerHTML = `
+      Estadia de hasta 4 días y 3 noches consecutivos.
+      <br>
+      <span class="leyenda-color">
+        <span class="cuadrado rojo">■</span> <span class="texto-rojo">Rojo:</span> Día SIN camas disponibles.
+      </span>
+      <span class="leyenda-color">
+        <span class="cuadrado verde">■</span> <span class="texto-verde">Verde:</span> Día CON camas disponibles.
+      </span>
+    `;
+  } else {
+    const start = new Date(range[0]);
+    const end = new Date(range[range.length - 1]);
+    const estado = estadoCalendarioAlo[albergue];
+    const invalidos = range.length - estado.diasValidos.length;
+    let extra = '';
+    // if (invalidos > 0) {
+    //   extra = ` <span style="color: #f44336;">(¡${invalidos} días en rojo: insuficientes camas!)</span>`;
+    // }
+    display.innerHTML = `
+       Su reserva sera para: ${range.length} días${extra} y ${range.length - 1} ${extra} noches.
+       <br>
+      <span class="leyenda-color">
+        <span class="cuadrado rojo">■</span> <span class="texto-rojo">Rojo:</span> Día SIN camas disponibles.
+      </span>
+      <br>
+      <span class="leyenda-color">
+        <span class="cuadrado verde">■</span> <span class="texto-verde">Verde:</span> Día CON camas disponibles.
+      </span>
+      
+    `;
+  }
+}
+
+
+function resetRangoAlo(albergue) {
+  const estado = estadoCalendarioAlo[albergue];
+  estado.startISO = null;
+  estado.endISO = null;
+  estado.range = [];
+  estado.diasValidos = []; // Nuevo: Limpia validación
+
+  estado.disponibilidadConfirmada = false; // FIX: Resetear para que nuevos rangos inicien en azul hasta verificar disponibilidad
+  updateRangeDisplay(albergue, []);
+  updateCalendarHighlightsAlo(albergue); // Regenera sin highlights
+}
+
+
+
+
+
+
+
+
+
+function updateProgresoAlo(albergue) {
+  // scope: buscar dentro del modal específico para evitar afectar otros modales
+  const modal = document.getElementById(`modal-alojamiento-${albergue}`);
+  if (!modal) return;
+
+  const steps = modal.querySelectorAll('.step-container');
+  steps.forEach((step, index) => {
+    const pasoNum = index + 1;
+    step.classList.remove('step-completed', 'step-active', 'step-error');
+    if (pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
+      step.classList.add('step-completed');
+    } else if (pasoEstadoAlo[albergue].current === pasoNum) {
+      step.classList.add('step-active');
+    } else if (showStepErrorsAlo[albergue]) {
+      step.classList.add('step-error');
+    }
+  });
+
+  const indicators = modal.querySelectorAll('.step-indicator');
+  indicators.forEach((indicator, index) => {
+    const pasoNum = index + 1;
+    indicator.classList.remove('completed', 'active', 'error');
+    if (pasoEstadoAlo[albergue].completed.includes(pasoNum)) indicator.classList.add('completed');
+    else if (pasoEstadoAlo[albergue].current === pasoNum) indicator.classList.add('active');
+    else if (showStepErrorsAlo[albergue]) indicator.classList.add('error');
+  });
+
+  // Barra de progreso (usa progress-fill dentro del modal)
+  const fill = modal.querySelector('.progress-fill');
+  if (fill) {
+    const progress = (pasoEstadoAlo[albergue].completed.length / 4) * 100;
+    fill.style.width = `${progress}%`;
+  }
+}
+
+function resetAllAlo(albergue) {
+  console.log('🔄 Reset all para', albergue);
+
+  // 1) Limpiar inputs y selects
+  ['cantidad', 'institucion', 'responsable', 'dni', 'contacto'].forEach(prefix => {
+    const el = document.getElementById(`${prefix}-alo-${albergue}`);
+    if (el) {
+      el.value = '';
+      el.disabled = false;
+      el.classList.remove('disabled');
+    }
+  });
+  const select = document.getElementById(`delegacion-alo-${albergue}`);
+  if (select) { select.value = ''; select.disabled = false; select.classList.remove('disabled'); }
+  const hiddenDel = document.getElementById(`delegacion-hidden-alo-${albergue}`);
+  if (hiddenDel) hiddenDel.value = '';
+
+  // 2) Reiniciar estado interno del calendario
+  estadoCalendarioAlo[albergue] = {
+    mes: new Date().getMonth(),
+    año: new Date().getFullYear(),
+    startISO: null,
+    endISO: null,
+    range: [],
+    diasValidos: [],
+    disponibilidadConfirmada: false
+  };
+
+  // 3) limpiar ocupación y progreso
+  resetOcupacionUIAlo?.(albergue);
+  pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+  updateProgresoAlo?.(albergue);
+
+  // 4) LIMPIAR clases del calendario y re-habilitar nav
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  if (grid) {
+    grid.classList.remove('disabled', 'step-completed');
+    // remove any selection classes
+    grid.querySelectorAll('.seleccionado-inicial, .en-rango, .inicio-rango, .fin-rango, .rojo, .verde, .azul-seleccion')
+        .forEach(el => el.classList.remove('seleccionado-inicial','en-rango','inicio-rango','fin-rango','rojo','verde','azul-seleccion'));
+  }
+  const navPrev = document.getElementById(`nav-prev-alo-${albergue}`);
+  const navNext = document.getElementById(`nav-next-alo-${albergue}`);
+  if (navPrev) navPrev.disabled = false;
+  if (navNext) navNext.disabled = false;
+
+  // 5) Regenerar calendario y reasignar listeners
+generarCalendarioAlo(albergue);
+
+const newCalendario = document.getElementById(`calendario-alo-${albergue}`);
+if (newCalendario) {
+  newCalendario.querySelectorAll('.dia').forEach(dia => {
+    // asignar listener SOLO si el día es seleccionable
+    if (!dia.classList.contains('inactiva') && !dia.classList.contains('ocupado')) {
+      dia.addEventListener('click', () => handleClickDiaAlo(albergue, dia.dataset.iso, dia));
+      dia.tabIndex = 0;
+      dia.removeAttribute('aria-disabled');
+    } else {
+      dia.tabIndex = -1;
+      dia.setAttribute('aria-disabled','true');
+    }
+  });
+}
+
+
+  // 6) Asegura que pasos vuelvan al inicio
+  disableStepAlo(albergue, 2);
+  disableStepAlo(albergue, 3);
+  disableStepAlo(albergue, 4);
+
+  
+
+  enableStepAlo(albergue, 1);
+
+  // 7) Reinicia botón submit
+  const btnSubmit = document.getElementById(`btn-submit-alo-${albergue}`);
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.classList.add('disabled');
+    btnSubmit.classList.remove('enabled');
+  }
+  
+
+  console.log(`✅ ${albergue.toUpperCase()} reiniciado completamente`);
+}
+
+
+
+function cambiarMesAlo(albergue, direccion) {
+  const estado = estadoCalendarioAlo[albergue];
+  estado.mes += direccion;
+  if (estado.mes < 0) {
+    estado.mes = 11;
+    estado.año--;
+  } else if (estado.mes > 11) {
+    estado.mes = 0;
+    estado.año++;
+  }
+  generarCalendarioAlo(albergue);
+}
+
+function resetCalendarAloToToday(albergue) {
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const iso = formatDate(now);
+  const estado = estadoCalendarioAlo[albergue];
+  estado.mes = now.getMonth();
+  estado.año = now.getFullYear();
+  resetRangoAlo(albergue);
+}
+
+function showCalendarLoadingAlo(albergue) {
+  const loader = document.getElementById(`cal-loader-alo-${albergue}`);
+  if (!loader) return;
+  loader.hidden = false;
+  loader.setAttribute('aria-busy', 'true');
+  // opcional: add a blur class to calendario container
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  if (grid) grid.classList.add('loading');
+}
+
+
+
+function hideCalendarLoadingAlo(albergue) {
+  const loader = document.getElementById(`cal-loader-alo-${albergue}`);
+  if (!loader) return;
+  loader.hidden = true;
+  loader.setAttribute('aria-busy', 'false');
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  if (grid) grid.classList.remove('loading');
+}
+
+
+
+
+function updateOcupacionUIAlo(albergue, ocupados, capacidad) {
+  const percent = capacidad > 0 ? Math.round((ocupados / capacidad) * 100) : 0;
+  const fill = document.getElementById(`ocupacion-fill-alo-${albergue}`);
+  if (fill) fill.style.width = `${percent}%`;
+  const info = document.getElementById(`ocupacion-info-alo-${albergue}`);
+  if (info) info.textContent = `${ocupados}/${capacidad} Camas ocupadas`;
+}
+
+function resetOcupacionUIAlo(albergue) {
+  const fill = document.getElementById(`ocupacion-fill-alo-${albergue}`);
+  if (fill) fill.style.width = '0%';
+  const info = document.getElementById(`ocupacion-info-alo-${albergue}`);
+  if (info) info.textContent = '—';
+  const disp = document.getElementById(`disponibles-alo-${albergue}`);
+  if (disp) disp.textContent = '—';
+}
+
+async function enviarReservaAlojamientoAGoogleSheets(formData) {
+  
+  const url = CONFIG.googleScriptUrlAlo;  
+
+  
+  const nombresAlberguesServer = {
+    maestro: "Maestro José Fierro",
+    tinku: "Tinku Huasi",
+    aquilina: "Aquilina Soldati"
+  };
+  const clave = formData.albergue;
+  const nombreParaServer = nombresAlberguesServer[clave] || formData.albergue;
+
+  const params = new URLSearchParams();
+  params.append("secret", CONFIG.secretKey);  // Usa CONFIG.secretKey
+  params.append("action", "crearReservaAlojamiento");
+  params.append("albergue", nombreParaServer);
+  params.append("institucion", formData.institucion);
+  params.append("responsable", formData.responsable);
+  params.append("dni", formData.dni);
+  params.append("contacto", formData.contacto);
+  params.append("cantidad", formData.cantidad);
+  params.append("rangoFechas", formData.range.join(","));
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    });
+
+    const text = await response.text();
+    console.log("Respuesta del servidor Alojamiento:", text);
+
+    const result = JSON.parse(text);
+    if (!result.success) {
+      console.error("Error del servidor:", result.message);
+      showSnackbar(`Error: ${result.message || 'Intente nuevamente'}`, 'error', 5000);
+      return result;
+    }
+    return result;
+  } catch (err) {
+    console.error("Error en fetch:", err);
+    return { success: false, message: "Error de conexión" };
+  }
+}
+
+
+
+
+async function obtenerDisponibilidadDiaAlo(albergueKey, fechaISO) {
+  if (!CONFIG.googleScriptUrlAlo || CONFIG.googleScriptUrlAlo.includes('undefined')) {
+    console.warn(`URL Alo no configurada. Usando mock para ${fechaISO}.`);
+    return { disponibles: capacidades[albergueKey], capacidad: capacidades[albergueKey] }; // Mock full
+  }
+  
+  // Usa GET con query params (no preflight)
+  const url = new URL(CONFIG.googleScriptUrlAlo);
+  url.searchParams.append('secret', CONFIG.secretKey);
+  url.searchParams.append('action', 'obtenerDisponibilidadDiaAlojamiento');
+  url.searchParams.append('albergue', toFullName(albergueKey));
+  url.searchParams.append('fecha', fechaISO);
+  
+  try {
+    const resp = await fetch(url.toString(), {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+    
+    if (!resp.ok) {
+      throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+    }
+    
+    const text = await resp.text(); // Lee como text (MIME TEXT)
+    if (!text.trim()) {
+      throw new Error('Respuesta vacía de GS Alo');
+    }
+    
+    const json = JSON.parse(text);
+    if (!json.success) {
+      console.warn(`GS Alo error para ${fechaISO}: ${json.message || 'No success'}. Usando mock.`);
+      return { disponibles: capacidades[albergueKey], capacidad: capacidades[albergueKey] };
+    }
+    return { disponibles: json.disponibles, capacidad: json.capacidad };
+  } catch (err) {
+    console.error(`Fetch Alo falló para ${fechaISO}:`, err);
+    return { disponibles: capacidades[albergueKey], capacidad: capacidades[albergueKey] }; // Mock fallback
+  }
+}
+function setupCantidadLimitsAlo() {
+  ['maestro','tinku','aquilina'].forEach(albergue => {
+    const input = document.getElementById(`cantidad-alo-${albergue}`);
+    if (!input) return;
+    input.min = '1';
+    input.max = capacidades[albergue];
+    input.placeholder = `máx. ${capacidades[albergue]}`;
+
+    input.addEventListener('input', () => {
+      let v = input.value.trim();
+      if (v === '') return;
+      v = parseInt(v, 10);
+      if (isNaN(v)) { input.value = ''; return; }
+      if (v < 1) v = 1;
+      if (v > capacidades[albergue]) v = capacidades[albergue];
+      input.value = v;
+    });
+  });
+}
+function lockFechaInputsAlo() {
+  // No aplica por ahora, pero placeholder para expansión
+}
+
+function setupDelegacionListenerAlo() {
+  ['maestro','tinku','aquilina'].forEach(albergue => {
+    const select = document.getElementById(`delegacion-alo-${albergue}`);
+    if (!select) return;
+    select.addEventListener('change', () => {
+      const hidden = document.getElementById(`delegacion-hidden-alo-${albergue}`);
+      if (hidden) hidden.value = select.value;
+      const estado = estadoCalendarioAlo[albergue];
+      if (estado && estado.range && estado.range.length > 0) {
+        validarLimiteRangoAlo(albergue, estado.range);
+        mostrarInfoRangoAlo(albergue, estado.range);
+      }
+      // marca el paso 2 completado si el select fue elegido
+      if (select.value && select.value.trim() !== '') {
+        completePasoAlo(albergue, 2);
+      }
+    });
+  });
+}
+
+
+// NUEVO: Función helper para validar límite (reutilizable)
+function validarLimiteRangoAlo(albergue, range) {
+  const select = document.getElementById(`delegacion-alo-${albergue}`);
+
+  const tipo = select.value;
+  if (!tipo) return true; // No valida si no elegido
+  
+  const maxDias = tipo === 'escuelas' ? 4 : 3;
+  if (range.length > maxDias) {
+    //alert(`Límite excedido para ${tipo === 'escuelas' ? 'Escuelas' : 'Otra Institución'}: hasta ${maxDias} días. El rango se ha reseteado.`);
+    resetRangoAlo(albergue);
+    return false;
+  }
+  return true;
+}
+
+
+// ========================== ESTADO DE PASOS ALOJAMIENTO ==========================
+const estadoPasosAlo = {
+  maestro: { current: 1, completed: [] },
+  tinku: { current: 1, completed: [] },
+  aquilina: { current: 1, completed: [] }
+};
+
+
+function openAlojamientoModal(albergue) {
+
+  pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+
+  const modal = document.getElementById(`modal-alojamiento-${albergue}`);
+  if (!modal) {
+    console.error(`[ERROR] No se encontró modal-alojamiento-${albergue}`);
+    return;
+  }
+
+  console.log(`[OPEN] Modal de ALOJAMIENTO → ${albergue}`);
+
+  // 🔹 Cierra SOLO otros modales de alojamiento
+  document.querySelectorAll('[id^="modal-alojamiento-"]').forEach(m => {
+    m.classList.remove('active');
+    m.style.display = 'none';
+  });
+
+  // 🔹 Mostrar modal actual
+  modal.style.display = 'flex';
+  setTimeout(() => modal.classList.add('active'), 10);
+  document.body.style.overflow = 'hidden';
+
+  // 🔄 Reinicializar su estado
+  try {
+    resetAllAlo(albergue);
+    resetRangoAlo(albergue);
+    resetFormAlo(albergue);
+    resetCalendarAloToToday(albergue);
+    resetOcupacionUIAlo(albergue);
+    fechasOcupadasAlo[albergue] = [];
+    generarCalendarioAlo(albergue);
+    initPasoFlujoAlo(albergue);
+    setupPasoListenersAlo(albergue);
+  } catch (err) {
+    console.error(`[ERROR] Al inicializar modal alojamiento ${albergue}:`, err);
+  }
+}
+
+function closeAlojamientoModal(albergue) {
+  const modal = document.getElementById(`modal-alojamiento-${albergue}`);
+  if (!modal) return;
+
+  console.log(`[CLOSE] Modal ALOJAMIENTO cerrado → ${albergue}`);
+
+  // 🔹 Transición suave y limpieza final
+  modal.classList.remove('active');
+  setTimeout(() => {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+
+    // Reset limpio (opcional)
+    try {
+      resetAllAlo(albergue);
+      fechasOcupadasAlo[albergue] = [];
+    } catch (err) {
+      console.warn(`[WARN] Error limpiando modal ${albergue}:`, err);
+    }
+  }, 200); // coincide con la animación CSS
+}
+
+
+
+
+// Inicializa los pasos al abrir el modal
+
+function initPasoFlujoAlo(albergue) {
+  pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+  showStepErrorsAlo[albergue] = false;
+  updateProgresoAlo(albergue);
+
+  // Al abrir: solo Paso 1 habilitado
+  // Limpia pasos visuales (círculos y recuadros)
+for (let n = 1; n <= 4; n++) {
+  const c = document.getElementById(`step-${n}-${albergue}`);
+  const b = document.getElementById(`paso-box-${n}-${albergue}`);
+
+  if (c) c.classList.remove("completed");
+  if (b) {
+    b.classList.remove("completed");
+    b.classList.remove("enabled");
+  }
+}
+  enableStepAlo(albergue, 1);
+  disableStepAlo(albergue, 2);
+  disableStepAlo(albergue, 3);
+  disableStepAlo(albergue, 4);
+
+  // Asegura que el botón Submit del albergue esté deshabilitado al abrir
+  const btnSubmit = document.getElementById(`btn-submit-alo-${albergue}`);
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.classList.add('disabled');
+    btnSubmit.classList.remove('enabled');
+  }
+}
+
+
+
+function completePasoAlo(albergue, pasoNum) {
+
+  // Asegura estado
+  if (!pasoEstadoAlo[albergue]) 
+      pasoEstadoAlo[albergue] = { current: 1, completed: [] };
+
+  // Guardar paso como completado
+  if (!pasoEstadoAlo[albergue].completed.includes(pasoNum)) {
+      pasoEstadoAlo[albergue].completed.push(pasoNum);
+  }
+
+  // Marcar círculo y recuadro en verde
+  const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
+  if (circle) circle.classList.add("completed");
+
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+  if (box) box.classList.add("completed");
+
+
+  // 🚫 DESHABILITAR todos los pasos SIEMPRE antes de habilitar el que corresponde
+  disableStepAlo(albergue, 1);
+  disableStepAlo(albergue, 2);
+  disableStepAlo(albergue, 3);
+  disableStepAlo(albergue, 4);
+
+  // 🔥 LOGICA DE FLUJO — SOLO UN PASO HABILITADO A LA VEZ
+  switch (pasoNum) {
+
+      case 1:
+          // Habilitar SOLO paso 2
+          enableStepAlo(albergue, 2);
+          pasoEstadoAlo[albergue].current = 2;
+          break;
+
+      case 2:
+          // Habilitar SOLO paso 3
+          enableStepAlo(albergue, 3);
+          pasoEstadoAlo[albergue].current = 3;
+          break;
+
+      case 3:
+          // Requiere validar días verdes
+          if (!todasFechasVerdes(albergue)) {
+              console.warn(`Paso 3 incompleto en ${albergue}: días no verdes`);
+              // Mantener paso 3 activo
+              enableStepAlo(albergue, 3);
+              break;
+          }
+          // Todo OK → habilitar solo paso 4
+          enableStepAlo(albergue, 4);
+          pasoEstadoAlo[albergue].current = 4;
+          break;
+
+      case 4:
+          // Habilitar botón submit (solo visual)
+          const btn = document.getElementById(`btn-submit-alo-${albergue}`);
+          if (btn) {
+              btn.disabled = false;
+              btn.classList.remove('disabled');
+              btn.classList.add('enabled');
+          }
+          break;
+  }
+
+  updateProgresoAlo(albergue);
+}
+function disableStepAlo(albergue, pasoNum) {
+
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+  if (box) {
+    box.classList.remove("enabled");
+    box.classList.remove("completed");
+    box.classList.add("disabled-step");   // 🔥 clase visual para grisado
+  }
+
+  const circle = document.getElementById(`step-${pasoNum}-${albergue}`);
+  if (circle) circle.classList.remove("completed");
+
+  switch (pasoNum) {
+
+    case 1:
+      const c = document.getElementById(`cantidad-alo-${albergue}`);
+      if (c) c.disabled = true;
+      break;
+
+    case 2:
+      const d = document.getElementById(`delegacion-alo-${albergue}`);
+      if (d) d.disabled = true;
+      break;
+
+    case 3:
+      const grid = document.getElementById(`calendario-alo-${albergue}`);
+      const prev = document.getElementById(`nav-prev-alo-${albergue}`);
+      const next = document.getElementById(`nav-next-alo-${albergue}`);
+
+      if (grid) grid.classList.add("disabled");
+      if (prev) prev.disabled = true;
+      if (next) next.disabled = true;
+      break;
+
+    case 4:
+      ["institucion","responsable","dni","contacto"].forEach(campo => {
+        const el = document.getElementById(`${campo}-alo-${albergue}`);
+        if (el) el.disabled = true;
+      });
+      break;
+  }
+}
+function enableStepAlo(albergue, pasoNum) {
+
+  const box = document.getElementById(`paso-box-${pasoNum}-${albergue}`);
+  if (box) {
+    box.classList.add("enabled");
+    box.classList.remove("disabled-step");
+  }
+
+  switch (pasoNum) {
+
+    case 1:
+      const c = document.getElementById(`cantidad-alo-${albergue}`);
+      if (c) c.disabled = false;
+      break;
+
+    case 2:
+      const d = document.getElementById(`delegacion-alo-${albergue}`);
+      if (d) d.disabled = false;
+      break;
+
+    case 3:
+      const grid = document.getElementById(`calendario-alo-${albergue}`);
+      const prev = document.getElementById(`nav-prev-alo-${albergue}`);
+      const next = document.getElementById(`nav-next-alo-${albergue}`);
+
+      if (grid) grid.classList.remove("disabled");
+      if (prev) prev.disabled = false;
+      if (next) next.disabled = false;
+      break;
+
+    case 4:
+      ["institucion","responsable","dni","contacto"].forEach(campo => {
+        const el = document.getElementById(`${campo}-alo-${albergue}`);
+        if (el) el.disabled = false;
+      });
+      break;
+  }
+}
+
+
+
+function todasFechasVerdes(albergue) {
+  const grid = document.getElementById(`calendario-alo-${albergue}`);
+  if (!grid) return false;
+
+  const diasEnRango = grid.querySelectorAll('.en-rango');
+  if (diasEnRango.length === 0) return false;
+
+  return Array.from(diasEnRango).every(d => d.classList.contains('verde'));
+}
+
+function setupPasoListenersAlo(albergue) {
+  // Paso 1: cantidad
+  const cantidadEl = document.getElementById(`cantidad-alo-${albergue}`);
+  if (cantidadEl) {
+    // use 'input' o 'blur' según UX (yo mantengo blur para que confirme)
+    cantidadEl.addEventListener('blur', () => {
+      const v = parseInt(cantidadEl.value, 10);
+      if (Number.isFinite(v) && v > 0) {
+        cantidadEl.disabled = true;
+        cantidadEl.classList.add('disabled');
+        completePasoAlo(albergue, 1);
+      }
+    });
+  }
+
+  // Paso 2: delegación (dinámico)
+  const delEl = document.getElementById(`delegacion-alo-${albergue}`);
+  if (delEl) {
+    delEl.addEventListener('change', () => {
+      if (delEl.value && delEl.value.trim() !== '') {
+        delEl.disabled = true;
+        delEl.classList.add('disabled');
+        // sincroniza hidden
+        const hidden = document.getElementById(`delegacion-hidden-alo-${albergue}`);
+        if (hidden) hidden.value = delEl.value;
+        completePasoAlo(albergue, 2);
+      }
+    });
+  }
+
+  // Paso 3: evento custom que indica que el rango fue confirmado
+  // (ya en tu código se dispara 'rangoAloConfirmado' en otros lugares; se usa aquí)
+  document.addEventListener('rangoAloConfirmado', (ev) => {
+    const a = (ev && ev.detail && ev.detail.albergue) || albergue;
+    if (a === albergue) {
+      // si todas las fechas son verdes, completePasoAlo hará el resto
+      completePasoAlo(albergue, 3);
+    }
+  });
+
+  
+
+  // Paso 4: form submit
+const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
+if (form) {
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Validar campos obligatorios del paso 4
+    const inst = document.getElementById(`institucion-alo-${albergue}`)?.value.trim();
+    const resp = document.getElementById(`responsable-alo-${albergue}`)?.value.trim();
+    const dni  = document.getElementById(`dni-alo-${albergue}`)?.value.trim();
+    const cont = document.getElementById(`contacto-alo-${albergue}`)?.value.trim();
+
+    if (inst && resp && dni && cont) {
+      // 🔥 AQUÍ MARCAMOS EL PASO 4 COMO COMPLETO
+      completePasoAlo(albergue, 4);
+    }
+
+    // Ejecuta tu lógica original
+    if (typeof handleFormSubmitAlo === 'function') {
+      handleFormSubmitAlo(e, albergue);
+    } else {
+      resetAllAlo(albergue);
+      closeAlojamientoModal(albergue);
+    }
+  });
+}
+
+}
+
+
+function habilitarBotonReservaAlo(albergue) {
+  const btn = document.getElementById(`btn-submit-alo-${albergue}`);
+  if (!btn) {
+    console.warn(`No se encontró btn-submit-alo-${albergue}`);
+    return;
+  }
+  btn.disabled = false;
+  btn.removeAttribute('disabled');
+  btn.classList.remove('disabled');
+  btn.classList.add('enabled');
+  btn.style.opacity = '1';
+  btn.style.pointerEvents = 'auto';
+  console.log(`✅ Botón de reserva habilitado para ${albergue}`);
+}
+
+// === TELÉFONO ALOJAMIENTO: Prefijo 3-4 + Número 6-7 = Total 9 o 10 ===
+document.querySelectorAll('[id^="modal-alojamiento-"]').forEach(modal => {
+  const albergue = modal.id.replace('modal-alojamiento-', '');
+  
+  const prefijoInput = document.getElementById(`prefijo-alo-${albergue}`);
+  const numeroInput = document.getElementById(`numero-alo-${albergue}`);
+  const hiddenInput = document.getElementById(`contacto-alo-${albergue}`);
+
+  if (!prefijoInput || !numeroInput || !hiddenInput) return;
+
+  const updateHidden = () => {
+    // Limpiar: solo números
+    const prefijo = prefijoInput.value.replace(/\D/g, '').slice(0, 4);
+    const numero = numeroInput.value.replace(/\D/g, '').slice(0, 7);
+
+    // Actualizar visualmente
+    prefijoInput.value = prefijo;
+    numeroInput.value = numero;
+
+    // Validar longitudes
+    const prefijoOk = prefijo.length === 3 || prefijo.length === 4;
+    const numeroOk = numero.length === 6 || numero.length === 7;
+    const total = prefijo + numero;
+    const totalOk = total.length === 9 || total.length === 10;
+
+    if (prefijoOk && numeroOk && totalOk) {
+      hiddenInput.value = total;
+    } else {
+      hiddenInput.value = '';
+    }
+  };
+
+  prefijoInput.addEventListener('input', updateHidden);
+  numeroInput.addEventListener('input', updateHidden);
+
+  // Validación al enviar
+  const form = document.getElementById(`aloForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      updateHidden();
+      const total = hiddenInput.value;
+
+      if (!/^\d{9,10}$/.test(total)) {
+        e.preventDefault();
+        alert('Error en el contacto:\n\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos\n• Total: debe ser 9 o 10 dígitos\n\nEjemplos válidos:\n3815600700 (9)\n3811500600 (10)\n3815006000 (10)\n38115006000 (11 → no)\n\nCombinaciones válidas:\n3+6=9 | 4+6=10 | 3+7=10');
+        return;
+      }
+
+      // Extraer partes según total
+      const is10Digits = total.length === 10;
+      const numeroLength = is10Digits ? (total.slice(0, 4).length === 4 ? 6 : 7) : 6;
+      const numero = total.slice(-numeroLength);
+      const prefijo = total.slice(0, total.length - numeroLength);
+
+      if (!/^\d{3,4}$/.test(prefijo) || !/^\d{6,7}$/.test(numero)) {
+        e.preventDefault();
+        alert('Formato inválido. Verifica:\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos');
+      }
+    });
   }
 });
