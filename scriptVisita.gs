@@ -2,6 +2,8 @@ function doPost(e) {
   try {
     //Logger.log("Datos recibidos: " + JSON.stringify(e && e.parameter));
     const data = (e && e.parameter) ? e.parameter : {};
+    const ID_OTRO_LIBRO_ALOJAMIENTO = "1WnkUA0wMXlsamLUtMtHSPG2GeHcagQLJcdbvIrnG4U4";
+
 
     // Validar clave secreta
     if ((data.secret || "") !== "cristiano1988") {
@@ -127,12 +129,13 @@ if (esPernocta) {
         albergue,
         data.institucion,
         data.responsable,
+        data.dni,
         data.contacto,
         parseInt(data.cantidad, 10) || 0,
         fecha,
         data.horaIngreso,
         horaEgreso,
-        pernoctaValue,
+        //pernoctaValue,
         "Pre-Reserva"
       ]);
 
@@ -143,11 +146,15 @@ if (esPernocta) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // === Cancelar reserva por ID ===
+    
+
+    // === Cancelar reserva por ID y DNI (extiende a segundo libro Alojamiento) ===
 if (data.action === "cancelarReserva") {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const hojaReservas       = ss.getSheetByName("Reservas");
   const hojaDisponibilidad = ss.getSheetByName("Disponibilidad");
+
+  const ID_OTRO_LIBRO_ALOJAMIENTO = "1WnkUA0wMXlsamLUtMtHSPG2GeHcagQLJcdbvIrnG4U4";
 
   if (!hojaReservas || !hojaDisponibilidad){
     return ContentService.createTextOutput(JSON.stringify({
@@ -157,46 +164,120 @@ if (data.action === "cancelarReserva") {
   }
 
   const idRaw = (data.idReserva || "").toString().trim();
-  if (!idRaw){
+  const dniRaw = (data.dni || "").toString().trim();
+
+  if (!idRaw || !dniRaw){
     return ContentService.createTextOutput(JSON.stringify({
       success: false,
-      message: "ID vacío"
+      message: "Faltan datos (ID o DNI)"
     })).setMimeType(ContentService.MimeType.JSON);
   }
 
-  // En tus últimas versiones el ID lo generás como 3 cifras: (new Date().getTime() % 1000)
-  // tratamos como string para comparar tal cual el valor guardado
+  // === Buscar y borrar en libro principal (Visitas) ===
+  const valsR = hojaReservas.getDataRange().getValues();
+  let existeReservaConDni = false;
+  for (let r = 1; r < valsR.length; r++) {
+    const idCell = String(valsR[r][0] || "").trim();
+    const dniCell = String(valsR[r][5] || "").trim();
+    if (idCell === idRaw && dniCell === dniRaw) {
+      existeReservaConDni = true;
+      break;
+    }
+  }
+
   let borradasReservas = 0;
   let borradasDisp = 0;
 
-  // --- Borrar en "Reservas" (col 1) ---
-  const valsR = hojaReservas.getDataRange().getValues(); // incluye encabezado
-  for (let r = valsR.length - 1; r >= 1; r--) { // de abajo hacia arriba
-    const idCell = (valsR[r][0] != null) ? String(valsR[r][0]).trim() : "";
-    if (idCell === idRaw) {
-      hojaReservas.deleteRow(r + 1);
-      borradasReservas++;
+  if (existeReservaConDni) {
+    // --- Borrar filas ---
+    for (let r = valsR.length - 1; r >= 1; r--) {
+      const idCell = String(valsR[r][0] || "").trim();
+      const dniCell = String(valsR[r][5] || "").trim();
+      if (idCell === idRaw && dniCell === dniRaw) {
+        hojaReservas.deleteRow(r + 1);
+        borradasReservas++;
+      }
+    }
+
+    const valsD = hojaDisponibilidad.getDataRange().getValues();
+    for (let r = valsD.length - 1; r >= 1; r--) {
+      const idCell = String(valsD[r][5] || "").trim();
+      if (idCell === idRaw) {
+        hojaDisponibilidad.deleteRow(r + 1);
+        borradasDisp++;
+      }
+    }
+
+    const ok = (borradasReservas > 0 || borradasDisp > 0);
+    return ContentService.createTextOutput(JSON.stringify({
+      success: ok,
+      message: ok
+        ? `Cancelada ${borradasReservas} Reserva`
+        : 'No se encontraron reservas para eliminar en Visitas'
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // === Si no existe en Visitas, buscar en el libro de Alojamiento ===
+  const ssAlo = SpreadsheetApp.openById(ID_OTRO_LIBRO_ALOJAMIENTO);
+  const hojaReservasAlo = ssAlo.getSheetByName("ReservasAlojamiento");
+  const hojaDispAlo = ssAlo.getSheetByName("DisponibilidadAlojamiento");
+
+  if (!hojaReservasAlo || !hojaDispAlo) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: "No se encontraron hojas de Alojamiento"
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const valsRAlo = hojaReservasAlo.getDataRange().getValues();
+  let existeAlo = false;
+  for (let r = 1; r < valsRAlo.length; r++) {
+    const idCell = String(valsRAlo[r][0] || "").trim();
+    const dniCell = String(valsRAlo[r][5] || "").trim();
+    if (idCell === idRaw && dniCell === dniRaw) {
+      existeAlo = true;
+      break;
     }
   }
 
-  // --- Borrar en "Disponibilidad" (col 6 = ID_Reserva) ---
-  const valsD = hojaDisponibilidad.getDataRange().getValues();
-  for (let r = valsD.length - 1; r >= 1; r--) {
-    const idCell = (valsD[r][5] != null) ? String(valsD[r][5]).trim() : "";
-    if (idCell === idRaw) {
-      hojaDisponibilidad.deleteRow(r + 1);
-      borradasDisp++;
+  if (!existeAlo) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: "No se encontró una reserva con ese número y DNI"
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // --- Borrar en ReservasAlojamiento ---
+  let borradasRAlo = 0;
+  for (let r = valsRAlo.length - 1; r >= 1; r--) {
+    const idCell = String(valsRAlo[r][0] || "").trim();
+    const dniCell = String(valsRAlo[r][5] || "").trim();
+    if (idCell === idRaw && dniCell === dniRaw) {
+      hojaReservasAlo.deleteRow(r + 1);
+      borradasRAlo++;
     }
   }
 
-  const ok = (borradasReservas > 0 || borradasDisp > 0);
+  // --- Borrar en DisponibilidadAlojamiento ---
+  const valsDAlo = hojaDispAlo.getDataRange().getValues();
+  let borradasDAlo = 0;
+  for (let r = valsDAlo.length - 1; r >= 1; r--) {
+    const idCell = String(valsDAlo[r][5] || "").trim();
+    if (idCell === idRaw) {
+      hojaDispAlo.deleteRow(r + 1);
+      borradasDAlo++;
+    }
+  }
+
+  const okAlo = (borradasRAlo > 0 || borradasDAlo > 0);
   return ContentService.createTextOutput(JSON.stringify({
-    success: ok,
-    message: ok
-      ? `Eliminadas ${borradasReservas} en Reservas y ${borradasDisp} en Disponibilidad`
-      : 'No se encontró ese ID'
+    success: okAlo,
+    message: okAlo
+      ? `Cancelada ${borradasRAlo} Reserva de ${borradasDAlo} dias`
+      : 'No se encontraron reservas para eliminar'
   })).setMimeType(ContentService.MimeType.JSON);
 }
+
 
 
 
