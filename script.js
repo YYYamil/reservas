@@ -1,3 +1,8 @@
+//anio actual en el footer
+
+const anio = new Date().getFullYear();
+document.getElementById("anioActual").textContent = anio;
+
 // Configuración global
 const CONFIG = {
   secretKey: "cristiano1988",
