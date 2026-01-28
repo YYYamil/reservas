@@ -751,9 +751,9 @@ function populateHourSelects() {
     ? ALBERGUES.map(a => a.key)
     : ['maestro','tinku','aquilina'];
 
-  // 08:00 … 20:00
+  // Modifica el horario de entrada y salida de los albergues
   const options = [];
-  for (let h = 8; h <= 20; h++) {
+  for (let h = 9; h <= 19; h++) {
     const hh = String(h).padStart(2, '0');
     options.push(`${hh}:00`);
   }
@@ -2589,5 +2589,15 @@ document.querySelectorAll('[id^="modal-alojamiento-"]').forEach(modal => {
         alert('Formato inválido. Verifica:\n• Prefijo: 3 o 4 dígitos\n• Número: 6 o 7 dígitos');
       }
     });
+  }
+});
+
+// Cerrar modales con Escape
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Escape") {
+    const modalActivo = document.querySelector(".modal.active");
+    if (modalActivo) {
+      modalActivo.classList.remove("active");
+    }
   }
 });
