@@ -2598,11 +2598,23 @@ document.querySelectorAll('[id^="modal-alojamiento-"]').forEach(modal => {
 });
 
 // Cerrar modales con Escape
-document.addEventListener("keydown", function (event) {
-  if (event.key === "Escape") {
-    const modalActivo = document.querySelector(".modal.active");
-    if (modalActivo) {
-      modalActivo.classList.remove("active");
-    }
-  }
+function cerrarModal() {
+  const modalActivo = document.querySelector(".modal.active");
+  if (!modalActivo) return;
+
+  modalActivo.classList.remove("active");
+
+  // 🔓 restaurar body
+  document.body.style.overflow = "";
+
+  // 🧼 seguridad extra
+  modalActivo.style.pointerEvents = "none";
+
+  setTimeout(() => {
+    modalActivo.style.pointerEvents = "";
+  }, 0);
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") cerrarModal();
 });
