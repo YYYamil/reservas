@@ -84,14 +84,25 @@ const notice = document.getElementById('site-notice');
       console.warn('Glide.js no está cargado');
       return;
     }
-    new Glide(el, {
+    const glide = new Glide(el, {
       type: 'carousel',
       perView: 1,
       autoplay: 4000,     // 4s
       hoverpause: true,   // pausa al pasar el mouse (mejor UX)
-      animationDuration: 5000,
+      animationDuration: 1500, // transición más lenta por defecto
       gap: 0
-    }).mount();
+    });
+
+    // Cambiar a transición rápida solo al hacer click en flechas
+    const arrows = el.querySelectorAll('.glide__arrow');
+    arrows.forEach(btn => {
+      btn.addEventListener('click', () => {
+        glide.update({ animationDuration: 400 });
+        setTimeout(() => glide.update({ animationDuration: 1500 }), 500);
+      });
+    });
+
+    glide.mount();
 
     
   });
@@ -192,14 +203,9 @@ async function submitForm(albergue) {
     //if (resultado.success) {
     if (resultado && resultado.success) {
 
+
       mostrarConfirmacion(albergue, formData, resultado.idReserva);
       setBtnSuccess(btn);
-
-showSnackbar(
-  `PRE-Reserva Realizada \n Nro: ${resultado.idReserva}.\n Para su confirmación, llamar al:\n (0381)452-6408.`,
-  'success',
-  55000
-);
 
 
 
@@ -256,8 +262,48 @@ function mostrarConfirmacion(albergue, formData, idReserva) {
     aquilina: 'Albergue Aquilina Soldati'
   };
 
-  
+  // Construir HTML con los datos de la reserva
+  const html = `
+    <p><strong>Número de reserva:</strong> <span style="color:var(--azul)">${idReserva}</span></p>
+    <p><strong>Albergue:</strong> ${nombresAlbergues[albergue] || albergue}</p>
+    <p><strong>Institución:</strong> ${formData.institucion}</p>
+    <p><strong>Responsable:</strong> ${formData.responsable}</p>
+    <p><strong>DNI:</strong> ${formData.dni}</p>
+    <p><strong>Contacto:</strong> ${formData.contacto}</p>
+    <p><strong>Cantidad de personas:</strong> ${formData.cantidad}</p>
+    <p><strong>Fecha de ingreso:</strong> ${formData.fechaIngreso}</p>
+    <p><strong>Hora de ingreso:</strong> ${formData.horaIngreso}</p>
+    <p><strong>Hora de egreso:</strong> ${formData.horaEgreso}</p>
+    <div class="confirmacion-alerta"><strong>Para confirmar la reserva, llamar al:</strong><br><span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
+  `;
+  const modal = document.getElementById('modal-confirmacion');
+  const datosDiv = document.getElementById('datos-reserva-confirmacion');
+  if (modal && datosDiv) {
+    // Cambiar el título del modal
+    const titulo = modal.querySelector('.modal-confirmacion-title');
+    if (titulo) titulo.textContent = 'Preseserva realizada';
+    datosDiv.innerHTML = html;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
 }
+// Lógica para cerrar el modal de confirmación
+document.addEventListener('DOMContentLoaded', function() {
+  const modal = document.getElementById('modal-confirmacion');
+  if (!modal) return;
+  const closeBtn = modal.querySelector('.close-modal-confirmacion');
+  const aceptarBtn = modal.querySelector('.btn-aceptar-modal-confirmacion');
+  function cerrarModalConfirmacion() {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+  if (closeBtn) closeBtn.addEventListener('click', cerrarModalConfirmacion);
+  if (aceptarBtn) aceptarBtn.addEventListener('click', cerrarModalConfirmacion);
+  // Cerrar al hacer click fuera del contenido
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) cerrarModalConfirmacion();
+  });
+});
 
 function resetForm(albergue) {
   const form = document.getElementById(`reservaForm${albergue.charAt(0).toUpperCase() + albergue.slice(1)}`);
