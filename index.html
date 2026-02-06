@@ -1189,6 +1189,24 @@
    <script src="script.js"></script>
 
 
+    <!-- Modal de confirmación de reserva -->
+    <div id="modal-confirmacion" class="modal-reserva-confirmacion" style="display:none;">
+      <div class="modal-confirmacion-content">
+        <div class="modal-confirmacion-header">
+          <h3 class="modal-confirmacion-title">Reserva realizada</h3>
+          <button class="close-modal-confirmacion" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-confirmacion-body">
+          <!-- Aquí se insertarán los datos de la reserva dinámicamente -->
+          <div id="datos-reserva-confirmacion"></div>
+        </div>
+        <div class="modal-confirmacion-footer">
+          <button class="btn-aceptar-modal-confirmacion">Aceptar</button>
+        </div>
+      </div>
+    </div>
+
+
     <!-- Aviso inicial -->
         <div id="site-notice" class="notice-overlay" aria-hidden="true">
           <div class="notice-backdrop"></div>
