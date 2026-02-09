@@ -33,6 +33,31 @@
     <div class="container">
         <div class="main-title">
             <h2>Reserva de Albergues</h2>
+
+            <div class="reserva-box">
+              <h3 class="reserva-title"> Pasos para reservar</h3>
+
+              <ol class="reserva-steps">
+                <li>
+                  <strong>Seleccionar el albergue y la modalidad:</strong>
+                  <ul>
+                    <li>Reservar visita: pasar el día</li>
+                    <li>Reservar alojamiento: estadía con pernocte</li>
+                  </ul>
+                </li>
+
+                <li>
+                  Completar el <strong>formulario online</strong> con todos los datos solicitados y obtener el
+                  <strong>código de pre-reserva</strong>.
+                </li>
+
+                <li>
+                  Llamar <strong>obligatoriamente</strong> a la Dirección de Educación Física para
+                  <strong>confirmar la reserva</strong>.
+                </li>
+              </ol>
+            </div>
+
             <p>Seleccione un albergue para realizar su reserva</p>
         </div>
 
@@ -1154,7 +1179,7 @@
             <div class="footer-content">
                 <img src="Img/3 - Blanco.png" alt="Logo Ministerio" class="footer-logo">
                 <div class="footer-text">
-                    <p>© 2025 Ministerio de Educación de Tucumán. Todos los derechos reservados</p>
+                    <p>© <span id="anioActual"></span> Ministerio de Educación de Tucumán. Todos los derechos reservados</p>
                 </div>
             </div>
         </div>
@@ -1162,6 +1187,24 @@
 
    <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.5.0/glide.min.js"></script>
    <script src="script.js"></script>
+
+
+    <!-- Modal de confirmación de reserva -->
+    <div id="modal-confirmacion" class="modal-reserva-confirmacion" style="display:none;">
+      <div class="modal-confirmacion-content">
+        <div class="modal-confirmacion-header">
+          <h3 class="modal-confirmacion-title">Reserva realizada</h3>
+          <button class="close-modal-confirmacion" aria-label="Cerrar">&times;</button>
+        </div>
+        <div class="modal-confirmacion-body">
+          <!-- Aquí se insertarán los datos de la reserva dinámicamente -->
+          <div id="datos-reserva-confirmacion"></div>
+        </div>
+        <div class="modal-confirmacion-footer">
+          <button class="btn-aceptar-modal-confirmacion">Aceptar</button>
+        </div>
+      </div>
+    </div>
 
 
     <!-- Aviso inicial -->
