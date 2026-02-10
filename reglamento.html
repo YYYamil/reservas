@@ -298,45 +298,38 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.5.0/glide.min.js"></script>
     <script src="script.js"></script>
 
+<style>
+#app-snackbar { display: none !important; }
+</style>
+
 
 <script>
 const botones = document.querySelectorAll(".acordeon-btn");
-
-// Replace the entire botones.forEach loop with this improved version
 botones.forEach(btn => {
     btn.addEventListener("click", () => {
         const content = btn.nextElementSibling;
         const isOpen = content.classList.contains("open");
-
         if (isOpen) {
-            // Close with reflow trick for smooth animation
             const handler = () => {
-                content.style.maxHeight = null; // Clean up after animation
+                content.style.maxHeight = null;
                 content.removeEventListener('transitionend', handler);
             };
             content.addEventListener('transitionend', handler);
-
             content.style.maxHeight = content.scrollHeight + 'px';
-            content.offsetHeight; // Trigger reflow to start transition
+            content.offsetHeight;
             content.style.maxHeight = '0px';
-
             content.classList.remove("open");
             btn.classList.remove("active");
         } else {
-            // Open
             content.classList.add("open");
             content.style.maxHeight = content.scrollHeight + 'px';
             btn.classList.add("active");
         }
     });
 });
-
-
 function volverArriba() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
-
 </script>
 
 <style>

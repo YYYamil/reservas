@@ -285,6 +285,8 @@ function mostrarConfirmacion(albergue, formData, idReserva) {
     datosDiv.innerHTML = html;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    // Hacer scroll al tope de la página principal
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 // Lógica para cerrar el modal de confirmación
