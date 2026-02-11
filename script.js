@@ -186,7 +186,7 @@ async function submitForm(albergue) {
   const formData = getFormData(albergue);
   if (!formData.institucion || !formData.responsable || !formData.dni || !formData.contacto ||
       !formData.cantidad || !formData.fechaIngreso || !formData.horaIngreso|| !formData.horaEgreso) {
-    alert("Por favor complete todos los campos del formulario");
+    alert("Por favor, complete todos los campos del formulario.");
     return;
   }
 
@@ -216,7 +216,7 @@ async function submitForm(albergue) {
       }, 900);
     } else {
       setBtnError(btn, 'Error');
-showSnackbar(`Error al guardar la reserva: ${resultado.message || 'Intente nuevamente'}`, 'error', 2200);
+      showSnackbar(`Error al guardar la reserva: ${resultado.message || 'Inténtelo nuevamente.'}`, 'error', 2200);
       setTimeout(() => resetBtn(btn), 1200);
       return;
     }
@@ -281,7 +281,7 @@ function mostrarConfirmacion(albergue, formData, idReserva) {
   if (modal && datosDiv) {
     // Cambiar el título del modal
     const titulo = modal.querySelector('.modal-confirmacion-title');
-    if (titulo) titulo.textContent = 'Preseserva realizada';
+    if (titulo) titulo.textContent = 'Prereserva realizada';
     datosDiv.innerHTML = html;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
@@ -500,9 +500,10 @@ async function mostrarInfoDia(albergue, año, mes0, dia) {
   // Si usás barra de ocupación u otro indicador
   updateOcupacionUI?.(albergue, ocupados, capacidad);
 
-} catch (e) {
-  console.error('Error al obtener disponibilidad:', e);
-} finally {
+  } catch (e) {
+    console.error('Error al obtener disponibilidad:', e);
+  }
+  finally {
   const elapsed = performance.now() - start;
   const minDelay = 400;
   setTimeout(() => hideCalendarLoading(albergue), Math.max(0, minDelay - elapsed));
@@ -618,7 +619,7 @@ async function onCalendarDayClickMaestro(dateObj) {
 
   } catch (e) {
     console.error(e);
-    alert('No se pudo obtener la disponibilidad. Intenta de nuevo.');
+    alert('No se pudo obtener la disponibilidad. Intente de nuevo.');
   }
 }
 
