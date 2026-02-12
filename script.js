@@ -1456,7 +1456,6 @@ function mostrarConfirmacionAlo(albergue, formData, idReserva) {
     <p><strong>Contacto:</strong> ${formData.contacto}</p>
     <p><strong>Cantidad de camas:</strong> ${formData.cantidad}</p>
     <p><strong>Fechas reservadas:</strong> ${formData.range.map(r => r).join(', ')}</p>
-    <p><strong>Delegación:</strong> ${formData.delegacion || ''}</p>
     <div class="confirmacion-alerta"><strong>Para confirmar la reserva, llamar al:</strong><br><span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
   `;
   const modal = document.getElementById('modal-confirmacion');
