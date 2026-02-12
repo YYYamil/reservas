@@ -1162,8 +1162,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 document.querySelectorAll('.btn-alo').forEach(btn => {
-  btn.addEventListener('click', function() {
+  btn.addEventListener('click', function(e) {
+    e.preventDefault();
     const albergue = this.dataset.albergue;
+    // Elimina el span de disponibilidad si existe
+    const spanDisp = document.getElementById(`disponibles-${albergue}`);
+    if (spanDisp) spanDisp.style.display = 'none';
+    // Abre el modal de alojamiento
     if (albergue) openAlojamientoModal(albergue);
   });
 });
@@ -1376,11 +1381,7 @@ async function submitFormAlo(albergue) {
       setBtnSuccess(btn);
       mostrarConfirmacionAlo?.(albergue, formData, resultado.idReserva);
 
-      showSnackbar?.(
-        `✅ PRE-Reserva Realizada\nNro: ${resultado.idReserva}\nPara confirmar comuníquese al (0381) 452-6408.`,
-        "success",
-        15000
-      );
+      // No mostrar snackbar para alojamiento, solo el modal de confirmación
 
       // 🔄 Limpiar e iniciar cierre
       setTimeout(() => {
@@ -1440,8 +1441,35 @@ function getFormDataAlo(albergue) {
 }
 
 function mostrarConfirmacionAlo(albergue, formData, idReserva) {
-  console.log(`Confirmación alojamiento ${albergue}, ID: ${idReserva}, Rango: ${formData.range.join(', ')}`);
-  
+  // Construir HTML con los datos de la reserva de alojamiento
+  const nombresAlbergues = {
+    maestro: 'Albergue Maestro José Fierro',
+    tinku: 'Albergue Tinku Huasi',
+    aquilina: 'Albergue Aquilina Soldati'
+  };
+  const html = `
+    <p><strong>Número de reserva:</strong> <span style="color:var(--azul)">${idReserva}</span></p>
+    <p><strong>Albergue:</strong> ${nombresAlbergues[albergue] || albergue}</p>
+    <p><strong>Institución:</strong> ${formData.institucion}</p>
+    <p><strong>Responsable:</strong> ${formData.responsable}</p>
+    <p><strong>DNI:</strong> ${formData.dni}</p>
+    <p><strong>Contacto:</strong> ${formData.contacto}</p>
+    <p><strong>Cantidad de camas:</strong> ${formData.cantidad}</p>
+    <p><strong>Fechas reservadas:</strong> ${formData.range.map(r => r).join(', ')}</p>
+    <p><strong>Delegación:</strong> ${formData.delegacion || ''}</p>
+    <div class="confirmacion-alerta"><strong>Para confirmar la reserva, llamar al:</strong><br><span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
+  `;
+  const modal = document.getElementById('modal-confirmacion');
+  const datosDiv = document.getElementById('datos-reserva-confirmacion');
+  if (modal && datosDiv) {
+    // Cambiar el título del modal
+    const titulo = modal.querySelector('.modal-confirmacion-title');
+    if (titulo) titulo.textContent = 'Prereserva realizada';
+    datosDiv.innerHTML = html;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 
