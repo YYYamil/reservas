@@ -125,9 +125,10 @@ function openModal(albergue) {
   document.getElementById(`modal-${albergue}`).classList.add('active');
   document.body.style.overflow = 'hidden';
   resetForm(albergue); // Reset form when opening modal
-    resetCalendarToToday(albergue);                      
-
+  resetCalendarToToday(albergue);
   generarCalendario(albergue);
+  // Scroll al tope al abrir modal
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function closeModal(albergue) {
@@ -285,7 +286,7 @@ function mostrarConfirmacion(albergue, formData, idReserva) {
     datosDiv.innerHTML = html;
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    // Hacer scroll al tope de la página principal
+    // Scroll al tope al abrir modal
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
@@ -2287,6 +2288,8 @@ function openAlojamientoModal(albergue) {
   // 🔹 Mostrar modal actual
   modal.style.display = 'flex';
   setTimeout(() => modal.classList.add('active'), 10);
+  // Scroll al tope al abrir modal
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   document.body.style.overflow = 'hidden';
 
   // 🔄 Reinicializar su estado
