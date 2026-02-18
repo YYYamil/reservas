@@ -475,17 +475,23 @@ function generarCalendario(albergue) {
 
 
 
-  // Modificación en generarCalendario (agregar al final de la función, antes de //console.log...)
-  // Deshabilitar next si excede (agregar aquí)
+  
+  // Deshabilitar next si excede 
   const header = document.querySelector(`#modal-${albergue} .calendario-header`);
   if (header) {
     const navBtns = header.querySelectorAll('.nav-mes');
     if (navBtns.length === 2) {
       const nextBtn = navBtns[1];  // Segundo botón es next (derecha)
       if (nextBtn) {
-        const currentTotal = año * 12 + mes;
-        nextBtn.disabled = (currentTotal >= maxTotalMonths);
+      const currentTotal = año * 12 + mes;
+      const shouldDisable = (currentTotal >= maxTotalMonths);
+      nextBtn.disabled = shouldDisable;
+      if (shouldDisable) {
+        nextBtn.classList.add('disabled');  // Agregar clase para estilo gris
+      } else {
+        nextBtn.classList.remove('disabled');  // Remover si se habilita
       }
+    }
     }
   }
 
@@ -568,6 +574,7 @@ function cambiarMes(albergue, direccion) {
 
   generarCalendario(albergue);
 }
+
 
 // Funciones para interactuar con Google Sheets
 async function enviarReservaAGoogleSheets(data) {
@@ -1798,10 +1805,16 @@ function generarCalendarioAlo(albergue) {
   
   // Deshabilitar next si excede 
   const nextBtnAlo = document.getElementById(`nav-next-alo-${albergue}`);
-  if (nextBtnAlo) {
-    const currentTotal = estado.año * 12 + estado.mes;  // Usa estado local
-    nextBtnAlo.disabled = (currentTotal >= maxTotalMonths);
+if (nextBtnAlo) {
+  const currentTotal = estado.año * 12 + estado.mes;
+  const shouldDisable = (currentTotal >= maxTotalMonths);
+  nextBtnAlo.disabled = shouldDisable;
+  if (shouldDisable) {
+    nextBtnAlo.classList.add('disabled');  // Agregar clase para estilo gris
+  } else {
+    nextBtnAlo.classList.remove('disabled');  // Remover si se habilita
   }
+}
 }
 
 
