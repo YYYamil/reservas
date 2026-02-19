@@ -1,6 +1,12 @@
 //anio actual en el footer
 
 const anio = new Date().getFullYear();
+
+
+const today = new Date(); 
+const minTotalMonths = today.getFullYear() * 12 + today.getMonth();
+const maxTotalMonths = minTotalMonths + 3;//Para controlar 3 meses hacia adelante
+
 document.getElementById("anioActual").textContent = anio;
 
 // Configuración global
@@ -378,6 +384,14 @@ function generarCalendario(albergue) {
   const diasEnMes = ultimoDia.getDate();
 
   const contenedor = document.getElementById(`calendario-${albergue}`);
+
+
+
+ 
+
+
+
+
   if (!contenedor) return;
   contenedor.innerHTML = '';
 
@@ -457,6 +471,26 @@ function generarCalendario(albergue) {
   const titulo = document.getElementById(`mes-actual-${albergue}`);
   if (titulo) titulo.textContent = `${CONFIG.meses[mes]} ${año}`;
   //console.log(`Calendario generado para ${albergue}, mes: ${CONFIG.meses[mes]} ${año}`);
+
+
+
+
+  // Modificación en generarCalendario (agregar al final de la función, antes de //console.log...)
+  // Deshabilitar next si excede (agregar aquí)
+  const header = document.querySelector(`#modal-${albergue} .calendario-header`);
+  if (header) {
+    const navBtns = header.querySelectorAll('.nav-mes');
+    if (navBtns.length === 2) {
+      const nextBtn = navBtns[1];  // Segundo botón es next (derecha)
+      if (nextBtn) {
+        const currentTotal = año * 12 + mes;
+        nextBtn.disabled = (currentTotal >= maxTotalMonths);
+      }
+    }
+  }
+
+
+  
 }
 
 function crearDiaElemento(numero, claseExtra = '') {
@@ -1739,7 +1773,7 @@ function generarCalendarioAlo(albergue) {
 
     const celda = document.createElement('div');
     celda.className = `dia ${clases.join(' ')}`;
-    celda.dataset.date = iso; // 👈 FIX: atributo correcto
+    celda.dataset.date = iso; 
     celda.textContent = i;
 
     // Vincular evento click (solo si válido)
@@ -1759,6 +1793,15 @@ function generarCalendarioAlo(albergue) {
   // Título del mes
   const titulo = document.getElementById(`mes-actual-alo-${albergue}`);
   if (titulo) titulo.textContent = `${CONFIG.meses[mes]} ${año}`;
+
+
+  
+  // Deshabilitar next si excede 
+  const nextBtnAlo = document.getElementById(`nav-next-alo-${albergue}`);
+  if (nextBtnAlo) {
+    const currentTotal = estado.año * 12 + estado.mes;  // Usa estado local
+    nextBtnAlo.disabled = (currentTotal >= maxTotalMonths);
+  }
 }
 
 
@@ -1958,7 +2001,7 @@ function updateProgresoAlo(albergue) {
 }
 
 function resetAllAlo(albergue) {
-  console.log('🔄 Reset all para', albergue);
+  //console.log('🔄 Reset all para', albergue);
 
   // 1) Limpiar inputs y selects
   ['cantidad', 'institucion', 'responsable', 'dni', 'contacto'].forEach(prefix => {
@@ -2040,7 +2083,7 @@ if (newCalendario) {
   }
   
 
-  console.log(`✅ ${albergue.toUpperCase()} reiniciado completamente`);
+  //console.log(`✅ ${albergue.toUpperCase()} reiniciado completamente`);
 }
 
 
@@ -2277,7 +2320,7 @@ function openAlojamientoModal(albergue) {
     return;
   }
 
-  console.log(`[OPEN] Modal de ALOJAMIENTO → ${albergue}`);
+  //console.log(`[OPEN] Modal de ALOJAMIENTO → ${albergue}`);
 
   // 🔹 Cierra SOLO otros modales de alojamiento
   document.querySelectorAll('[id^="modal-alojamiento-"]').forEach(m => {
