@@ -2,7 +2,7 @@
 
 const anio = new Date().getFullYear();
 
-
+console.log("SCRIPT CARGADO");
 const today = new Date(); 
 const minTotalMonths = today.getFullYear() * 12 + today.getMonth();
 const maxTotalMonths = minTotalMonths + 3;//Para controlar 3 meses hacia adelante
@@ -68,22 +68,86 @@ const formSubmissionState = {
   aquilina: { isSubmitting: false }
 };
 
-// Inicialización cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
-const notice = document.getElementById('site-notice');
+
+
+
+
+
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  console.log("VIDEOS EN DOM:", document.querySelectorAll("video").length);
+
+  const notice = document.getElementById("site-notice");
   if (!notice) return;
-  const closeBtn = notice.querySelector('.notice-close');
-  const backdrop = notice.querySelector('.notice-backdrop');
-  // Mostrar al iniciar
-  notice.classList.add('show');
-  document.body.style.overflow = 'hidden'; // evita scroll del fondo
-  function hideNotice(){
-    notice.classList.remove('show');
-    document.body.style.overflow = '';    
+
+  const video = document.getElementById("aviso-video");
+  const closeBtn = notice.querySelector(".notice-close");
+
+  console.log("closeBtn:", closeBtn);
+  const soundBtn = document.getElementById("sound-toggle");
+  const iconMute = document.getElementById("icon-mute");
+  const iconSound = document.getElementById("icon-sound");
+
+  // Mostrar popup al iniciar
+  notice.classList.add("show");
+  document.body.style.overflow = "hidden";
+
+  // Autoplay en mute
+  video.muted = true;
+  video.play();
+
+  
+   // 🔴 BOTÓN CERRAR
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      console.log("CERRANDO AVISO");
+
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
+
+      notice.classList.remove("show");
+      document.body.style.overflow = "";
+    });
   }
 
-  closeBtn.addEventListener('click', hideNotice);
-  backdrop.addEventListener('click', hideNotice);
+  // 🔊 BOTÓN SONIDO
+  if (soundBtn) {
+    soundBtn.addEventListener("click", function (e) {
+      if (!e.isTrusted) return;
+
+      console.log("ACTIVANDO SONIDO");
+
+      video.muted = false;
+      video.volume = 1;
+      video.play();
+
+      iconMute.style.display = "none";
+      iconSound.style.display = "block";
+
+      setTimeout(() => {
+        soundBtn.classList.add("hidden");
+      }, 400);
+    });
+  }
+
+
+
+
+
+
+
+
+
 
   document.querySelectorAll('.glide').forEach(el => {
     if (!window.Glide) {
@@ -144,21 +208,6 @@ function closeModal(albergue) {
   resetForm(albergue); // Reset form when closing modal
 }
 
-// Cerrar al click fuera (extendido para ambos tipos de modales)
-// window.onclick = function(event) {
-//   if (event.target.classList.contains('modal') && event.target.classList.contains('active')) {
-//     const idParts = event.target.id.split('-');
-//     if (idParts[1] === 'alojamiento') {
-//       // Modal de alojamiento: modal-alojamiento-{albergue}
-//       const albergue = idParts[2]; // e.g., 'maestro'
-//       if (albergue) closeAlojamientoModal(albergue);
-//     } else {
-//       // Modal regular: modal-{albergue}
-//       const albergue = idParts[1]; // e.g., 'maestro'
-//       if (albergue) closeModal(albergue);
-//     }
-//   }
-// };
 
 // Configuración de listeners de formularios
 function setupFormListeners() {
