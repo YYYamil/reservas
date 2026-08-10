@@ -1,6 +1,12 @@
 //anio actual en el footer
 
 const anio = new Date().getFullYear();
+
+console.log("SCRIPT CARGADO");
+const today = new Date(); 
+const minTotalMonths = today.getFullYear() * 12 + today.getMonth();
+const maxTotalMonths = minTotalMonths + 3;//Para controlar 3 meses hacia adelante
+
 document.getElementById("anioActual").textContent = anio;
 
 // Configuración global
@@ -62,22 +68,86 @@ const formSubmissionState = {
   aquilina: { isSubmitting: false }
 };
 
-// Inicialización cuando se carga la página
-document.addEventListener('DOMContentLoaded', function() {
-const notice = document.getElementById('site-notice');
+
+
+
+
+
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  console.log("VIDEOS EN DOM:", document.querySelectorAll("video").length);
+
+  const notice = document.getElementById("site-notice");
   if (!notice) return;
-  const closeBtn = notice.querySelector('.notice-close');
-  const backdrop = notice.querySelector('.notice-backdrop');
-  // Mostrar al iniciar
-  notice.classList.add('show');
-  document.body.style.overflow = 'hidden'; // evita scroll del fondo
-  function hideNotice(){
-    notice.classList.remove('show');
-    document.body.style.overflow = '';    
+
+  const video = document.getElementById("aviso-video");
+  const closeBtn = notice.querySelector(".notice-close");
+
+  console.log("closeBtn:", closeBtn);
+  const soundBtn = document.getElementById("sound-toggle");
+  const iconMute = document.getElementById("icon-mute");
+  const iconSound = document.getElementById("icon-sound");
+
+  // Mostrar popup al iniciar
+  notice.classList.add("show");
+  document.body.style.overflow = "hidden";
+
+  // Autoplay en mute
+  video.muted = true;
+  video.play();
+
+  
+   // 🔴 BOTÓN CERRAR
+  if (closeBtn) {
+    closeBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      console.log("CERRANDO AVISO");
+
+      if (video) {
+        video.pause();
+        video.currentTime = 0;
+      }
+
+      notice.classList.remove("show");
+      document.body.style.overflow = "";
+    });
   }
 
-  closeBtn.addEventListener('click', hideNotice);
-  backdrop.addEventListener('click', hideNotice);
+  // 🔊 BOTÓN SONIDO
+  if (soundBtn) {
+    soundBtn.addEventListener("click", function (e) {
+      if (!e.isTrusted) return;
+
+      console.log("ACTIVANDO SONIDO");
+
+      video.muted = false;
+      video.volume = 1;
+      video.play();
+
+      iconMute.style.display = "none";
+      iconSound.style.display = "block";
+
+      setTimeout(() => {
+        soundBtn.classList.add("hidden");
+      }, 400);
+    });
+  }
+
+
+
+
+
+
+
+
+
 
   document.querySelectorAll('.glide').forEach(el => {
     if (!window.Glide) {
@@ -138,21 +208,6 @@ function closeModal(albergue) {
   resetForm(albergue); // Reset form when closing modal
 }
 
-// Cerrar al click fuera (extendido para ambos tipos de modales)
-// window.onclick = function(event) {
-//   if (event.target.classList.contains('modal') && event.target.classList.contains('active')) {
-//     const idParts = event.target.id.split('-');
-//     if (idParts[1] === 'alojamiento') {
-//       // Modal de alojamiento: modal-alojamiento-{albergue}
-//       const albergue = idParts[2]; // e.g., 'maestro'
-//       if (albergue) closeAlojamientoModal(albergue);
-//     } else {
-//       // Modal regular: modal-{albergue}
-//       const albergue = idParts[1]; // e.g., 'maestro'
-//       if (albergue) closeModal(albergue);
-//     }
-//   }
-// };
 
 // Configuración de listeners de formularios
 function setupFormListeners() {
@@ -378,6 +433,14 @@ function generarCalendario(albergue) {
   const diasEnMes = ultimoDia.getDate();
 
   const contenedor = document.getElementById(`calendario-${albergue}`);
+
+
+
+ 
+
+
+
+
   if (!contenedor) return;
   contenedor.innerHTML = '';
 
@@ -457,6 +520,32 @@ function generarCalendario(albergue) {
   const titulo = document.getElementById(`mes-actual-${albergue}`);
   if (titulo) titulo.textContent = `${CONFIG.meses[mes]} ${año}`;
   //console.log(`Calendario generado para ${albergue}, mes: ${CONFIG.meses[mes]} ${año}`);
+
+
+
+
+  
+  // Deshabilitar next si excede 
+  const header = document.querySelector(`#modal-${albergue} .calendario-header`);
+  if (header) {
+    const navBtns = header.querySelectorAll('.nav-mes');
+    if (navBtns.length === 2) {
+      const nextBtn = navBtns[1];  // Segundo botón es next (derecha)
+      if (nextBtn) {
+      const currentTotal = año * 12 + mes;
+      const shouldDisable = (currentTotal >= maxTotalMonths);
+      nextBtn.disabled = shouldDisable;
+      if (shouldDisable) {
+        nextBtn.classList.add('disabled');  // Agregar clase para estilo gris
+      } else {
+        nextBtn.classList.remove('disabled');  // Remover si se habilita
+      }
+    }
+    }
+  }
+
+
+  
 }
 
 function crearDiaElemento(numero, claseExtra = '') {
@@ -534,6 +623,7 @@ function cambiarMes(albergue, direccion) {
 
   generarCalendario(albergue);
 }
+
 
 // Funciones para interactuar con Google Sheets
 async function enviarReservaAGoogleSheets(data) {
@@ -808,7 +898,7 @@ function populateHourSelects() {
 
   // Modifica el horario de entrada y salida de los albergues
   const options = [];
-  for (let h = 9; h <= 19; h++) {
+  for (let h = 9; h <= 18; h++) {
     const hh = String(h).padStart(2, '0');
     options.push(`${hh}:00`);
   }
@@ -1739,7 +1829,7 @@ function generarCalendarioAlo(albergue) {
 
     const celda = document.createElement('div');
     celda.className = `dia ${clases.join(' ')}`;
-    celda.dataset.date = iso; // 👈 FIX: atributo correcto
+    celda.dataset.date = iso; 
     celda.textContent = i;
 
     // Vincular evento click (solo si válido)
@@ -1759,6 +1849,21 @@ function generarCalendarioAlo(albergue) {
   // Título del mes
   const titulo = document.getElementById(`mes-actual-alo-${albergue}`);
   if (titulo) titulo.textContent = `${CONFIG.meses[mes]} ${año}`;
+
+
+  
+  // Deshabilitar next si excede 
+  const nextBtnAlo = document.getElementById(`nav-next-alo-${albergue}`);
+if (nextBtnAlo) {
+  const currentTotal = estado.año * 12 + estado.mes;
+  const shouldDisable = (currentTotal >= maxTotalMonths);
+  nextBtnAlo.disabled = shouldDisable;
+  if (shouldDisable) {
+    nextBtnAlo.classList.add('disabled');  // Agregar clase para estilo gris
+  } else {
+    nextBtnAlo.classList.remove('disabled');  // Remover si se habilita
+  }
+}
 }
 
 
@@ -1958,7 +2063,7 @@ function updateProgresoAlo(albergue) {
 }
 
 function resetAllAlo(albergue) {
-  console.log('🔄 Reset all para', albergue);
+  //console.log('🔄 Reset all para', albergue);
 
   // 1) Limpiar inputs y selects
   ['cantidad', 'institucion', 'responsable', 'dni', 'contacto'].forEach(prefix => {
@@ -2040,7 +2145,7 @@ if (newCalendario) {
   }
   
 
-  console.log(`✅ ${albergue.toUpperCase()} reiniciado completamente`);
+  //console.log(`✅ ${albergue.toUpperCase()} reiniciado completamente`);
 }
 
 
@@ -2277,7 +2382,7 @@ function openAlojamientoModal(albergue) {
     return;
   }
 
-  console.log(`[OPEN] Modal de ALOJAMIENTO → ${albergue}`);
+  //console.log(`[OPEN] Modal de ALOJAMIENTO → ${albergue}`);
 
   // 🔹 Cierra SOLO otros modales de alojamiento
   document.querySelectorAll('[id^="modal-alojamiento-"]').forEach(m => {
@@ -2697,3 +2802,6 @@ function cerrarModal() {
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") cerrarModal();
 });
+
+
+
