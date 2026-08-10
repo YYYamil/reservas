@@ -898,7 +898,7 @@ function populateHourSelects() {
 
   // Modifica el horario de entrada y salida de los albergues
   const options = [];
-  for (let h = 9; h <= 19; h++) {
+  for (let h = 9; h <= 18; h++) {
     const hh = String(h).padStart(2, '0');
     options.push(`${hh}:00`);
   }
@@ -2802,3 +2802,6 @@ function cerrarModal() {
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") cerrarModal();
 });
+
+
+
