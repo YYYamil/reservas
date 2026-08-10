@@ -353,59 +353,90 @@
       <form id="reservaFormMaestro">
         <div class="form-grid">
 
-          <!-- Primera fila: Institución/Delegación (full width) -->
+          <!-- Primera fila: Institución/Delegación y Nombre Completo del Responsable -->
           <div class="form-group full-width">
             <label for="institucion-maestro">Institución/Delegación</label>
             <input type="text" id="institucion-maestro" class="form-control" required>
           </div>
 
-          <!-- Segunda fila: Nombre Completo del Responsable y DNI -->
           <div class="form-group">
             <label for="responsable-maestro">Nombre Completo del Responsable</label>
             <input type="text" id="responsable-maestro" class="form-control" required>
           </div>
-
+          
+          <!-- Segunda fila:  DNI  y Contacto -->
           <div class="form-group">
             <label for="dni-maestro">DNI (solo números)</label>
             <input type="text" id="dni-maestro" class="form-control" required pattern="\d{8}" placeholder="Ej: 30300600">
           </div>
-
-          <!-- Tercera fila: Contacto y Cantidad de Personas -->
- <div class="form-group">
-  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
-  <div class="phone-input-group">
-    <span class="phone-prefix">0</span>
-<input type="text" id="prefijo-visita-maestro" 
-       class="form-control phone-part prefijo"
-       maxlength="4" placeholder="381">
-    <span class="phone-prefix">15</span>
-<input type="text" id="numero-visita-maestro" 
-       class="form-control phone-part numero"
-       maxlength="7" placeholder="500600">
-    <input type="hidden" id="contacto-maestro">
-  </div>
-</div>
-
+         
+          <div class="form-group">
+            <label>Celular (cod. area sin 0 y nro. sin 15)</label>
+            <div class="phone-input-group">
+              <span class="phone-prefix">0</span>
+          <input type="text" id="prefijo-visita-maestro" 
+                class="form-control phone-part prefijo"
+                maxlength="4" placeholder="381">
+              <span class="phone-prefix">15</span>
+          <input type="text" id="numero-visita-maestro" 
+                class="form-control phone-part numero"
+                maxlength="7" placeholder="500600">
+              <input type="hidden" id="contacto-maestro">
+            </div>
+          </div>
+          <!-- Tercera fila:  Cantidad de Personas y Hora de Ingreso -->
           <div class="form-group">
             <label for="cantidad-maestro">Cantidad de Personas</label>
             <input type="number" id="cantidad-maestro" class="form-control" min="1" required>
-          </div>
-
+          </div>          
           <!-- Campo oculto para fecha -->
           <div style="display: none;">
             <input type="hidden" id="fechaIngreso-maestro" required>
-          </div>
-
-          <!-- Cuarta fila: Hora de Ingreso y Hora de Egreso -->
+          </div>          
           <div class="form-group">
             <label for="horaIngreso-maestro">Hora de Ingreso</label>
             <select id="horaIngreso-maestro" class="form-control hour-select" required></select>
           </div>
 
-          <div class="form-group">
-            <label for="horaEgreso-maestro">Hora de Egreso</label>
-            <select id="horaEgreso-maestro" class="form-control hour-select" required></select>
-          </div>
+          <!-- Cuarta fila: Hora de Egreso y Check Aceptacion -->
+
+          <!-- Cuarta fila: Hora de Egreso -->
+<div class="form-group">
+  <label for="horaEgreso-maestro">Hora de Egreso</label>
+  <select id="horaEgreso-maestro" class="form-control hour-select" required></select>
+</div>
+
+<!-- Aceptación de Uso y Reglamento -->
+<div class="form-group full-width terms-group">
+
+  <div class="terms-box">
+
+    <label class="terms-check">
+      <input
+        type="checkbox"
+        id="acepta-terminos-maestro"
+        name="acepta-terminos-maestro"
+        required>
+
+      <span>
+        He leído y acepto
+        <a href="reglamento.html"
+           target="_blank"
+           rel="noopener noreferrer">
+          el Uso y Reglamento
+        </a>
+        del albergue.
+      </span>
+    </label>
+
+    <p class="terms-description">
+      Al marcar esta casilla, usted declara haber leído,
+      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+    </p>
+
+  </div>
+
+</div>
 
         </div>
 
@@ -414,15 +445,21 @@
           <span class="btn-icon" aria-hidden="true"></span>
           <span class="btn-label">Confirmar Reserva</span>
         </button>
+
+        
+
+
+
+
+
+
       </form>
 
     </div>
   </div>
 </div>
 
-
 <!-- VISITA Modal para  Albergue Tinku -->
-    
 <div id="modal-tinku" class="modal">
   <div class="modal-content">
     <div class="modal-header tinku">
@@ -527,6 +564,40 @@
             <select id="horaEgreso-tinku" class="form-control hour-select" required></select>
           </div>
 
+
+
+          <!-- Aceptación de Uso y Reglamento -->
+<div class="form-group full-width terms-group">
+
+  <div class="terms-box">
+
+    <label class="terms-check">
+      <input
+        type="checkbox"
+        id="acepta-terminos-maestro"
+        name="acepta-terminos-maestro"
+        required>
+
+      <span>
+        He leído y acepto
+        <a href="reglamento.html"
+           target="_blank"
+           rel="noopener noreferrer">
+          el Uso y Reglamento
+        </a>
+        del albergue.
+      </span>
+    </label>
+
+    <p class="terms-description">
+      Al marcar esta casilla, usted declara haber leído,
+      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+    </p>
+
+  </div>
+
+</div>
+
         </div>
 
         <!-- Quinta fila: Botón de Confirmar Reserva -->
@@ -541,7 +612,6 @@
 </div>
 
 <!-- VISITA Modal para  Aquilina -->
-    
 <div id="modal-aquilina" class="modal">
   <div class="modal-content">
     <div class="modal-header aquilina">
@@ -645,6 +715,40 @@
             <select id="horaEgreso-aquilina" class="form-control hour-select" required></select>
           </div>
 
+
+
+          <!-- Aceptación de Uso y Reglamento -->
+<div class="form-group full-width terms-group">
+
+  <div class="terms-box">
+
+    <label class="terms-check">
+      <input
+        type="checkbox"
+        id="acepta-terminos-maestro"
+        name="acepta-terminos-maestro"
+        required>
+
+      <span>
+        He leído y acepto
+        <a href="reglamento.html"
+           target="_blank"
+           rel="noopener noreferrer">
+          el Uso y Reglamento
+        </a>
+        del albergue.
+      </span>
+    </label>
+
+    <p class="terms-description">
+      Al marcar esta casilla, usted declara haber leído,
+      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+    </p>
+
+  </div>
+
+</div>
+
         </div>
 
         <!-- Quinta fila: Botón de Confirmar Reserva -->
@@ -657,10 +761,6 @@
     </div>
   </div>
 </div>
-
-      
-
-   
 
 <!-- NUEVO Modal para Reserva Alojamiento - Maestro José Fierro -->
 <div id="modal-alojamiento-maestro" class="modal">
@@ -766,7 +866,7 @@
         
         <span>Ingreso a 09:00 hs</span>
         <i class="fas fa-sign-out-alt"></i>
-        <span>Salida a 19:00 hs</span>
+        <span>Salida a 18:00 hs</span>
       </div>
 </div>
             <!-- Paso 4: Datos Adicionales -->
@@ -799,7 +899,43 @@
                         <input type="text" id="numero-alo-maestro" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
                         <input type="hidden" id="contacto-alo-maestro">
                       </div>
-                    </div>                              
+                    </div>   
+                    
+
+                    
+                    
+                    <!-- Aceptación de Uso y Reglamento -->
+<div class="form-group full-width terms-group">
+
+  <div class="terms-box">
+
+    <label class="terms-check">
+      <input
+        type="checkbox"
+        id="acepta-terminos-maestro"
+        name="acepta-terminos-maestro"
+        required>
+
+      <span>
+        He leído y acepto
+        <a href="reglamento.html"
+           target="_blank"
+           rel="noopener noreferrer">
+          el Uso y Reglamento
+        </a>
+        del albergue.
+      </span>
+    </label>
+
+    <p class="terms-description">
+      Al marcar esta casilla, usted declara haber leído,
+      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+    </p>
+
+  </div>
+
+</div>
+</div>
 
                     
 
@@ -815,14 +951,17 @@
 
           </form>
 
-            </div>
+            
 
 
-      </div>
+      
     </div>
 
 
   </div>
+
+    </div>
+
 
 
 <!-- NUEVO Modal para Reserva Alojamiento - Tinku Huasi -->
@@ -926,7 +1065,7 @@
           <i class="fa-solid fa-clock"></i> <span>Recuerde los horarios:</span>
           <span>Ingreso a 09:00 hs</span>
           <i class="fas fa-sign-out-alt"></i>
-          <span>Salida a 19:00 hs</span>
+          <span>Salida a 18:00 hs</span>
         </div>
       </div>
 
@@ -960,6 +1099,42 @@
   </div>
 </div>
 
+
+
+<!-- Aceptación de Uso y Reglamento -->
+<div class="form-group full-width terms-group">
+
+  <div class="terms-box">
+
+    <label class="terms-check">
+      <input
+        type="checkbox"
+        id="acepta-terminos-maestro"
+        name="acepta-terminos-maestro"
+        required>
+
+      <span>
+        He leído y acepto
+        <a href="reglamento.html"
+           target="_blank"
+           rel="noopener noreferrer">
+          el Uso y Reglamento
+        </a>
+        del albergue.
+      </span>
+    </label>
+
+    <p class="terms-description">
+      Al marcar esta casilla, usted declara haber leído,
+      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+    </p>
+
+  </div>
+
+</div>
+
+</div>
+
           <button type="submit" form="aloFormTinku" class="btn-submit" id="btn-submit-alo-tinku" disabled>
             <span class="btn-label">Confirmar Reserva</span>
           </button>
@@ -969,7 +1144,12 @@
           </button>
         </form>
       </div>
-    </div>
+
+
+
+
+      
+    
   </div>
 </div>
 
@@ -1062,7 +1242,7 @@
           <i class="fa-solid fa-clock"></i> <span>Recuerde los horarios:</span>
           <span>Ingreso a 09:00 hs</span>
           <i class="fas fa-sign-out-alt"></i>
-          <span>Salida a 19:00 hs</span>
+          <span>Salida a 18:00 hs</span>
         </div>
       </div>
 
@@ -1096,6 +1276,40 @@
   </div>
 </div>
 
+
+<!-- Aceptación de Uso y Reglamento -->
+<div class="form-group full-width terms-group">
+
+  <div class="terms-box">
+
+    <label class="terms-check">
+      <input
+        type="checkbox"
+        id="acepta-terminos-maestro"
+        name="acepta-terminos-maestro"
+        required>
+
+      <span>
+        He leído y acepto
+        <a href="reglamento.html"
+           target="_blank"
+           rel="noopener noreferrer">
+          el Uso y Reglamento
+        </a>
+        del albergue.
+      </span>
+    </label>
+
+    <p class="terms-description">
+      Al marcar esta casilla, usted declara haber leído,
+      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+    </p>
+
+  </div>
+
+</div>
+</div>
+
           <button type="submit" form="aloFormAquilina" class="btn-submit" id="btn-submit-alo-aquilina" disabled>
             <span class="btn-label">Confirmar Reserva</span>
           </button>
@@ -1105,7 +1319,10 @@
           </button>
         </form>
       </div>
-    </div>
+
+
+      
+    
   </div>
 </div>
 
@@ -1205,15 +1422,6 @@
       </div>
     </div>
 
-
-    <!-- Aviso inicial
-        <div id="site-notice" class="notice-overlay" aria-hidden="true">
-          <div class="notice-backdrop"></div>
-          <div class="notice-dialog" role="dialog" aria-modal="true" aria-label="Aviso">
-            <button class="notice-close" aria-label="Cerrar aviso">&times;</button>
-            <img src="Img/aviso.jpg" alt="Aviso importante" loading="eager">
-          </div>
-        </div> -->
 
 
         <!-- Aviso con video -->
