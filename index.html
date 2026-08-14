@@ -874,7 +874,7 @@
             <!-- <div class="step-container step-4"> -->
               <div class="step-container paso-box" id="paso-box-4-maestro">
 
-                <form id="aloFormMaestro">
+                <form        id="aloFormMaestro">
                     <input type="hidden" id="delegacion-hidden-alo-maestro" name="delegacion" value="">
                     <div class="form-group">
                         <label for="institucion-alo-maestro">4. Nombre de Institución/Delegación</label>
@@ -899,60 +899,54 @@
                         <input type="text" id="numero-alo-maestro" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
                         <input type="hidden" id="contacto-alo-maestro">
                       </div>
-                    </div>   
-                    
-
-                    
+                    </div>                  
                     
                     <!-- Aceptación de Uso y Reglamento -->
-<div class="form-group full-width terms-group">
+                    <div class="form-group full-width terms-group">
 
-  <div class="terms-box">
+                      <div class="terms-box">
 
-    <label class="terms-check">
-      <input
-        type="checkbox"
-        id="acepta-terminos-maestro"
-        name="acepta-terminos-maestro"
-        required>
+                        <label class="terms-check">
+                          <input
+                            type="checkbox"
+                            id="acepta-terminos-maestro"
+                            name="acepta-terminos-maestro"
+                            required>
 
-      <span>
-        He leído y acepto
-        <a href="reglamento.html"
-           target="_blank"
-           rel="noopener noreferrer">
-          el Uso y Reglamento
-        </a>
-        del albergue.
-      </span>
-    </label>
+                          <span>
+                            He leído y acepto
+                            <a href="reglamento.html"
+                              target="_blank"
+                              rel="noopener noreferrer">
+                              el Uso y Reglamento
+                            </a>
+                            del albergue.
+                          </span>
+                        </label>
 
-    <p class="terms-description">
-      Al marcar esta casilla, usted declara haber leído,
-      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
-    </p>
+                        <p class="terms-description">
+                          Al marcar esta casilla, usted declara haber leído,
+                          comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+                        </p>
 
-  </div>
+                      </div>
 
-</div>
-</div>
+                    </div>                   
 
-                    
+                    <!-- Botón Submit (deshabilitado inicialmente) -->
+                    <button type="submit" form="aloFormMaestro" class="btn-submit" id="btn-submit-alo-maestro" disabled>
+                        <span class="btn-label">Confirmar Reserva</span>
+                    </button>          
 
-            <!-- Botón Submit (deshabilitado inicialmente) -->
-            <button type="submit" form="aloFormMaestro" class="btn-submit" id="btn-submit-alo-maestro" disabled>
-                <span class="btn-label">Confirmar Reserva</span>
-            </button>          
-
-            <!-- Botón Reset -->
-            <button type="button" class="btn-reset" id="btn-reset-alo-maestro" onclick="resetAllAlo('maestro')">
-                <i class="fas fa-undo"></i> Limpiar Todo
-            </button>
+                    <!-- Botón Reset -->
+                    <button type="button" class="btn-reset" id="btn-reset-alo-maestro" onclick="resetAllAlo('maestro')">
+                        <i class="fas fa-undo"></i> Limpiar Todo
+                    </button>
 
           </form>
 
             
-
+        </div>
 
       
     </div>
@@ -986,9 +980,7 @@
           <div class="progress-fill" id="progress-fill-tinku" style="width: 0%;"></div>
         </div>
       </div>
-
-      <!-- Paso 1: Cantidad -->
-      <!-- <div class="step-container step-1"> -->
+      <!-- Paso 1: Cantidad -->      
         <div class="step-container paso-box" id="paso-box-1-tinku">
 
         <div class="form-row">
@@ -1000,9 +992,7 @@
 
         </div>
       </div>
-
-      <!-- Paso 2: Tipo de Delegación -->
-      <!-- <div class="step-container step-2"> -->
+      <!-- Paso 2: Tipo de Delegación -->      
         <div class="step-container paso-box" id="paso-box-2-tinku">
 
         <div class="form-row">
@@ -1017,11 +1007,7 @@
         </div>
       </div>
 
-
-      
-
-      <!-- Paso 3: Fechas -->
-      <!-- <div class="step-container step-3"> -->
+      <!-- Paso 3: Fechas -->      
         <div class="step-container paso-box" id="paso-box-3-tinku">
 
         <div class="form-row">
@@ -1068,9 +1054,7 @@
           <span>Salida a 18:00 hs</span>
         </div>
       </div>
-
-      <!-- Paso 4: Datos -->
-      <!-- <div class="step-container step-4"> -->
+      <!-- Paso 4: Datos -->      
         <div class="step-container paso-box" id="paso-box-4-tinku">
 
         <form id="aloFormTinku">
@@ -1089,51 +1073,51 @@
           </div>
 
          <div class="form-group">
-  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
-  <div class="phone-input-group">
-    <span class="phone-prefix">0</span>
-    <input type="text" id="prefijo-alo-tinku" class="form-control phone-part prefijo" maxlength="4" placeholder="381" required pattern="\d{3,4}">
-    <span class="phone-prefix">15</span>
-    <input type="text" id="numero-alo-tinku" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
-    <input type="hidden" id="contacto-alo-tinku">
-  </div>
-</div>
+          <label>Celular (cod. area sin 0 y nro. sin 15)</label>
+          <div class="phone-input-group">
+            <span class="phone-prefix">0</span>
+            <input type="text" id="prefijo-alo-tinku" class="form-control phone-part prefijo" maxlength="4" placeholder="381" required pattern="\d{3,4}">
+            <span class="phone-prefix">15</span>
+            <input type="text" id="numero-alo-tinku" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
+            <input type="hidden" id="contacto-alo-tinku">
+          </div>
+        </div>
 
 
 
 <!-- Aceptación de Uso y Reglamento -->
-<div class="form-group full-width terms-group">
+          <div class="form-group full-width terms-group">
 
-  <div class="terms-box">
+            <div class="terms-box">
 
-    <label class="terms-check">
-      <input
-        type="checkbox"
-        id="acepta-terminos-maestro"
-        name="acepta-terminos-maestro"
-        required>
+              <label class="terms-check">
+                <input
+                  type="checkbox"
+                  id="acepta-terminos-tinku"
+                  name="acepta-terminos-tinku"
+                  required>
 
-      <span>
-        He leído y acepto
-        <a href="reglamento.html"
-           target="_blank"
-           rel="noopener noreferrer">
-          el Uso y Reglamento
-        </a>
-        del albergue.
-      </span>
-    </label>
+                <span>
+                  He leído y acepto
+                  <a href="reglamento.html"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    el Uso y Reglamento
+                  </a>
+                  del albergue.
+                </span>
+              </label>
 
-    <p class="terms-description">
-      Al marcar esta casilla, usted declara haber leído,
-      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
-    </p>
+              <p class="terms-description">
+                Al marcar esta casilla, usted declara haber leído,
+                comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+              </p>
 
-  </div>
+            </div>
 
-</div>
+          </div>
 
-</div>
+      
 
           <button type="submit" form="aloFormTinku" class="btn-submit" id="btn-submit-alo-tinku" disabled>
             <span class="btn-label">Confirmar Reserva</span>
@@ -1142,14 +1126,11 @@
           <button type="button" class="btn-reset" id="btn-reset-alo-tinku" onclick="resetAllAlo('tinku')">
             <i class="fas fa-undo"></i> Limpiar Todo
           </button>
+
+
         </form>
       </div>
-
-
-
-
-      
-    
+    </div>    
   </div>
 </div>
 
@@ -1266,68 +1247,71 @@
 
 
           <div class="form-group">
-  <label>Celular (cod. area sin 0 y nro. sin 15)</label>
-  <div class="phone-input-group">
-    <span class="phone-prefix">0</span>
-    <input type="text" id="prefijo-alo-aquilina" class="form-control phone-part prefijo" maxlength="4" placeholder="381" required pattern="\d{3,4}">
-    <span class="phone-prefix">15</span>
-    <input type="text" id="numero-alo-aquilina" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
-    <input type="hidden" id="contacto-alo-aquilina">
-  </div>
-</div>
+            <label>Celular (cod. area sin 0 y nro. sin 15)</label>
+            <div class="phone-input-group">
+              <span class="phone-prefix">0</span>
+              <input type="text" id="prefijo-alo-aquilina" class="form-control phone-part prefijo" maxlength="4" placeholder="381" required pattern="\d{3,4}">
+              <span class="phone-prefix">15</span>
+              <input type="text" id="numero-alo-aquilina" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\d{6,7}">
+              <input type="hidden" id="contacto-alo-aquilina">
+            </div>
+          </div>
 
 
-<!-- Aceptación de Uso y Reglamento -->
-<div class="form-group full-width terms-group">
+            <!-- Aceptación de Uso y Reglamento -->
+              <div class="form-group full-width terms-group">
 
-  <div class="terms-box">
+                <div class="terms-box">
 
-    <label class="terms-check">
-      <input
-        type="checkbox"
-        id="acepta-terminos-maestro"
-        name="acepta-terminos-maestro"
-        required>
+                  <label class="terms-check">
+                    <input
+                      type="checkbox"
+                      id="acepta-terminos-aquilina"
+                      name="acepta-terminos-aquilina"
+                      required>
 
-      <span>
-        He leído y acepto
-        <a href="reglamento.html"
-           target="_blank"
-           rel="noopener noreferrer">
-          el Uso y Reglamento
-        </a>
-        del albergue.
-      </span>
-    </label>
+                    <span>
+                      He leído y acepto
+                      <a href="reglamento.html"
+                        target="_blank"
+                        rel="noopener noreferrer">
+                        el Uso y Reglamento
+                      </a>
+                      del albergue.
+                    </span>
+                  </label>
 
-    <p class="terms-description">
-      Al marcar esta casilla, usted declara haber leído,
-      comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
-    </p>
+                  <p class="terms-description">
+                    Al marcar esta casilla, usted declara haber leído,
+                    comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+                  </p>
 
-  </div>
+                </div>
 
-</div>
-</div>
+              </div>
+
 
           <button type="submit" form="aloFormAquilina" class="btn-submit" id="btn-submit-alo-aquilina" disabled>
             <span class="btn-label">Confirmar Reserva</span>
           </button>
-
+          
           <button type="button" class="btn-reset" id="btn-reset-alo-aquilina" onclick="resetAllAlo('aquilina')">
             <i class="fas fa-undo"></i> Limpiar Todo
           </button>
+        
+        
         </form>
-      </div>
-
-
-      
-    
+      </div>      
+    </div>
   </div>
 </div>
 
-<!-- Botón cancelar (ancho tarjeta) -->
 
+
+
+
+
+<!-- Botón cancelar (ancho tarjeta) -->
 <div>
 <div class="container">
   <button class="btn-cancelar" id="open-cancel-modal">
@@ -1385,7 +1369,7 @@
 
 </div>
  
- </div>
+ 
 
 
  
