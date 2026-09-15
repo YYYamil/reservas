@@ -2,7 +2,7 @@
 
 const anio = new Date().getFullYear();
 
-console.log("SCRIPT CARGADO");
+//console.log("SCRIPT CARGADO");
 const today = new Date(); 
 const minTotalMonths = today.getFullYear() * 12 + today.getMonth();
 const maxTotalMonths = minTotalMonths + 3;//Para controlar 3 meses hacia adelante
@@ -80,7 +80,7 @@ const formSubmissionState = {
 
 document.addEventListener("DOMContentLoaded", function () {
 
-  console.log("VIDEOS EN DOM:", document.querySelectorAll("video").length);
+  //console.log("VIDEOS EN DOM:", document.querySelectorAll("video").length);
 
   const notice = document.getElementById("site-notice");
   if (!notice) return;
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const video = document.getElementById("aviso-video");
   const closeBtn = notice.querySelector(".notice-close");
 
-  console.log("closeBtn:", closeBtn);
+  //console.log("closeBtn:", closeBtn);
   const soundBtn = document.getElementById("sound-toggle");
   const iconMute = document.getElementById("icon-mute");
   const iconSound = document.getElementById("icon-sound");
@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
       e.preventDefault();
       e.stopPropagation();
 
-      console.log("CERRANDO AVISO");
+      //console.log("CERRANDO AVISO");
 
       if (video) {
         video.pause();
@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
     soundBtn.addEventListener("click", function (e) {
       if (!e.isTrusted) return;
 
-      console.log("ACTIVANDO SONIDO");
+      //console.log("ACTIVANDO SONIDO");
 
       video.muted = false;
       video.volume = 1;
@@ -227,7 +227,7 @@ function handleFormSubmit(e) {
   e.stopPropagation(); // Prevent event bubbling
   const albergue = e.target.id.replace('reservaForm', '').toLowerCase();
   if (formSubmissionState[albergue].isSubmitting) {
-    console.log(`Envío duplicado bloqueado para ${albergue}`);
+    //console.log(`Envío duplicado bloqueado para ${albergue}`);
     return;
   }
   formSubmissionState[albergue].isSubmitting = true;
@@ -252,8 +252,8 @@ async function submitForm(albergue) {
   try {
     const resultado = await enviarReservaAGoogleSheets(formData);
     
-    console.log('📤 Datos enviados a Google Sheets:', formData);
-    console.log('📥 Respuesta recibida:', resultado);
+    //console.log('📤 Datos enviados a Google Sheets:', formData);
+    //console.log('📥 Respuesta recibida:', resultado);
 
 
     //if (resultado.success) {
@@ -1375,7 +1375,7 @@ function handleFormSubmitAlo(e, albergue) {
   if (!albergue) albergue = 'maestro';
   if (formSubmissionStateAlo[albergue].isSubmitting) return;
 
-  console.log('[VALIDACIÓN]', albergue, 'pasos actuales', pasoEstadoAlo[albergue]);
+  //console.log('[VALIDACIÓN]', albergue, 'pasos actuales', pasoEstadoAlo[albergue]);
 
   // if (!pasoEstadoAlo[albergue] || pasoEstadoAlo[albergue].completed.length < 4) {
   //   showStepErrorsAlo[albergue] = true;
@@ -1433,7 +1433,7 @@ function closeAlojamientoModal(albergue) {
   resetRangoAlo(albergue);
   resetFormAlo(albergue);
   fechasOcupadasAlo[albergue] = [];
-  console.log(`[CLOSE] Modal ALOJAMIENTO cerrado → ${albergue}`);
+  //console.log(`[CLOSE] Modal ALOJAMIENTO cerrado → ${albergue}`);
 }
 
 
@@ -1461,13 +1461,13 @@ async function submitFormAlo(albergue) {
     btn.disabled = true;
     setBtnLoading(btn, "Guardando Reserva...");
 
-    console.log(`[ENVÍO] Enviando datos de reserva para ${albergue}:`, formData);
+    //console.log(`[ENVÍO] Enviando datos de reserva para ${albergue}:`, formData);
 
     // 🔹 Llamada al backend/Sheets
     const resultado = await enviarReservaAlojamientoAGoogleSheets(formData);
 
     if (resultado?.success) {
-      console.log(`[ÉXITO] Reserva registrada en ${albergue}: ID ${resultado.idReserva}`);
+      //(`[ÉXITO] Reserva registrada en ${albergue}: ID ${resultado.idReserva}`);
 
       setBtnSuccess(btn);
       mostrarConfirmacionAlo?.(albergue, formData, resultado.idReserva);
@@ -1615,7 +1615,7 @@ async function mostrarInfoRangoAlo(albergue, range) {
   const span = document.getElementById(`disponibles-alo-${albergue}`);
   if (span) span.textContent = minDisp;
 
-  console.log(`[CHECK] ${albergue} diasValidos=`, estado.diasValidos, 'minDisp=', minDisp);
+  //console.log(`[CHECK] ${albergue} diasValidos=`, estado.diasValidos, 'minDisp=', minDisp);
 
   return estado.diasValidos;
 }
@@ -1631,7 +1631,7 @@ async function handleClickDiaAlo(albergue, iso, celda) {
   const cont = document.getElementById(`calendario-alo-${albergue}`);
   if (!cont) return;
 
-  console.log(`[CLICK] ${albergue} → ISO=${iso}, start=${estado.startISO}, end=${estado.endISO}`);
+  //console.log(`[CLICK] ${albergue} → ISO=${iso}, start=${estado.startISO}, end=${estado.endISO}`);
 
   // 🔹 PRIMER CLICK → Selecciona inicio
   if (!estado.startISO) {
@@ -1721,7 +1721,7 @@ if (!validarLimiteRangoAlo(albergue, range)) {
     // ✅ Si todos los días están verdes → avanzar al Paso 4
 const todosVerdes = estado.diasValidos && estado.diasValidos.length === range.length;
 if (todosVerdes && validarLimiteRangoAlo(albergue, range)) {
-  console.log('✅ Todos los días verdes → habilitando paso 4');
+  //console.log('✅ Todos los días verdes → habilitando paso 4');
 
   const grid = document.getElementById(`calendario-alo-${albergue}`);
   if (grid) grid.classList.add('step-completed');
@@ -1747,15 +1747,15 @@ if (todosVerdes && validarLimiteRangoAlo(albergue, range)) {
     btn.classList.add('enabled');
   }
 
-  console.log(`[PASO4] ${albergue} marcado como completado → botón habilitado`);
+  //console.log(`[PASO4] ${albergue} marcado como completado → botón habilitado`);
 } else {
-  console.log('⚠️ Algunos días no tienen disponibilidad suficiente.');
+ // console.log('⚠️ Algunos días no tienen disponibilidad suficiente.');
   showSnackbar?.('El rango seleccionado no tiene disponibilidad completa.', 'error', 6000);
 }
 
 
  
-console.log('[PASOS GUARDADOS]', albergue, pasoEstadoAlo[albergue]);
+//console.log('[PASOS GUARDADOS]', albergue, pasoEstadoAlo[albergue]);
 
     return;
   }
@@ -2246,7 +2246,7 @@ async function enviarReservaAlojamientoAGoogleSheets(formData) {
     });
 
     const text = await response.text();
-    console.log("Respuesta del servidor Alojamiento:", text);
+    //console.log("Respuesta del servidor Alojamiento:", text);
 
     const result = JSON.parse(text);
     if (!result.success) {
@@ -2417,7 +2417,7 @@ function closeAlojamientoModal(albergue) {
   const modal = document.getElementById(`modal-alojamiento-${albergue}`);
   if (!modal) return;
 
-  console.log(`[CLOSE] Modal ALOJAMIENTO cerrado → ${albergue}`);
+  //console.log(`[CLOSE] Modal ALOJAMIENTO cerrado → ${albergue}`);
 
   // 🔹 Transición suave y limpieza final
   modal.classList.remove('active');
@@ -2716,7 +2716,7 @@ function habilitarBotonReservaAlo(albergue) {
   btn.classList.add('enabled');
   btn.style.opacity = '1';
   btn.style.pointerEvents = 'auto';
-  console.log(`✅ Botón de reserva habilitado para ${albergue}`);
+  //console.log(`✅ Botón de reserva habilitado para ${albergue}`);
 }
 
 // === TELÉFONO ALOJAMIENTO: Prefijo 3-4 + Número 6-7 = Total 9 o 10 ===
