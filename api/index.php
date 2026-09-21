@@ -218,10 +218,25 @@ function espejoDatos(PDO $pdo, string $tipo): void
     ]);
 }
 
+/**
+ * Exige sesión de administrador activa (panel /admin).
+ */
+function requiereAdmin(): void
+{
+    if (empty($_SESSION['admin_logged'])) {
+        responder(['success' => false, 'message' => 'No autorizado'], 401);
+    }
+}
+
 // ============================= PROCESAMIENTO =============================
 
 $data = array_merge($_GET, $_POST);
 $action = (string) ($data['action'] ?? '');
+
+$actionsAdmin = ['adminLogin', 'adminLogout', 'adminReservas', 'adminTotales', 'adminEstado'];
+if (in_array($action, $actionsAdmin, true)) {
+    session_start();
+}
 
 try {
     $pdo = db();
@@ -503,6 +518,143 @@ try {
             }
 
             responder(['success' => true, 'idReserva' => $nuevoId]);
+            break;
+
+        // ---------- Panel administrador (requiere sesión) ----------
+        case 'adminLogin':
+            $usuario = trim(parametro('usuario'));
+            $pass    = (string) parametro('pass');
+            if (hash_equals($config['admin_user'], $usuario)
+                && hash_equals($config['admin_pass'], $pass)) {
+                $_SESSION['admin_logged'] = true;
+                responder(['success' => true]);
+            }
+            responder(['success' => false, 'message' => 'Credenciales inválidas'], 401);
+            break;
+
+        case 'adminLogout':
+            session_destroy();
+            responder(['success' => true]);
+            break;
+
+        case 'adminReservas':
+            requiereAdmin();
+            $desde    = trim(parametro('desde'));
+            $hasta    = trim(parametro('hasta'));
+            $albergue = trim(parametro('albergue'));
+            $tipo     = trim(parametro('tipo'));
+            $estado   = trim(parametro('estado'));
+            $q        = trim(parametro('q'));
+
+            $sql = 'SELECT * FROM v_reservas_todas WHERE 1 = 1';
+            $params = [];
+
+            if ($desde !== '') {
+                if (!esFechaISOValida($desde)) {
+                    responder(['success' => false, 'message' => 'Fecha desde inválida']);
+                }
+                $sql .= ' AND created_at >= :desde';
+                $params['desde'] = $desde . ' 00:00:00';
+            }
+            if ($hasta !== '') {
+                if (!esFechaISOValida($hasta)) {
+                    responder(['success' => false, 'message' => 'Fecha hasta inválida']);
+                }
+                $sql .= ' AND created_at <= :hasta';
+                $params['hasta'] = $hasta . ' 23:59:59';
+            }
+            if ($albergue !== '') {
+                $sql .= ' AND albergue = :albergue';
+                $params['albergue'] = $albergue;
+            }
+            if ($tipo !== '' && in_array($tipo, ['visita', 'alojamiento'], true)) {
+                $sql .= ' AND modalidad = :tipo';
+                $params['tipo'] = $tipo;
+            }
+            if ($estado !== '') {
+                $sql .= ' AND estado = :estado';
+                $params['estado'] = $estado;
+            }
+            if ($q !== '') {
+                $sql .= ' AND (institucion ILIKE :q OR responsable ILIKE :q OR dni ILIKE :q)';
+                $params['q'] = '%' . $q . '%';
+            }
+            $sql .= ' ORDER BY created_at DESC, modalidad, id_reserva';
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            responder(['success' => true, 'reservas' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+            break;
+
+        case 'adminTotales':
+            requiereAdmin();
+            $hoy = date('Y-m-d');
+            $f7  = date('Y-m-d', strtotime('+6 days'));
+
+            $totales = [
+                'visitas'      => (int) $pdo->query('SELECT count(*) FROM reservas_visitas')->fetchColumn(),
+                'alojamientos' => (int) $pdo->query('SELECT count(*) FROM reservas_alojamiento')->fetchColumn(),
+            ];
+
+            $v7 = $pdo->prepare('SELECT count(*) FROM reservas_visitas WHERE fecha_ingreso BETWEEN :h AND :f');
+            $v7->execute(['h' => $hoy, 'f' => $f7]);
+            $totales['visitas_proximos7'] = (int) $v7->fetchColumn();
+
+            $a7 = $pdo->prepare(
+                'SELECT count(DISTINCT r.id) FROM reservas_alojamiento r
+                 JOIN reserva_alojamiento_dias d ON d.reserva_id = r.id
+                 WHERE d.fecha BETWEEN :h AND :f'
+            );
+            $a7->execute(['h' => $hoy, 'f' => $f7]);
+            $totales['aloj_proximos7'] = (int) $a7->fetchColumn();
+
+            $porAlbergue = $pdo->query(
+                'SELECT al.id, al.nombre AS albergue, al.capacidad,
+                        (SELECT count(*) FROM reservas_visitas rv WHERE rv.albergue_id = al.id) AS visitas,
+                        (SELECT count(*) FROM reservas_alojamiento ra WHERE ra.albergue_id = al.id) AS alojamientos
+                 FROM albergues al
+                 ORDER BY al.id'
+            )->fetchAll(PDO::FETCH_ASSOC);
+
+            $estados = $pdo->query(
+                'SELECT DISTINCT estado FROM (
+                    SELECT estado FROM reservas_visitas
+                    UNION
+                    SELECT estado FROM reservas_alojamiento
+                 ) t ORDER BY estado'
+            )->fetchAll(PDO::FETCH_COLUMN);
+
+            responder([
+                'success'      => true,
+                'totales'      => $totales,
+                'por_albergue' => $porAlbergue,
+                'estados'      => $estados,
+            ]);
+            break;
+
+        case 'adminEstado':
+            requiereAdmin();
+            $estado    = trim(parametro('estado'));
+            $modalidad = trim(parametro('modalidad'));
+            $pk        = (int) parametro('pk');
+
+            if (!in_array($estado, ['Pre-Reserva', 'Confirmado'], true)) {
+                responder(['success' => false, 'message' => 'Estado inválido']);
+            }
+            if (!in_array($modalidad, ['visita', 'alojamiento'], true)) {
+                responder(['success' => false, 'message' => 'Modalidad inválida']);
+            }
+            if ($pk <= 0) {
+                responder(['success' => false, 'message' => 'ID inválido']);
+            }
+
+            $tabla = $modalidad === 'visita' ? 'reservas_visitas' : 'reservas_alojamiento';
+            $stmt  = $pdo->prepare("UPDATE {$tabla} SET estado = :estado WHERE id = :pk");
+            $stmt->execute(['estado' => $estado, 'pk' => $pk]);
+            if ($stmt->rowCount() === 0) {
+                responder(['success' => false, 'message' => 'No se encontró la reserva']);
+            }
+            responder(['success' => true]);
             break;
 
         // ---------- Espejo para Google Sheets (vista de solo lectura) ----------

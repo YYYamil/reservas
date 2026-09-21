@@ -22,4 +22,10 @@ return [
     // --- General ---
     'timezone'    => 'America/Argentina/Tucuman',
     'espejo_token' => '',
+
+    // --- Panel administrador ---
+    // Credenciales del panel /admin (login por usuario y contraseña).
+    // Cambiá estos valores para producción.
+    'admin_user'   => 'admin',
+    'admin_pass'   => 'Admin2026',
 ];

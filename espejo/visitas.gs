@@ -1,15 +1,4 @@
-// Espejo VISITAS: reconstruye la pestaña desde la API PHP (SQLite).
-// Pegar en: Extensiones > Apps Script del spreadsheet de VISITAS
-//   https://docs.google.com/spreadsheets/d/1iQ6RDBgaVlUOvvWbGmutsBfRVPDO0M8zpoQMz6adX9I
-//
-// La fila 1 (títulos) se respeta: solo se llena si está vacía; el formato
-// (color/tipografía/negrita) que pongas en los títulos nunca se toca.
-// Los datos se actualizan desde la fila 2.
-//
-// El header 'ngrok-skip-browser-warning' evita la advertencia de ngrok
-// ("You are about to visit...") y deja pasar el JSON.
-
-const API_URL = 'https://TU_SUBDOMINIO.ngrok-free.dev';
+const API_URL = 'https://refund-pulse-kebab.ngrok-free.dev';
 const API_TOKEN = '';
 const NOMBRE_PESTANA = 'Espejo';
 
