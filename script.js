@@ -11,12 +11,9 @@ document.getElementById("anioActual").textContent = anio;
 
 // Configuración global
 const CONFIG = {
-  secretKey: "cristiano1988",
-
-  
-  googleScriptUrl: "https://script.google.com/macros/s/AKfycbwv0h1ykWG65v5ePsH56OVS46paor0p8xBWf_Ub4W6jcjvLzBTdJvwouCEvi26Sg1m3/exec",
-  
-  googleScriptUrlAlo: "https://script.google.com/macros/s/AKfycbzcPOPmQEkSsrqUNkQRARCwSD5ed6kkxHCx1qMQn00rp4M3rh4n3OY0_shVhlkx3IQ/exec",
+  // Backend local: PHP + SQLite (reemplaza a Google Apps Script / Sheets)
+  googleScriptUrl: "api/index.php",
+  googleScriptUrlAlo: "api/index.php",
 
   meses: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
   diasSemana: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
@@ -629,7 +626,6 @@ function cambiarMes(albergue, direccion) {
 async function enviarReservaAGoogleSheets(data) {
   try {
     const payload = {
-      secret: CONFIG.secretKey,
       action: "crearReserva",
       albergue: data.albergue === 'maestro' ? 'Maestro José Fierro' : 
                data.albergue === 'tinku' ? 'Tinku Huasi' : 'Aquilina Soldati',
@@ -673,7 +669,6 @@ function toISODateYMD(dateObj) {
 }
 async function fetchDisponiblesMaestro(fechaISO) {
   const payload = new URLSearchParams({
-    secret: CONFIG.secretKey,
     action: 'obtenerDisponibilidadDia',
     fecha: fechaISO
   });
@@ -717,7 +712,6 @@ async function onCalendarDayClickMaestro(dateObj) {
 
 async function obtenerDisponibilidadDia(albergueKey, fechaISO) {
   const payload = new URLSearchParams({
-    secret: CONFIG.secretKey,
     action: 'obtenerDisponibilidadDia',
     albergue: toFullName(albergueKey), // nombre completo que matchea las hojas
     fecha: fechaISO
@@ -1323,7 +1317,6 @@ document.querySelectorAll('.btn-alo').forEach(btn => {
 
 async function cancelarReservaEnGoogleSheets(idReserva, dni){
   const payload = new URLSearchParams({
-    secret: CONFIG.secretKey,
     action: 'cancelarReserva',
     idReserva: String(idReserva),
     dni: String(dni)
@@ -2228,7 +2221,6 @@ async function enviarReservaAlojamientoAGoogleSheets(formData) {
   const nombreParaServer = nombresAlberguesServer[clave] || formData.albergue;
 
   const params = new URLSearchParams();
-  params.append("secret", CONFIG.secretKey);  // Usa CONFIG.secretKey
   params.append("action", "crearReservaAlojamiento");
   params.append("albergue", nombreParaServer);
   params.append("institucion", formData.institucion);
@@ -2271,8 +2263,7 @@ async function obtenerDisponibilidadDiaAlo(albergueKey, fechaISO) {
   }
   
   // Usa GET con query params (no preflight)
-  const url = new URL(CONFIG.googleScriptUrlAlo);
-  url.searchParams.append('secret', CONFIG.secretKey);
+  const url = new URL(CONFIG.googleScriptUrlAlo, window.location.origin);
   url.searchParams.append('action', 'obtenerDisponibilidadDiaAlojamiento');
   url.searchParams.append('albergue', toFullName(albergueKey));
   url.searchParams.append('fecha', fechaISO);

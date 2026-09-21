@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administración · Reservas Albergues</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<header class="top">
+  <h1>Reservas de Albergues · Administración</h1>
+  <div id="sesionInfo"></div>
+</header>
+
+<main>
+  <!-- Login -->
+  <section id="loginBox" class="card login">
+    <h2>Iniciar sesión</h2>
+    <form id="loginForm">
+      <label>Usuario<br><input type="text" id="usuario" autocomplete="username" required></label>
+      <label>Contraseña<br><input type="password" id="pass" autocomplete="current-password" required></label>
+      <button type="submit">Ingresar</button>
+      <p id="loginError" class="error" hidden></p>
+    </form>
+  </section>
+
+  <!-- Panel -->
+  <section id="panel" hidden>
+    <div id="totales" class="cards"></div>
+
+    <div class="card filtros">
+      <label>Desde<br><input type="date" id="fDesde"></label>
+      <label>Hasta<br><input type="date" id="fHasta"></label>
+      <label>Modalidad<br>
+        <select id="fTipo">
+          <option value="">Todas</option>
+          <option value="visita">Visita</option>
+          <option value="alojamiento">Alojamiento</option>
+        </select>
+      </label>
+      <label>Albergue<br><select id="fAlbergue"><option value="">Todos</option></select></label>
+      <label>Estado<br><select id="fEstado"><option value="">Todos</option></select></label>
+      <label>Buscar<br><input type="search" id="fQ" placeholder="Institución, responsable o DNI"></label>
+      <button id="btnFiltrar">Aplicar</button>
+    </div>
+
+    <div class="card tabla">
+      <table id="grilla">
+        <thead>
+          <tr>
+            <th>ID</th><th>Modalidad</th><th>Trámite</th><th>Albergue</th>
+            <th>Institución</th><th>Responsable</th><th>DNI</th>
+            <th>Contacto</th><th>Cant.</th><th>Detalle</th><th>Estado</th><th title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p id="sinResultados" hidden>Sin resultados para esos filtros.</p>
+    </div>
+  </section>
+</main>
+
+<script src="admin.js"></script>
+</body>
+</html>
