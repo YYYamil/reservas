@@ -4,12 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administración · Reservas Albergues</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="admin.css">
 </head>
 <body>
 
 <header class="top">
-  <h1>Reservas de Albergues · Administración</h1>
+  <div class="top-b">
+    <img src="../Img/Blanco.png" alt="Ministerio de Educación de Tucumán">
+    <h1>Reservas de Albergues · Administración</h1>
+  </div>
   <div id="sesionInfo"></div>
 </header>
 
@@ -30,7 +34,7 @@
     <div id="totales" class="cards"></div>
 
     <div class="card filtros">
-      <label>Desde<br><input type="date" id="fDesde"></label>
+      <label>Creadas: Desde<br><input type="date" id="fDesde"></label>
       <label>Hasta<br><input type="date" id="fHasta"></label>
       <label>Modalidad<br>
         <select id="fTipo">
@@ -42,7 +46,8 @@
       <label>Albergue<br><select id="fAlbergue"><option value="">Todos</option></select></label>
       <label>Estado<br><select id="fEstado"><option value="">Todos</option></select></label>
       <label>Buscar<br><input type="search" id="fQ" placeholder="Institución, responsable o DNI"></label>
-      <button id="btnFiltrar">Aplicar</button>
+      <button id="btnFiltrar">Aplicar Filtro</button>
+      <button id="btnActualizar" title="Refrescar datos">Actualizar</button>
       <button id="btnExportar">Exportar Excel</button>
     </div>
 
@@ -57,7 +62,7 @@
           <tr>
             <th>ID</th><th>Modalidad</th><th>Trámite</th><th>Albergue</th>
             <th>Institución</th><th>Responsable</th><th>DNI</th>
-            <th>Contacto</th><th>Cant.</th><th>Detalle</th><th>Estado</th><th title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th><th>Observaciones</th>
+            <th>Contacto</th><th>Cant.</th><th>Detalle</th><th>Estado</th><th class="col-wp" title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th><th>Observaciones</th>
           </tr>
         </thead>
         <tbody></tbody>

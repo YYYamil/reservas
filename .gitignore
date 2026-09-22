@@ -1,0 +1,18 @@
+# Archivos de migración/históricos que no deben subirse al repositorio
+
+# Migración desde Google Sheets y herramientas de migración a PostgreSQL
+/migracion/
+/migrar postgresql/
+/espejo/
+
+# Bases de datos SQLite legacy
+*.sqlite
+*.sqlite3
+/data/
+
+# Backups locales de la API (contienen credenciales en config.php)
+/api/backups/
+
+# Archivos generados por el sistema operativo
+Thumbs.db
+.DS_Store
