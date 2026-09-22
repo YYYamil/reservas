@@ -43,15 +43,21 @@
       <label>Estado<br><select id="fEstado"><option value="">Todos</option></select></label>
       <label>Buscar<br><input type="search" id="fQ" placeholder="Institución, responsable o DNI"></label>
       <button id="btnFiltrar">Aplicar</button>
+      <button id="btnExportar">Exportar Excel</button>
     </div>
 
     <div class="card tabla">
       <table id="grilla">
+        <colgroup>
+          <col><col><col><col><col><col><col><col><col>
+          <col id="colDetalle" class="col-detalle">
+          <col><col><col>
+        </colgroup>
         <thead>
           <tr>
             <th>ID</th><th>Modalidad</th><th>Trámite</th><th>Albergue</th>
             <th>Institución</th><th>Responsable</th><th>DNI</th>
-            <th>Contacto</th><th>Cant.</th><th>Detalle</th><th>Estado</th><th title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th>
+            <th>Contacto</th><th>Cant.</th><th>Detalle</th><th>Estado</th><th title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th><th>Observaciones</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -61,6 +67,7 @@
   </section>
 </main>
 
+<script src="xlsx.full.min.js"></script>
 <script src="admin.js"></script>
 </body>
 </html>

@@ -233,7 +233,7 @@ function requiereAdmin(): void
 $data = array_merge($_GET, $_POST);
 $action = (string) ($data['action'] ?? '');
 
-$actionsAdmin = ['adminLogin', 'adminLogout', 'adminReservas', 'adminTotales', 'adminEstado'];
+$actionsAdmin = ['adminLogin', 'adminLogout', 'adminReservas', 'adminTotales', 'adminEstado', 'adminObservaciones'];
 if (in_array($action, $actionsAdmin, true)) {
     session_start();
 }
@@ -651,6 +651,31 @@ try {
             $tabla = $modalidad === 'visita' ? 'reservas_visitas' : 'reservas_alojamiento';
             $stmt  = $pdo->prepare("UPDATE {$tabla} SET estado = :estado WHERE id = :pk");
             $stmt->execute(['estado' => $estado, 'pk' => $pk]);
+            if ($stmt->rowCount() === 0) {
+                responder(['success' => false, 'message' => 'No se encontró la reserva']);
+            }
+            responder(['success' => true]);
+            break;
+
+        case 'adminObservaciones':
+            requiereAdmin();
+            $texto     = trim(parametro('observaciones'));
+            $modalidad = trim(parametro('modalidad'));
+            $pk        = (int) parametro('pk');
+
+            if (strlen($texto) > 1000) {
+                responder(['success' => false, 'message' => 'Observaciones demasiado largas (máx. 1000 caracteres)']);
+            }
+            if (!in_array($modalidad, ['visita', 'alojamiento'], true)) {
+                responder(['success' => false, 'message' => 'Modalidad inválida']);
+            }
+            if ($pk <= 0) {
+                responder(['success' => false, 'message' => 'ID inválido']);
+            }
+
+            $tabla = $modalidad === 'visita' ? 'reservas_visitas' : 'reservas_alojamiento';
+            $stmt  = $pdo->prepare("UPDATE {$tabla} SET observaciones = :texto WHERE id = :pk");
+            $stmt->execute(['texto' => $texto === '' ? null : $texto, 'pk' => $pk]);
             if ($stmt->rowCount() === 0) {
                 responder(['success' => false, 'message' => 'No se encontró la reserva']);
             }

@@ -1,10 +1,14 @@
 * { box-sizing: border-box; }
 
+html, body { height: 100%; overflow: hidden; }
+
 body {
   margin: 0;
   font-family: "Segoe UI", Tahoma, Arial, sans-serif;
   background: #f2f4f7;
   color: #1c2733;
+  display: flex;
+  flex-direction: column;
 }
 
 .top {
@@ -14,12 +18,22 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex: none;
 }
 
 .top h1 { margin: 0; font-size: 20px; }
 .top button { margin-left: 12px; }
 
-main { padding: 24px; max-width: 1200px; margin: 0 auto; }
+main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+#panel { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 
 .card {
   background: #fff;
@@ -36,7 +50,7 @@ main { padding: 24px; max-width: 1200px; margin: 0 auto; }
 .login input { width: 100%; padding: 8px; font-size: 15px; }
 .login button { margin-top: 4px; }
 
-.cards { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+.cards { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; flex: none; }
 
 .cardMini {
   background: #fff;
@@ -49,15 +63,31 @@ main { padding: 24px; max-width: 1200px; margin: 0 auto; }
 .cardMini .num { font-size: 26px; font-weight: 700; color: #123a5c; }
 .cardMini .lbl { font-size: 13px; color: #5a6b7c; }
 
-.filtros { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.filtros { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; flex: none; }
 .filtros label { font-size: 13px; }
 .filtros input, .filtros select { padding: 7px; font-size: 14px; }
 .filtros button { padding: 8px 16px; }
 #fQ { min-width: 220px; }
 
-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabla {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-top: 0;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: auto; }
 th, td { border-bottom: 1px solid #e7eaee; padding: 7px 8px; text-align: left; white-space: nowrap; }
-th { background: #edf1f6; color: #33475b; position: sticky; top: 0; }
+thead { position: sticky; top: 0; z-index: 2; }
+th { background: #edf1f6; color: #33475b; position: relative; }
+th .resizer {
+  position: absolute; top: 0; right: 0;
+  width: 7px; height: 100%;
+  cursor: col-resize; user-select: none;
+}
+th .resizer:hover, body.resizing .resizer { background: rgba(18, 58, 92, .25); }
+td.col-detalle { white-space: normal; word-break: break-word; }
 tr:hover td { background: #f7fafc; }
 
 .badge {
@@ -74,6 +104,15 @@ tr:hover td { background: #f7fafc; }
 }
 .btn-wp:hover:not(:disabled) { background: #1eb85a; }
 .btn-wp:disabled { background: #b9c4cf; cursor: not-allowed; }
+
+.inpObs {
+  width: 100%; min-width: 90px; box-sizing: border-box;
+  padding: 3px 6px; font-size: 13px;
+  border: 1px solid transparent; border-radius: 4px;
+  background: transparent; color: #203142;
+}
+.inpObs:hover, .inpObs:focus { border-color: #b9c9d8; background: #fff; }
+.inpObs:focus { outline: none; border-color: #1c6fb5; }
 
 .error { color: #b3261e; font-size: 14px; }
 .cargando { color: #5a6b7c; font-style: italic; }

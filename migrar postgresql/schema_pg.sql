@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS reservas_visitas (
     hora_egreso   TEXT,
     pernocta      TEXT NOT NULL DEFAULT 'Sí' CHECK (pernocta IN ('Sí', 'No')),
     estado        TEXT NOT NULL DEFAULT 'Pre-Reserva',
-    created_at    TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+    observaciones TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_visitas_fecha ON reservas_visitas (albergue_id, fecha_ingreso);
@@ -55,7 +56,8 @@ CREATE TABLE IF NOT EXISTS reservas_alojamiento (
     cantidad      INTEGER NOT NULL CHECK (cantidad > 0),
     rango_fechas  TEXT NOT NULL,
     estado        TEXT NOT NULL DEFAULT 'Pre-Reserva',
-    created_at    TIMESTAMP NOT NULL DEFAULT NOW()
+    created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
+    observaciones TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_alojamiento_id ON reservas_alojamiento (id_reserva);
@@ -70,3 +72,32 @@ CREATE TABLE IF NOT EXISTS reserva_alojamiento_dias (
 );
 
 CREATE INDEX IF NOT EXISTS idx_aloj_dias_fecha ON reserva_alojamiento_dias (fecha);
+
+-- Vista única de todas las reservas (visitas + alojamiento) para el panel admin.
+CREATE OR REPLACE VIEW v_reservas_todas AS
+WITH v AS (
+    SELECT 'visita'::text AS modalidad,
+           r.id_reserva, r.created_at, r.id AS pk,
+           al.nombre AS albergue, r.institucion, r.responsable, r.dni, r.contacto,
+           r.cantidad,
+           r.fecha_ingreso AS fecha_p, r.hora_ingreso, r.hora_egreso,
+           r.pernocta, r.estado,
+           NULL::text AS rango_fechas,
+           r.observaciones
+    FROM reservas_visitas r
+    JOIN albergues al ON al.id = r.albergue_id
+), a AS (
+    SELECT 'alojamiento'::text AS modalidad,
+           r.id_reserva, r.created_at, r.id AS pk,
+           al.nombre AS albergue, r.institucion, r.responsable, r.dni, r.contacto,
+           r.cantidad,
+           NULL::text AS fecha_p, NULL::text AS hora_ingreso, NULL::text AS hora_egreso,
+           NULL::text AS pernocta, r.estado,
+           r.rango_fechas,
+           r.observaciones
+    FROM reservas_alojamiento r
+    JOIN albergues al ON al.id = r.albergue_id
+)
+SELECT * FROM v
+UNION ALL
+SELECT * FROM a;
