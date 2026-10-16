@@ -1,0 +1,36 @@
+stages:
+  - deploy
+
+# ------------------------------------------------------------------------------
+# SERVIDOR DE PRUEBAS (10.4.2.27) - Rama dev
+# ------------------------------------------------------------------------------
+deploy_dev:
+  stage: deploy
+  only:
+    - dev
+  tags:
+    - sigent
+  script:
+    - echo "=== DESPLEGANDO EN SERVIDOR DE PRUEBAS (10.4.2.27) ==="
+    - sudo mkdir -p /var/www/ReservaAlbergues
+    - sudo rsync -a --delete --exclude='.git' --exclude='api/config.php' --exclude='api/backups/' . /var/www/ReservaAlbergues/
+    - if [ ! -f /var/www/ReservaAlbergues/api/config.php ]; then sudo cp /var/www/ReservaAlbergues/api/config.example.php /var/www/ReservaAlbergues/api/config.php; fi
+    - sudo chown -R www-data:www-data /var/www/ReservaAlbergues
+    - sudo systemctl reload nginx || sudo systemctl reload apache2 || true
+    - echo "=== DESPLIEGUE EN PRUEBAS COMPLETADO CON EXITO ==="
+
+# ------------------------------------------------------------------------------
+# SERVIDOR DE PRODUCCION (10.224.0.14) - Rama main (educaciontuc.gov.ar/ReservaAlbergues2)
+# ------------------------------------------------------------------------------
+deploy_prod:
+  stage: deploy
+  only:
+    - main
+  tags:
+    - sigent
+  script:
+    - echo "=== SINCRONIZANDO CON SERVIDOR DE PRODUCCION (10.224.0.14) ==="
+    - rsync -azq --delete -e "ssh -p 5874 -o StrictHostKeyChecking=no" --exclude='.git' --exclude='api/config.php' --exclude='api/backups/' . cesarv@10.224.0.14:/var/www/ReservaAlbergues2/
+    - echo "=== AJUSTANDO ARCHIVOS POST-DEPLOY ==="
+    - ssh -p 5874 -o StrictHostKeyChecking=no cesarv@10.224.0.14 "if [ ! -f /var/www/ReservaAlbergues2/api/config.php ]; then cp /var/www/ReservaAlbergues2/api/config.example.php /var/www/ReservaAlbergues2/api/config.php; fi"
+    - echo "=== DESPLIEGUE EN PRODUCCION COMPLETADO CON EXITO ==="

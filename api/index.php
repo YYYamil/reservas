@@ -94,6 +94,7 @@ function capacidadYOcupadosVisitas(PDO $pdo, int $albergueId, string $fecha): ar
               ON r.albergue_id = al.id
              AND r.fecha_ingreso = :fecha
              AND r.pernocta = :pernocta
+             AND r.estado <> \'Cancelado\'
             WHERE al.id = :albergue
             GROUP BY al.id';
 
@@ -124,6 +125,7 @@ function capacidadYOcupadosAlojamiento(PDO $pdo, int $albergueId, string $fecha)
             LEFT JOIN reservas_alojamiento r
               ON r.id = d.reserva_id
              AND r.albergue_id = al.id
+             AND r.estado <> \'Cancelado\'
             WHERE al.id = :albergue
             GROUP BY al.id';
 
@@ -223,8 +225,200 @@ function espejoDatos(PDO $pdo, string $tipo): void
  */
 function requiereAdmin(): void
 {
-    if (empty($_SESSION['admin_logged'])) {
+    if (empty($_SESSION['admin'])) {
         responder(['success' => false, 'message' => 'No autorizado'], 401);
+    }
+}
+
+/**
+ * Rol del usuario en sesión (o null si no hay sesión).
+ */
+function rolActual(): ?string
+{
+    return isset($_SESSION['admin']) ? (string) $_SESSION['admin']['rol'] : null;
+}
+
+/**
+ * Albergues permitidos para el usuario en sesión.
+ * null = todos; array = ids restringidos (lector).
+ */
+function alberguesPermitidos(): ?array
+{
+    if (empty($_SESSION['admin'])) {
+        return null;
+    }
+    $al = $_SESSION['admin']['albergues'];
+    return is_array($al) ? $al : null;
+}
+
+/**
+ * Exige sesión Y que el rol esté dentro de la lista permitida.
+ */
+function requiereRol(array $roles): void
+{
+    requiereAdmin();
+    if (!in_array(rolActual(), $roles, true)) {
+        responder(['success' => false, 'message' => 'Permiso denegado'], 403);
+    }
+}
+
+/**
+ * WHERE con restricción de albergues permitidos (para consultas del panel).
+ * Devuelve string vacío si el usuario ve todos.
+ */
+function whereAlberguesPermitidos(string $prefijo = ''): string
+{
+    $al = alberguesPermitidos();
+    if ($al === null || count($al) === 0) {
+        return '';
+    }
+    return ' AND ' . $prefijo . 'albergue_id IN (' . implode(',', array_map('intval', $al)) . ')';
+}
+
+/**
+ * Albergue completo (tarjeta del landing): datos + características + imágenes.
+ */
+function albergueCompleto(PDO $pdo, int $id): array
+{
+    $st = $pdo->prepare(
+        'SELECT id, clave, nombre, capacidad, descripcion, habilitado, color, mapa, pdf
+         FROM albergues WHERE id = ?'
+    );
+    $st->execute([$id]);
+    $a = $st->fetch(PDO::FETCH_ASSOC);
+    if ($a === false) {
+        return [];
+    }
+    $a['habilitado'] = (bool) $a['habilitado'];
+
+    $c = $pdo->prepare('SELECT icono, texto FROM albergue_caracteristicas WHERE albergue_id = ? ORDER BY orden, id');
+    $c->execute([$id]);
+    $a['caracteristicas'] = $c->fetchAll(PDO::FETCH_ASSOC);
+
+    $im = $pdo->prepare('SELECT ruta FROM albergue_imagenes WHERE albergue_id = ? ORDER BY orden, id');
+    $im->execute([$id]);
+    $a['imagenes'] = array_column($im->fetchAll(PDO::FETCH_ASSOC), 'ruta');
+
+    return $a;
+}
+
+/**
+ * Decodifica un parámetro JSON opcional (array). null = campo ausente.
+ */
+function jsonOpcional(string $nombre): ?array
+{
+    $raw = trim(parametro($nombre));
+    if ($raw === '') {
+        return null;
+    }
+    $v = json_decode($raw, true);
+    if (!is_array($v)) {
+        responder(['success' => false, 'message' => 'Los datos de ' . $nombre . ' son inválidos']);
+    }
+    return array_values($v);
+}
+
+function claveNormalizada(string $c): string
+{
+    $c = strtolower(trim($c));
+    $c = preg_replace('/[^a-z0-9-]+/', '-', $c);
+    return trim($c, '-');
+}
+
+/**
+ * Normaliza la URL de mapa del albergue.
+ * - Resuelve enlaces cortos (maps.app.goo.gl) a su URL canónica de google.com/maps,
+ *   dejando la coordenada @lat,lng que el landing usa para generar el embed.
+ * - No modifica enlaces que ya funcionan (maps.google.com/maps/embed?pb=..., etc.).
+ */
+function urlMapaNormalizada(string $mapa): string
+{
+    $m = trim($mapa);
+    if ($m === '' || !preg_match('#^https?://maps\.app\.goo\.gl/#i', $m)) {
+        return $m;
+    }
+
+    $ctx = stream_context_create([
+        'http' => [
+            'method' => 'GET',
+            'timeout' => 8,
+            'max_redirects' => 10,
+            'header' => "Accept: text/html\r\nUser-Agent: Mozilla/5.0 (compatible; med-albergues/1.0)\r\n",
+        ],
+    ]);
+    $body = @file_get_contents($m, false, $ctx);
+    $final = $m;
+    if (isset($http_response_header)) {
+        foreach (array_reverse($http_response_header) as $cabecera) {
+            if (preg_match('/^Location:\s*(.+)$/i', $cabecera, $m2)) {
+                $final = trim($m2[1]);
+                if ($final !== '' && $final[0] === '/') {
+                    $u = parse_url($m);
+                    $final = (isset($u['scheme']) ? $u['scheme'] : 'https') . '://'
+                        . ($u['host'] ?? 'maps.app.goo.gl') . $final;
+                }
+                break;
+            }
+        }
+    }
+    if ($body !== false && stripos($final, 'google.com/maps') !== false) {
+        return $final;
+    }
+    return $m;
+}
+
+/**
+ * Reemplaza las características de un albergue (orden = posición en el listado).
+ */
+function reemplazarCaracteristicas(PDO $pdo, int $albergueId, array $items): void
+{
+    $pdo->prepare('DELETE FROM albergue_caracteristicas WHERE albergue_id = ?')->execute([$albergueId]);
+    $ins = $pdo->prepare(
+        'INSERT INTO albergue_caracteristicas (albergue_id, icono, texto, orden) VALUES (?, ?, ?, ?)'
+    );
+    foreach ($items as $i => $it) {
+        $icono = trim((string) ($it['icono'] ?? ''));
+        $texto = trim((string) ($it['texto'] ?? ''));
+        if ($texto === '') {
+            continue;
+        }
+        $ins->execute([$albergueId, $icono, $texto, $i]);
+    }
+}
+
+function reemplazarImagenes(PDO $pdo, int $albergueId, array $items): void
+{
+    $pdo->prepare('DELETE FROM albergue_imagenes WHERE albergue_id = ?')->execute([$albergueId]);
+    $ins = $pdo->prepare('INSERT INTO albergue_imagenes (albergue_id, ruta, orden) VALUES (?, ?, ?)');
+    foreach ($items as $i => $ruta) {
+        $ruta = trim((string) $ruta);
+        if ($ruta === '') {
+            continue;
+        }
+        $ins->execute([$albergueId, $ruta, $i]);
+    }
+}
+
+/**
+ * Borra del disco las imágenes subidas (carpeta Img/albergues/) que dejaron
+ * de estar referenciadas. Las imágenes "de semilla" (Img/<legacy>/) se ignoran.
+ */
+function borrarImagenesHuerfanas(PDO $pdo, int $albergueId, array $nuevas): void
+{
+    $old = $pdo->prepare('SELECT ruta FROM albergue_imagenes WHERE albergue_id = ?');
+    $old->execute([$albergueId]);
+    $anteriores = array_column($old->fetchAll(PDO::FETCH_ASSOC), 'ruta');
+    $nuevasSet = array_flip($nuevas);
+    $baseImg = realpath(__DIR__ . '/../Img');
+    foreach ($anteriores as $r) {
+        if (isset($nuevasSet[$r]) || !preg_match('#^Img/albergues/[^/]+/[^/]+$#', $r)) {
+            continue;
+        }
+        $abs = realpath(__DIR__ . '/../' . $r);
+        if ($baseImg !== false && $abs !== false
+            && strpos($abs, $baseImg) === 0 && is_file($abs)) {
+            @unlink($abs);
+        }
     }
 }
 
@@ -233,8 +427,20 @@ function requiereAdmin(): void
 $data = array_merge($_GET, $_POST);
 $action = (string) ($data['action'] ?? '');
 
-$actionsAdmin = ['adminLogin', 'adminLogout', 'adminReservas', 'adminTotales', 'adminEstado', 'adminObservaciones'];
+$actionsAdmin = [
+    'adminLogin', 'adminLogout', 'adminSesion', 'adminReservas', 'adminTotales',
+    'adminEstado', 'adminObservaciones',
+    'adminUsuarios', 'adminUsuarioCrear', 'adminUsuarioEditar',
+    'adminAlbergues', 'adminAlbergueCrear', 'adminAlbergueEditar', 'adminAlbergueSubirImagen',
+    'adminAlbergueSubirArchivo',
+];
 if (in_array($action, $actionsAdmin, true)) {
+    ini_set('session.use_strict_mode', '1');
+    session_set_cookie_params([
+        'httponly' => true,
+        'samesite' => 'Lax',
+        'secure'   => (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off'),
+    ]);
     session_start();
 }
 
@@ -358,22 +564,21 @@ try {
             $pdo->beginTransaction();
             try {
                 // 1) Buscar en reservas de visita
-                $stmt = $pdo->prepare('SELECT id FROM reservas_visitas WHERE id_reserva = ? AND dni = ?');
+                $stmt = $pdo->prepare('SELECT id, estado FROM reservas_visitas WHERE id_reserva = ? AND dni = ?');
                 $stmt->execute([$idRaw, $dniR]);
                 $visitas = $stmt->fetchAll();
 
                 if ($visitas) {
-                    $del = $pdo->prepare('DELETE FROM reservas_visitas WHERE id_reserva = ? AND dni = ?');
-                    $del->execute([$idRaw, $dniR]);
-                    $borradas = $del->rowCount();
-
+                    $up = $pdo->prepare('UPDATE reservas_visitas SET estado = \'Cancelado\' WHERE id_reserva = ? AND dni = ?');
+                    $up->execute([$idRaw, $dniR]);
                     $pdo->commit();
-                    responder(['success' => true, 'message' => "Cancelada {$borradas} Reserva"]);
+                    responder(['success' => true, 'message' => 'Reserva cancelada correctamente']);
                 }
 
                 // 2) Si no existe en visitas, buscar en alojamiento
                 $stmt = $pdo->prepare(
                     'SELECT ra.id,
+                            ra.estado,
                             (SELECT COUNT(*) FROM reserva_alojamiento_dias d
                               WHERE d.reserva_id = ra.id) AS dias
                      FROM reservas_alojamiento ra
@@ -387,16 +592,14 @@ try {
                     responder(['success' => false, 'message' => 'No se encontró una reserva con ese número y DNI']);
                 }
 
-                $diasBorrados = (int) array_sum(array_column($alo, 'dias'));
-
-                $delAlo = $pdo->prepare('DELETE FROM reservas_alojamiento WHERE id_reserva = ? AND dni = ?');
-                $delAlo->execute([$idRaw, $dniR]);
-                $borradasAlo = $delAlo->rowCount();
+                $upAlo = $pdo->prepare('UPDATE reservas_alojamiento SET estado = \'Cancelado\' WHERE id_reserva = ? AND dni = ?');
+                $upAlo->execute([$idRaw, $dniR]);
+                $canceladasAlo = $upAlo->rowCount();
 
                 $pdo->commit();
                 responder([
                     'success' => true,
-                    'message' => "Cancelada {$borradasAlo} Reserva de {$diasBorrados} dias",
+                    'message' => "Cancelada {$canceladasAlo} Reserva",
                 ]);
             } catch (Throwable $e) {
                 if ($pdo->inTransaction()) {
@@ -524,17 +727,72 @@ try {
         case 'adminLogin':
             $usuario = trim(parametro('usuario'));
             $pass    = (string) parametro('pass');
-            if (hash_equals($config['admin_user'], $usuario)
-                && hash_equals($config['admin_pass'], $pass)) {
-                $_SESSION['admin_logged'] = true;
-                responder(['success' => true]);
+            $ip      = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+
+            // Anti fuerza bruta: 5 fallos en 15 min bloquea (por usuario+IP).
+            $q = $pdo->prepare(
+                "SELECT count(*) FROM login_intentos
+                 WHERE usuario = :u AND ip = :ip AND exito = false
+                   AND fecha > NOW() - INTERVAL '15 minutes'"
+            );
+            $q->execute(['u' => $usuario, 'ip' => $ip]);
+            if ((int) $q->fetchColumn() >= 5) {
+                responder(['success' => false, 'message' => 'Demasiados intentos. Esperá 15 minutos.'], 429);
             }
-            responder(['success' => false, 'message' => 'Credenciales inválidas'], 401);
+
+            $stmt = $pdo->prepare('SELECT * FROM usuarios WHERE usuario = :u');
+            $stmt->execute(['u' => $usuario]);
+            $usr = $stmt->fetch();
+
+            $ok = $usr !== false
+                && (bool) $usr['activo']
+                && password_verify($pass, $usr['pass_hash']);
+
+            $reg = $pdo->prepare('INSERT INTO login_intentos (usuario, ip, exito, fecha) VALUES (?, ?, ?, NOW())');
+            $reg->execute([$usuario, $ip, $ok ? 1 : 0]);
+
+            if (!$ok) {
+                responder(['success' => false, 'message' => 'Credenciales inválidas'], 401);
+            }
+
+            $nombre = (string) $usr['nombre'];
+            $rol    = (string) $usr['rol'];
+            $albergues = null;
+            if ($rol === 'lector') {
+                $sc = $pdo->prepare('SELECT albergue_id FROM usuario_albergues WHERE usuario_id = ?');
+                $sc->execute([(int) $usr['id']]);
+                $albergues = array_values(array_map('intval', $sc->fetchAll(PDO::FETCH_COLUMN)));
+            }
+
+            session_regenerate_id(true);
+            $_SESSION['admin'] = [
+                'id'        => (int) $usr['id'],
+                'usuario'   => $usr['usuario'],
+                'nombre'    => $nombre,
+                'rol'       => $rol,
+                'albergues' => $albergues,
+            ];
+            $pdo->prepare('UPDATE usuarios SET ultimo_login = NOW() WHERE id = ?')
+                ->execute([(int) $usr['id']]);
+
+            responder(['success' => true, 'rol' => $rol, 'nombre' => $nombre]);
             break;
 
         case 'adminLogout':
+            $_SESSION = [];
             session_destroy();
             responder(['success' => true]);
+            break;
+
+        case 'adminSesion':
+            if (!empty($_SESSION['admin'])) {
+                responder([
+                    'success' => true,
+                    'rol'     => $_SESSION['admin']['rol'],
+                    'nombre'  => $_SESSION['admin']['nombre'],
+                ]);
+            }
+            responder(['success' => false, 'message' => 'No autorizado'], 401);
             break;
 
         case 'adminReservas':
@@ -548,6 +806,12 @@ try {
 
             $sql = 'SELECT * FROM v_reservas_todas WHERE 1 = 1';
             $params = [];
+
+            $al = alberguesPermitidos();
+            if ($al !== null && count($al) > 0) {
+                $sql .= ' AND albergue IN (SELECT nombre FROM albergues WHERE id IN ('
+                    . implode(',', array_map('intval', $al)) . '))';
+            }
 
             if ($desde !== '') {
                 if (!esFechaISOValida($desde)) {
@@ -590,31 +854,36 @@ try {
             requiereAdmin();
             $hoy = date('Y-m-d');
             $f7  = date('Y-m-d', strtotime('+6 days'));
+            $w   = whereAlberguesPermitidos();
 
             $totales = [
-                'visitas'      => (int) $pdo->query('SELECT count(*) FROM reservas_visitas')->fetchColumn(),
-                'alojamientos' => (int) $pdo->query('SELECT count(*) FROM reservas_alojamiento')->fetchColumn(),
+                'visitas'      => (int) $pdo->query('SELECT count(*) FROM reservas_visitas WHERE 1=1' . $w)->fetchColumn(),
+                'alojamientos' => (int) $pdo->query('SELECT count(*) FROM reservas_alojamiento WHERE 1=1' . $w)->fetchColumn(),
             ];
 
-            $v7 = $pdo->prepare('SELECT count(*) FROM reservas_visitas WHERE fecha_ingreso BETWEEN :h AND :f');
+            $v7 = $pdo->prepare('SELECT count(*) FROM reservas_visitas WHERE fecha_ingreso BETWEEN :h AND :f AND estado <> \'Cancelado\'' . $w);
             $v7->execute(['h' => $hoy, 'f' => $f7]);
             $totales['visitas_proximos7'] = (int) $v7->fetchColumn();
 
             $a7 = $pdo->prepare(
                 'SELECT count(DISTINCT r.id) FROM reservas_alojamiento r
                  JOIN reserva_alojamiento_dias d ON d.reserva_id = r.id
-                 WHERE d.fecha BETWEEN :h AND :f'
+                 WHERE d.fecha BETWEEN :h AND :f AND r.estado <> \'Cancelado\'' . $w
             );
             $a7->execute(['h' => $hoy, 'f' => $f7]);
             $totales['aloj_proximos7'] = (int) $a7->fetchColumn();
 
-            $porAlbergue = $pdo->query(
-                'SELECT al.id, al.nombre AS albergue, al.capacidad,
+            $sqlPorAlb = 'SELECT al.id, al.nombre AS albergue, al.capacidad,
                         (SELECT count(*) FROM reservas_visitas rv WHERE rv.albergue_id = al.id) AS visitas,
                         (SELECT count(*) FROM reservas_alojamiento ra WHERE ra.albergue_id = al.id) AS alojamientos
-                 FROM albergues al
-                 ORDER BY al.id'
-            )->fetchAll(PDO::FETCH_ASSOC);
+                 FROM albergues al';
+            $al = alberguesPermitidos();
+            if ($al !== null && count($al) > 0) {
+                $sqlPorAlb .= ' WHERE al.id IN (' . implode(',', array_map('intval', $al)) . ')';
+            }
+            $sqlPorAlb .= ' ORDER BY al.id';
+
+            $porAlbergue = $pdo->query($sqlPorAlb)->fetchAll(PDO::FETCH_ASSOC);
 
             $estados = $pdo->query(
                 'SELECT DISTINCT estado FROM (
@@ -626,6 +895,7 @@ try {
 
             responder([
                 'success'      => true,
+                'rol'          => rolActual(),
                 'totales'      => $totales,
                 'por_albergue' => $porAlbergue,
                 'estados'      => $estados,
@@ -633,12 +903,12 @@ try {
             break;
 
         case 'adminEstado':
-            requiereAdmin();
+            requiereRol(['admin']);
             $estado    = trim(parametro('estado'));
             $modalidad = trim(parametro('modalidad'));
             $pk        = (int) parametro('pk');
 
-            if (!in_array($estado, ['Pre-Reserva', 'Confirmado'], true)) {
+            if (!in_array($estado, ['Pre-Reserva', 'Confirmado', 'Cancelado'], true)) {
                 responder(['success' => false, 'message' => 'Estado inválido']);
             }
             if (!in_array($modalidad, ['visita', 'alojamiento'], true)) {
@@ -658,7 +928,7 @@ try {
             break;
 
         case 'adminObservaciones':
-            requiereAdmin();
+            requiereRol(['admin']);
             $texto     = trim(parametro('observaciones'));
             $modalidad = trim(parametro('modalidad'));
             $pk        = (int) parametro('pk');
@@ -680,6 +950,343 @@ try {
                 responder(['success' => false, 'message' => 'No se encontró la reserva']);
             }
             responder(['success' => true]);
+            break;
+
+        // ---------- Gestión de usuarios y albergues (solo super_admin) ----------
+        case 'adminUsuarios':
+            requiereRol(['super_admin']);
+            $sql = 'SELECT u.id, u.usuario, u.nombre, u.rol, u.activo, u.ultimo_login,
+                           COALESCE((
+                               SELECT string_agg(al.nombre, \', \' ORDER BY al.nombre)
+                               FROM usuario_albergues ua JOIN albergues al ON al.id = ua.albergue_id
+                               WHERE ua.usuario_id = u.id
+                           ), \'\') AS albergues,
+                           (SELECT ua.albergue_id FROM usuario_albergues ua
+                            WHERE ua.usuario_id = u.id LIMIT 1) AS albergue_id
+                    FROM usuarios u
+                    ORDER BY u.id';
+            responder(['success' => true, 'usuarios' => $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC)]);
+            break;
+
+        case 'adminUsuarioCrear':
+            requiereRol(['super_admin']);
+            $usuario = trim(parametro('usuario'));
+            $nombre  = trim(parametro('nombre'));
+            $rol     = trim(parametro('rol'));
+            $pass    = (string) parametro('pass');
+            $albId   = (int) parametro('albergue_id', '0');
+
+            if ($usuario === '' || $nombre === '' || $rol === '' || $pass === '') {
+                responder(['success' => false, 'message' => 'Complete todos los campos']);
+            }
+            if (!in_array($rol, ['super_admin', 'admin', 'lector'], true)) {
+                responder(['success' => false, 'message' => 'Rol inválido']);
+            }
+            if (strlen($pass) < 8) {
+                responder(['success' => false, 'message' => 'La contraseña debe tener al menos 8 caracteres']);
+            }
+            if ($rol === 'lector') {
+                $alb = $pdo->prepare('SELECT id FROM albergues WHERE id = ?');
+                $alb->execute([$albId]);
+                if ($alb->fetch() === false) {
+                    responder(['success' => false, 'message' => 'Albergue inválido para el lector']);
+                }
+            }
+            $existe = $pdo->prepare('SELECT 1 FROM usuarios WHERE usuario = ?');
+            $existe->execute([$usuario]);
+            if ($existe->fetch() !== false) {
+                responder(['success' => false, 'message' => 'Ese usuario ya existe']);
+            }
+
+            $hash = password_hash($pass, PASSWORD_DEFAULT);
+            $pdo->beginTransaction();
+            try {
+                $ins = $pdo->prepare(
+                    'INSERT INTO usuarios (usuario, pass_hash, nombre, rol, activo, created_at)
+                     VALUES (?, ?, ?, ?, true, NOW())'
+                );
+                $ins->execute([$usuario, $hash, $nombre, $rol]);
+                $uid = (int) $pdo->lastInsertId();
+                if ($rol === 'lector') {
+                    $pdo->prepare('INSERT INTO usuario_albergues (usuario_id, albergue_id) VALUES (?, ?)')
+                        ->execute([$uid, $albId]);
+                }
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
+            responder(['success' => true]);
+            break;
+
+        case 'adminUsuarioEditar':
+            requiereRol(['super_admin']);
+            $id      = (int) parametro('id');
+            $nombre  = trim(parametro('nombre'));
+            $rol     = trim(parametro('rol'));
+            $activo  = (string) parametro('activo', '1');
+            $pass    = (string) parametro('pass');
+            $albId   = (int) parametro('albergue_id', '0');
+
+            if ($id <= 0 || $nombre === '' || $rol === '') {
+                responder(['success' => false, 'message' => 'Faltan datos']);
+            }
+            if (!in_array($rol, ['super_admin', 'admin', 'lector'], true)) {
+                responder(['success' => false, 'message' => 'Rol inválido']);
+            }
+            $cambiaPass = $pass !== '';
+            if ($cambiaPass && strlen($pass) < 8) {
+                responder(['success' => false, 'message' => 'La contraseña debe tener al menos 8 caracteres']);
+            }
+            if ($rol === 'lector') {
+                $alb = $pdo->prepare('SELECT id FROM albergues WHERE id = ?');
+                $alb->execute([$albId]);
+                if ($alb->fetch() === false) {
+                    responder(['success' => false, 'message' => 'Albergue inválido para el lector']);
+                }
+            }
+
+            $usr = $pdo->prepare('SELECT * FROM usuarios WHERE id = ?');
+            $usr->execute([$id]);
+            $u = $usr->fetch();
+            if ($u === false) {
+                responder(['success' => false, 'message' => 'No existe el usuario']);
+            }
+
+            $nuevoActivo = ($activo === '1');
+            if ($u['rol'] === 'super_admin' && ($rol !== 'super_admin' || !$nuevoActivo)) {
+                // Evita dejar el sistema sin super_admin activo
+                $otros = $pdo->prepare(
+                    "SELECT count(*) FROM usuarios WHERE rol = 'super_admin' AND activo = true AND id <> ?"
+                );
+                $otros->execute([$id]);
+                if ((int) $otros->fetchColumn() === 0) {
+                    responder(['success' => false, 'message' => 'Debe quedar al menos un super_admin activo']);
+                }
+            }
+
+            $activoText = $nuevoActivo ? 't' : 'f';
+            $hash = $cambiaPass ? password_hash($pass, PASSWORD_DEFAULT) : null;
+            $pdo->beginTransaction();
+            try {
+                if ($cambiaPass) {
+                    $upd = $pdo->prepare(
+                        'UPDATE usuarios SET nombre = ?, rol = ?, activo = ?, pass_hash = ? WHERE id = ?'
+                    );
+                    $upd->execute([$nombre, $rol, $activoText, $hash, $id]);
+                } else {
+                    $upd = $pdo->prepare(
+                        'UPDATE usuarios SET nombre = ?, rol = ?, activo = ? WHERE id = ?'
+                    );
+                    $upd->execute([$nombre, $rol, $activoText, $id]);
+                }
+                $pdo->prepare('DELETE FROM usuario_albergues WHERE usuario_id = ?')->execute([$id]);
+                if ($rol === 'lector') {
+                    $pdo->prepare('INSERT INTO usuario_albergues (usuario_id, albergue_id) VALUES (?, ?)')
+                        ->execute([$id, $albId]);
+                }
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
+            responder(['success' => true]);
+            break;
+
+        // ---------- Landing: albergues visibles (público, genera las tarjetas) ----------
+        case 'listarAlbergues':
+            $ids = $pdo->query('SELECT id FROM albergues WHERE habilitado = true ORDER BY id')
+                ->fetchAll(PDO::FETCH_COLUMN);
+            $salida = [];
+            foreach ($ids as $id) {
+                $salida[] = albergueCompleto($pdo, (int) $id);
+            }
+            responder(['success' => true, 'albergues' => $salida]);
+            break;
+
+        case 'adminAlbergues':
+            requiereRol(['super_admin']);
+            $ids = $pdo->query('SELECT id FROM albergues ORDER BY id')->fetchAll(PDO::FETCH_COLUMN);
+            $salida = [];
+            foreach ($ids as $id) {
+                $salida[] = albergueCompleto($pdo, (int) $id);
+            }
+            responder(['success' => true, 'albergues' => $salida]);
+            break;
+
+        case 'adminAlbergueCrear':
+            requiereRol(['super_admin']);
+            $clave = claveNormalizada(parametro('clave'));
+            $nombre = trim(parametro('nombre'));
+            $capacidad = (int) parametro('capacidad');
+            $descripcion = trim(parametro('descripcion'));
+            $color = trim(parametro('color')) !== '' ? trim(parametro('color')) : '#005CA2';
+            $mapa = urlMapaNormalizada(parametro('mapa'));
+            $pdf = trim(parametro('pdf'));
+            $habilitado = parametro('habilitado', '1') === '1' ? 't' : 'f';
+
+            if ($clave === '' || $nombre === '' || $capacidad <= 0) {
+                responder(['success' => false, 'message' => 'Complete clave, nombre y capacidad (> 0)']);
+            }
+            if (!preg_match('/^[a-z0-9-]+$/', $clave)) {
+                responder(['success' => false, 'message' => 'Clave inválida (solo letras minúsculas, números y guiones)']);
+            }
+            $dup = $pdo->prepare('SELECT 1 FROM albergues WHERE clave = ? OR nombre = ?');
+            $dup->execute([$clave, $nombre]);
+            if ($dup->fetch() !== false) {
+                responder(['success' => false, 'message' => 'Ya existe un albergue con esa clave o nombre']);
+            }
+
+            $carac = jsonOpcional('caracteristicas');
+            $imgs  = jsonOpcional('imagenes');
+
+            $pdo->beginTransaction();
+            try {
+                $ins = $pdo->prepare(
+                    'INSERT INTO albergues (clave, nombre, capacidad, descripcion, habilitado, color, mapa, pdf)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                );
+                $ins->execute([$clave, $nombre, $capacidad, $descripcion, $habilitado, $color, $mapa, $pdf]);
+                $nuevoId = (int) $pdo->lastInsertId();
+                if ($carac !== null) { reemplazarCaracteristicas($pdo, $nuevoId, $carac); }
+                if ($imgs !== null)  { reemplazarImagenes($pdo, $nuevoId, $imgs); }
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
+            responder(['success' => true, 'id' => $nuevoId]);
+            break;
+
+        case 'adminAlbergueEditar':
+            requiereRol(['super_admin']);
+            $id = (int) parametro('id');
+            $nombre = trim(parametro('nombre'));
+            $capacidad = (int) parametro('capacidad');
+            $descripcion = trim(parametro('descripcion'));
+            $color = trim(parametro('color')) !== '' ? trim(parametro('color')) : '#005CA2';
+            $mapa = urlMapaNormalizada(parametro('mapa'));
+            $pdf = trim(parametro('pdf'));
+            $habilitado = parametro('habilitado', '1') === '1' ? 't' : 'f';
+
+            if ($id <= 0 || $nombre === '' || $capacidad <= 0) {
+                responder(['success' => false, 'message' => 'Faltan datos o capacidad inválida']);
+            }
+            $atum = $pdo->prepare('SELECT id FROM albergues WHERE id = ?');
+            $atum->execute([$id]);
+            if ($atum->fetch() === false) {
+                responder(['success' => false, 'message' => 'No existe el albergue']);
+            }
+            $dupN = $pdo->prepare('SELECT id FROM albergues WHERE nombre = ? AND id <> ?');
+            $dupN->execute([$nombre, $id]);
+            if ($dupN->fetch() !== false) {
+                responder(['success' => false, 'message' => 'Ya existe otro albergue con ese nombre']);
+            }
+
+            $carac = jsonOpcional('caracteristicas');
+            $imgs  = jsonOpcional('imagenes');
+
+            $pdo->beginTransaction();
+            try {
+                $upd = $pdo->prepare(
+                    'UPDATE albergues
+                     SET nombre = ?, capacidad = ?, descripcion = ?, habilitado = ?, color = ?, mapa = ?, pdf = ?
+                     WHERE id = ?'
+                );
+                $upd->execute([$nombre, $capacidad, $descripcion, $habilitado, $color, $mapa, $pdf, $id]);
+                if ($carac !== null) { reemplazarCaracteristicas($pdo, $id, $carac); }
+                if ($imgs !== null) {
+                    borrarImagenesHuerfanas($pdo, $id, $imgs);
+                    reemplazarImagenes($pdo, $id, $imgs);
+                }
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
+            }
+            responder(['success' => true]);
+            break;
+
+        case 'adminAlbergueSubirImagen':
+            requiereRol(['super_admin']);
+            $clave = claveNormalizada(parametro('clave'));
+            if ($clave === '') {
+                responder(['success' => false, 'message' => 'Falta la clave del albergue']);
+            }
+            if (!isset($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
+                responder(['success' => false, 'message' => 'No se recibió la imagen']);
+            }
+            $f = $_FILES['archivo'];
+            if ($f['size'] > 8 * 1024 * 1024) {
+                responder(['success' => false, 'message' => 'La imagen supera los 8 MB']);
+            }
+            $info = getimagesize($f['tmp_name']);
+            if ($info === false) {
+                responder(['success' => false, 'message' => 'El archivo no es una imagen válida']);
+            }
+            $extOrden = [IMAGETYPE_JPEG => 'jpg', IMAGETYPE_PNG => 'png', IMAGETYPE_WEBP => 'webp', IMAGETYPE_GIF => 'gif'];
+            $ext = $extOrden[$info[2]] ?? '';
+            if ($ext === '') {
+                responder(['success' => false, 'message' => 'Formato no permitido (JPG, PNG, WEBP, GIF)']);
+            }
+
+            $dir = __DIR__ . '/../Img/albergues/' . $clave;
+            if (!is_dir($dir) && !mkdir($dir, 0777, true)) {
+                responder(['success' => false, 'message' => 'No se pudo crear la carpeta de imágenes']);
+            }
+            $base = strtolower(pathinfo($f['name'], PATHINFO_FILENAME));
+            $base = preg_replace('/[^a-z0-9_\-]+/', '-', $base);
+            $base = trim($base, '-');
+            $base = $base === '' ? 'img' : substr($base, 0, 60);
+            $nombreFinal = $base . '-' . substr(uniqid(), -6) . '.' . $ext;
+            $destino = $dir . '/' . $nombreFinal;
+            if (!move_uploaded_file($f['tmp_name'], $destino)) {
+                responder(['success' => false, 'message' => 'No se pudo guardar la imagen']);
+            }
+            responder(['success' => true, 'ruta' => 'Img/albergues/' . $clave . '/' . $nombreFinal]);
+            break;
+
+        case 'adminAlbergueSubirArchivo':
+            requiereRol(['super_admin']);
+            $clave = claveNormalizada(parametro('clave'));
+            if ($clave === '') {
+                responder(['success' => false, 'message' => 'Falta la clave del albergue']);
+            }
+            if (!isset($_FILES['archivo']) || $_FILES['archivo']['error'] !== UPLOAD_ERR_OK) {
+                responder(['success' => false, 'message' => 'No se recibió el archivo']);
+            }
+            $f = $_FILES['archivo'];
+            if ($f['size'] > 8 * 1024 * 1024) {
+                responder(['success' => false, 'message' => 'El archivo supera los 8 MB']);
+            }
+            $ext   = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+            $magic = (string) @file_get_contents($f['tmp_name'], false, null, 0, 5);
+            if ($ext !== 'pdf' || $magic !== '%PDF-') {
+                responder(['success' => false, 'message' => 'Solo se aceptan archivos PDF']);
+            }
+
+            $dir = __DIR__ . '/../Img/albergues/' . $clave;
+            if (!is_dir($dir) && !mkdir($dir, 0777, true)) {
+                responder(['success' => false, 'message' => 'No se pudo crear la carpeta de archivos']);
+            }
+            $base = strtolower(pathinfo($f['name'], PATHINFO_FILENAME));
+            $base = preg_replace('/[^a-z0-9_\-]+/', '-', $base);
+            $base = trim($base, '-');
+            $base = $base === '' ? 'doc' : substr($base, 0, 60);
+            $nombreFinal = $base . '-' . substr(uniqid(), -6) . '.pdf';
+            $destino = $dir . '/' . $nombreFinal;
+            if (!move_uploaded_file($f['tmp_name'], $destino)) {
+                responder(['success' => false, 'message' => 'No se pudo guardar el PDF']);
+            }
+            responder(['success' => true, 'ruta' => 'Img/albergues/' . $clave . '/' . $nombreFinal]);
             break;
 
         // ---------- Espejo para Google Sheets (vista de solo lectura) ----------

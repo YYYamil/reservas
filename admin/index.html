@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Administración · Reservas Albergues</title>
+<link rel="shortcut icon" href="../Img/icogob.png" type="image/x-icon">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="admin.css">
+<link rel="stylesheet" href="admin.css?v=20261013h">
 </head>
 <body>
 
@@ -19,14 +20,33 @@
 
 <main>
   <!-- Login -->
-  <section id="loginBox" class="card login">
-    <h2>Iniciar sesión</h2>
-    <form id="loginForm">
-      <label>Usuario<br><input type="text" id="usuario" autocomplete="username" required></label>
-      <label>Contraseña<br><input type="password" id="pass" autocomplete="current-password" required></label>
-      <button type="submit">Ingresar</button>
-      <p id="loginError" class="error" hidden></p>
-    </form>
+  <section id="loginBox" hidden>
+    <div class="login-wrap">
+      <div class="card login-card">
+        <h2>Iniciar Sesión</h2>
+        <form id="loginForm">
+          <label>Usuario
+            <input type="text" id="usuario" autocomplete="username" required autofocus>
+          </label>
+          <label>Contraseña
+            <input type="password" id="pass" autocomplete="current-password" required>
+          </label>
+          <div class="login-acciones"><button type="submit" id="btnIngresar">Ingresar</button></div>
+          <p id="loginError" class="error" hidden></p>
+        </form>
+      </div>
+    </div>
+
+    <footer>
+      <div class="container">
+        <div class="footer-content">
+          <img src="../Img/3 - Blanco.png" alt="Logo Ministerio" class="footer-logo">
+          <div class="footer-text">
+            <p>© <span id="anioActual"></span> Ministerio de Educación de Tucumán. Todos los derechos reservados</p>
+          </div>
+        </div>
+      </div>
+    </footer>
   </section>
 
   <!-- Panel -->
@@ -44,11 +64,12 @@
         </select>
       </label>
       <label>Albergue<br><select id="fAlbergue"><option value="">Todos</option></select></label>
-      <label>Estado<br><select id="fEstado"><option value="">Todos</option></select></label>
+      <label id="fEstadoWrap">Estado<br><select id="fEstado"><option value="">Todos</option></select></label>
       <label>Buscar<br><input type="search" id="fQ" placeholder="Institución, responsable o DNI"></label>
       <button id="btnFiltrar">Aplicar Filtro</button>
       <button id="btnActualizar" title="Refrescar datos">Actualizar</button>
       <button id="btnExportar">Exportar Excel</button>
+      <button id="btnConfig" class="btn-sec" hidden title="Cuántos meses se pueden reservar en el calendario público">Meses de anticipación</button>
     </div>
 
     <div class="card tabla">
@@ -56,23 +77,185 @@
         <colgroup>
           <col><col><col><col><col><col><col><col><col>
           <col id="colDetalle" class="col-detalle">
-          <col><col><col>
+          <col id="colEstado">
+          <col id="colWp">
+          <col id="colObs">
         </colgroup>
         <thead>
           <tr>
             <th>ID</th><th>Modalidad</th><th>Trámite</th><th>Albergue</th>
             <th>Institución</th><th>Responsable</th><th>DNI</th>
-            <th>Contacto</th><th>Cant.</th><th>Detalle</th><th>Estado</th><th class="col-wp" title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th><th>Observaciones</th>
+            <th>Contacto</th><th>Cant.</th><th>Detalle</th><th>Estado</th><th class="col-wp" title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th><th class="col-obs">Observaciones</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
       <p id="sinResultados" hidden>Sin resultados para esos filtros.</p>
     </div>
+
+
+    
   </section>
+
+  <!-- Gestión (solo super_admin) -->
+  <section id="gestor" hidden>
+    <div class="card">
+      <div class="card-encabezado">
+        <h2>Cuentas</h2>
+        <button type="button" id="btnNuevoUsuario">Nuevo usuario</button>
+      </div>
+      <table class="gestor-tabla">
+        <thead><tr><th>ID</th><th>Usuario</th><th>Rol</th><th>Albergue</th><th>Activo</th><th>Último login</th><th></th></tr></thead>
+        <tbody id="usuariosBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-encabezado">
+        <h2>Albergues</h2>
+        <button type="button" id="btnNuevoAlbergue">Nuevo albergue</button>
+      </div>
+      <table class="gestor-tabla">
+        <thead><tr><th>ID</th><th>Clave</th><th>Nombre</th><th>Camas</th><th>Visitas</th><th>Visible</th><th></th></tr></thead>
+        <tbody id="alberguesBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Modal: alta / edición de albergue -->
+  <div id="albergueModal" class="modal-cfg" hidden>
+    <div class="modal-cfg-caja modal-albergue-caja" role="dialog" aria-modal="true" aria-labelledby="albergueModalTitulo">
+      <h2 id="albergueModalTitulo">Nuevo albergue</h2>
+      <form id="formAlbergue" class="gestor-form gestor-form-alb">
+        <input type="hidden" id="aId" value="">
+
+        <div class="ancho-completo bloque-editor">
+          <h4>Datos del albergue</h4>
+          <label>Clave<br><input type="text" id="aClave" placeholder="ej. altoverde">
+            <small class="ayuda">Identificador único en minúsculas, sin espacios (letras, números y guiones). No se puede cambiar después y define la carpeta de sus fotos.</small>
+          </label>
+          <label>Nombre<br><input type="text" id="aNombre" required></label>
+          <label>Capacidad de alojamiento (camas)<br><input type="number" id="aCapacidad" min="1" required></label>
+          <label>Capacidad de visitas<br><input type="number" id="aCapacidadVisitas" min="1" required></label>
+          <label>Color tarjeta<br><input type="color" id="aColor" value="#005CA2"></label>
+          <label>Visible en el landing<br>
+            <input type="checkbox" id="aHabilitado" checked>
+          </label>
+        </div>
+
+        <div class="ancho-completo bloque-editor">
+          <h4>Imágenes (fotos de las instalaciones, al menos 1)</h4>
+          <div id="imgList"></div>
+          <div class="img-upload">
+            <input type="file" id="archivoImg" accept="image/*" hidden>
+            <button type="button" class="btn-sec" id="btnSubirImg">Subir imagen…</button>
+            <span id="imgMsg" class="ayuda">(máx. 8 MB por foto)</span>
+          </div>
+        </div>
+
+        <div class="ancho-completo bloque-editor">
+          <h4>Descripción</h4>
+          <label class="ancho-completo">Texto que acompaña el título de la tarjeta<br>
+            <textarea id="aDescripcion" rows="2"></textarea>
+          </label>
+        </div>
+
+        <div class="ancho-completo bloque-editor">
+          <h4>Características (ícono + texto)</h4>
+          <div id="caracList"></div>
+          <button type="button" class="btn-sec" id="btnAgregarCarac">+ Agregar característica</button>
+        </div>
+
+        <div class="ancho-completo bloque-editor">
+          <h4>Reglamento del albergue para descargar</h4>
+          <div class="img-upload">
+            <input type="file" id="archivoPdf" accept=".pdf,application/pdf" hidden>
+            <input type="hidden" id="aPdf" value="">
+            <button type="button" class="btn-sec" id="btnSubirPdf">Subir PDF…</button>
+            <span id="pdfMsg" class="ayuda">Aún no hay PDF adjunto (máx. 8 MB)</span>
+          </div>
+        </div>
+
+        <div class="ancho-completo bloque-editor">
+          <h4>Mapa</h4>
+          <label class="ancho-completo">Ubicación (compartir en Google Maps)<br>
+            <input type="url" id="aMapa" placeholder="https://www.google.com/maps/place/.../@lat,lng,17z  o  https://maps.app.goo.gl/...">
+          </label>
+        </div>
+
+        <div class="gestor-acciones ancho-completo">
+          <button type="submit" id="btnGuardarAlbergue">Guardar</button>
+          <button type="button" class="btn-sec" id="btnCerrarAlbergue">Cancelar</button>
+        </div>
+        <p id="albergueMsg" class="ayuda error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: alta / edición de usuario -->
+  <div id="usuarioModal" class="modal-cfg" hidden>
+    <div class="modal-cfg-caja modal-usuario-caja" role="dialog" aria-modal="true" aria-labelledby="usuarioModalTitulo">
+      <h2 id="usuarioModalTitulo">Nuevo usuario</h2>
+      <form id="formUsuario">
+        <input type="hidden" id="uId" value="">
+        <div class="ancho-completo bloque-editor">
+          <h4>Datos de acceso</h4>
+          <label>Usuario<br><input type="text" id="uUsuario" required></label>
+          <label>Contraseña<br>
+            <input type="password" id="uPass" placeholder="Mín. 8 caracteres (vacío = no cambia en edición)">
+          </label>
+        </div>
+        <div class="ancho-completo bloque-editor">
+          <h4>Permisos</h4>
+          <label>Rol<br>
+            <select id="uRol">
+              <option value="super_admin">Super Admin</option>
+              <option value="admin">Admin</option>
+              <option value="lector">Lector</option>
+            </select>
+          </label>
+          <label id="uAlbWrap">Albergue (lector)<br>
+            <select id="uAlbergue"><option value="">—</option></select>
+          </label>
+          <label id="uActWrap">Activo<br>
+            <input type="checkbox" id="uActivo" checked>
+          </label>
+        </div>
+        <div class="modal-cfg-acciones">
+          <button type="submit" id="btnGuardarUsuario">Guardar</button>
+          <button type="button" class="btn-sec" id="btnCerrarUsuario">Cancelar</button>
+        </div>
+        <p id="usuarioMsg" class="ayuda error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: meses de anticipación del calendario público -->
+  <div id="configModal" class="modal-cfg" hidden>
+    <div class="modal-cfg-caja" role="dialog" aria-modal="true" aria-labelledby="configModalTitulo">
+      <h2 id="configModalTitulo">Meses de anticipación del calendario</h2>
+      <p class="ayuda">
+        Define hasta qué mes se puede reservar en el sitio, contando el mes actual.
+        Ej.: con <strong>3</strong> se puede reservar desde el mes en curso hasta dos meses adelante.
+        Aplica a los calendarios de visita y de alojamiento; el sitio toma el valor al abrirse.
+      </p>
+      <form id="formConfig">
+        <label>Meses<br><input type="number" id="cfgMeses" min="1" max="24" required></label>
+        <div class="modal-cfg-acciones">
+          <button type="submit" id="btnGuardarConfig">Guardar</button>
+          <button type="button" class="btn-sec" id="btnCerrarConfig">Cancelar</button>
+        </div>
+        <p id="configMsg" class="ayuda error" hidden></p>
+      </form>
+    </div>
+  </div>
+
+ 
 </main>
 
+ 
+
 <script src="xlsx.full.min.js"></script>
-<script src="admin.js"></script>
+  <script src="admin.js?v=20261013e"></script>
 </body>
 </html>

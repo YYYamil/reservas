@@ -12,7 +12,16 @@
 
 # Backups locales de la API (contienen credenciales en config.php)
 /api/backups/
+/api/config.php
+
+# Configuración local por ambiente (credenciales de cada máquina)
+/api/config.local.php
+
+# PID del túnel SSH a Oracle (archivo temporal local)
+/.tunel-oracle.pid
 
 # Archivos generados por el sistema operativo
 Thumbs.db
 .DS_Store
+
+Img/albergues/

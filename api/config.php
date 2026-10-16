@@ -10,22 +10,33 @@ declare(strict_types=1);
  *  - espejo_token: clave compartida opcional para proteger los endpoints
  *    espejoVisitas / espejoAlojamiento. Si queda vacía, se exponen sin clave
  *    (solo para desarrollo). Los scripts de Google deben enviarla como 'token'.
+ *
+ * Las credenciales del panel viven en la tabla `usuarios` (rol super_admin/admin/lector);
+ * el primer super_admin se crea con el script de instalación.
  */
-return [
+$config = [
     // --- PostgreSQL ---
     'db_host'     => '127.0.0.1',
     'db_port'     => '5432',
     'db_name'     => 'reserva_albergue',
     'db_user'     => 'usr_proyectos',
-    'db_pass'     => 'guatemala2018',
+    // Sin contraseña por defecto: cada ambiente la define en api/config.local.php
+    // (archivo ignorado por git). No commitear secretos.
+    'db_pass'     => '',
 
     // --- General ---
     'timezone'    => 'America/Argentina/Tucuman',
     'espejo_token' => '',
-
-    // --- Panel administrador ---
-    // Credenciales del panel /admin (login por usuario y contraseña).
-    // Cambiá estos valores para producción.
-    'admin_user'   => 'admin',
-    'admin_pass'   => 'Admin2026',
 ];
+
+// Configuración por ambiente: si existe config.local.php (ignorada por git),
+// sus valores sobrescriben a los de arriba. Cada máquina define el suyo.
+$localFile = __DIR__ . '/config.local.php';
+if (is_file($localFile)) {
+    $local = require $localFile;
+    if (is_array($local)) {
+        $config = array_merge($config, $local);
+    }
+}
+
+return $config;

@@ -417,6 +417,19 @@
             border: none;
         }
 
+        .map-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: var(--azul);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .map-link:hover {
+            text-decoration: underline;
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
@@ -2234,6 +2247,37 @@ input[readonly], select[disabled] {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Badge de camas libres (calendario alojamiento) */
+.dia .badge-libre {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 2px;
+  border-radius: 9px;
+  background-color: #157347;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* El punto verde de .dia.ocupado confunde en el calendario de alojamiento:
+   un día sin cupo ya se marca en rojo y con el badge de camas libres. */
+[id^="calendario-alo-"] .dia.ocupado::after {
+  content: none;
+}
+
+.texto-verde {
+  color: #1b7a3d;
+}
+
 .disabled {
   pointer-events: none;
   opacity: 0.5;
@@ -2752,4 +2796,132 @@ input[readonly], select[disabled] {
 
 .full-width {
     grid-column: 1 / -1;
+}
+
+/* =====================================================================
+   Albergues dinámicos (colores configurados desde la base de datos)
+   Las variables --acc/--acc-dark/--acc-light se inyectan por JS en los
+   elementos .dyn usando el campo `color` de cada albergue.
+   ===================================================================== */
+.albergue-card.dyn {
+    border-top-color: var(--acc);
+}
+
+.albergue-card.dyn .capacity,
+.albergue-card.dyn .feature-icon {
+    background-color: var(--acc-light);
+}
+
+.albergue-card.dyn .btn-reservar,
+.albergue-card.dyn .btn-alo {
+    background: linear-gradient(to right, var(--acc), var(--acc-dark));
+    color: #ffffff;
+}
+
+.modal.dyn .modal-header {
+    background: linear-gradient(135deg, var(--acc) 0%, var(--acc-dark) 100%);
+    color: #ffffff;
+}
+
+.modal.dyn .modal-header .close-modal:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal.dyn .btn-submit {
+    background: linear-gradient(to right, var(--acc), var(--acc-dark));
+    color: #ffffff;
+}
+
+.modal.dyn .ocupacion-info {
+    color: var(--acc);
+}
+/* ==========================================================================
+   Mobile: Paso 1 (cantidad de camas) y Paso 2 (tipo de delegacion)
+   del modal de ALOJAMIENTO -> label e input legibles completos
+   ========================================================================== */
+@media (max-width: 768px) {
+
+    .form-row-alo-p1,
+    .form-row-alo-p2 {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 8px;
+        width: 100%;
+    }
+
+    /* El label deja de estar en una linea sola (nowrap) y puede partir */
+    .form-row-alo-p1 label,
+    .form-row-alo-p2 label {
+        display: block;
+        white-space: normal;
+        font-size: 15px;
+        line-height: 1.35;
+        overflow-wrap: break-word;
+        word-break: normal;
+        margin-bottom: 2px;
+    }
+
+    .form-row-alo-p1 label i,
+    .form-row-alo-p2 label i {
+        margin-right: 4px;
+    }
+
+    /* Input de cantidad y select de delegacion a ancho completo, sin recorte */
+    .form-row-alo-p1 .form-control,
+    .form-row-alo-p2 .form-control,
+    input[id^="cantidad-alo-"],
+    select[id^="delegacion-alo-"] {
+        width: 100% !important;
+        max-width: 100%;
+        min-width: 0;
+        height: 46px;
+        font-size: 17px;
+        line-height: 1.3;
+        padding: 10px 12px;
+        box-sizing: border-box;
+        text-overflow: clip;
+    }
+
+    /* Numero con spinner visible y sin recorte del valor */
+    input[id^="cantidad-alo-"]::-webkit-outer-spin-button,
+    input[id^="cantidad-alo-"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[id^="cantidad-alo-"] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
+
+    select[id^="delegacion-alo-"] {
+        padding-right: 30px;
+        text-align: left;
+    }
+}
+
+/* ==========================================================================
+   Boton X de cerrar (modales de Visita y Alojamiento)
+   - flex-shrink: 0 para que no se deforme en ovalo cuando el titulo aprieta
+   - sin hover "pegado" al tocar en pantallas tactiles
+   ========================================================================== */
+.close-modal {
+    flex: 0 0 auto;
+    min-width: 40px;
+    min-height: 40px;
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: none), (max-width: 768px) {
+    .close-modal:hover,
+    .modal.dyn .modal-header .close-modal:hover {
+        background-color: transparent;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .close-modal:active {
+        transform: scale(0.94);
+    }
 }
