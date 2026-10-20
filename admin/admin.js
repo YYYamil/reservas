@@ -361,7 +361,7 @@
   function cargarReservas() {
     var params = parametrosFiltro();
 
-    ui.grilla.innerHTML = '<tr><td colspan="13" class="cargando">Cargando...</td></tr>';
+    ui.grilla.innerHTML = '<tr><td colspan="14" class="cargando">Cargando...</td></tr>';
     llamar('adminReservas', params).then(function (j) {
       var lista = esLector
         ? j.reservas.filter(function (r) { return r.estado === 'Confirmado'; })
@@ -382,6 +382,7 @@
           '<td>' + esc(r.responsable) + '</td>' +
           '<td>' + esc(r.dni) + '</td>' +
           '<td>' + esc(r.contacto) + '</td>' +
+          '<td>' + esc(r.email) + '</td>' +
           '<td>' + esc(r.cantidad) + '</td>' +
           '<td class="col-detalle">' + esc(detalle(r)) + '</td>' +
           (esLector
@@ -392,7 +393,7 @@
           '</tr>';
       }).join('');
     }).catch(function (e) {
-      ui.grilla.innerHTML = '<tr><td colspan="13" class="error">' + esc(e.message || 'Error') + '</td></tr>';
+      ui.grilla.innerHTML = '<tr><td colspan="14" class="error">' + esc(e.message || 'Error') + '</td></tr>';
     });
   }
 
@@ -433,7 +434,7 @@ ui.btnActualizar.addEventListener('click', function () {
     cargarReservas();
   });
 
-  var CABECERAS = ['ID', 'Modalidad', 'Trámite', 'Albergue', 'Institución', 'Responsable', 'DNI', 'Contacto', 'Cant.', 'Detalle', 'Estado', 'Modif. por', 'Modif. el', 'Origen', 'Observaciones'];
+  var CABECERAS = ['ID', 'Modalidad', 'Trámite', 'Albergue', 'Institución', 'Responsable', 'DNI', 'Contacto', 'Email', 'Cant.', 'Detalle', 'Estado', 'Modif. por', 'Modif. el', 'Origen', 'Observaciones'];
 
   function exportarExcel() {
     if (typeof XLSX === 'undefined') {
@@ -449,7 +450,7 @@ ui.btnActualizar.addEventListener('click', function () {
       j.reservas.forEach(function (r) {
         filas.push([
           r.id_reserva, r.modalidad, r.created_at, r.albergue, r.institucion,
-          r.responsable, r.dni, r.contacto, r.cantidad, detalle(r), r.estado,
+          r.responsable, r.dni, r.contacto, r.email, r.cantidad, detalle(r), r.estado,
           esLector ? '' : (r.estado_modificado_por || ''),
           r.estado_modificado_at || '', r.estado_origen || '', r.observaciones
         ]);
@@ -457,7 +458,7 @@ ui.btnActualizar.addEventListener('click', function () {
       var ws = XLSX.utils.aoa_to_sheet(filas);
       ws['!cols'] = [
         { wch: 6 }, { wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 32 },
-        { wch: 22 }, { wch: 13 }, { wch: 16 }, { wch: 6 }, { wch: 42 }, { wch: 13 },
+        { wch: 22 }, { wch: 13 }, { wch: 16 }, { wch: 26 }, { wch: 6 }, { wch: 42 }, { wch: 13 },
         { wch: 14 }, { wch: 18 }, { wch: 9 }, { wch: 32 }
       ];
       ws['!autofilter'] = {

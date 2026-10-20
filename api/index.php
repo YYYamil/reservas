@@ -66,7 +66,7 @@ function nuevoIdReserva(): int
 
 function alberguePorNombre(PDO $pdo, string $nombre): ?array
 {
-    $stmt = $pdo->prepare('SELECT id, clave, nombre, capacidad FROM albergues WHERE nombre = ?');
+    $stmt = $pdo->prepare('SELECT id, clave, nombre, capacidad, capacidad_visitas FROM albergues WHERE nombre = ?');
     $stmt->execute([$nombre]);
     $row = $stmt->fetch();
     return $row === false ? null : $row;
@@ -74,7 +74,7 @@ function alberguePorNombre(PDO $pdo, string $nombre): ?array
 
 function alberguePorClave(PDO $pdo, string $clave): ?array
 {
-    $stmt = $pdo->prepare('SELECT id, clave, nombre, capacidad FROM albergues WHERE clave = ?');
+    $stmt = $pdo->prepare('SELECT id, clave, nombre, capacidad, capacidad_visitas FROM albergues WHERE clave = ?');
     $stmt->execute([$clave]);
     $row = $stmt->fetch();
     return $row === false ? null : $row;
@@ -84,24 +84,23 @@ function alberguePorClave(PDO $pdo, string $clave): ?array
  * Capacidad y cantidad ocupada de visita diaria para una fecha y albergue.
  * La disponibilidad se deriva siempre de las reservas existentes
  * (solo las que consumen capacidad: pernocta = 'Sí').
+ * Usa capacidad_visitas (separada de la capacidad de alojamiento).
  */
 function capacidadYOcupadosVisitas(PDO $pdo, int $albergueId, string $fecha): array
 {
-    $sql = 'SELECT al.capacidad,
+    $sql = 'SELECT COALESCE(al.capacidad_visitas, al.capacidad) AS capacidad,
                    COALESCE(SUM(r.cantidad), 0) AS ocupados
             FROM albergues al
             LEFT JOIN reservas_visitas r
               ON r.albergue_id = al.id
              AND r.fecha_ingreso = :fecha
-             AND r.pernocta = :pernocta
              AND r.estado <> \'Cancelado\'
             WHERE al.id = :albergue
-            GROUP BY al.id';
+            GROUP BY al.id, al.capacidad_visitas, al.capacidad';
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         'fecha'    => $fecha,
-        'pernocta' => 'Sí',
         'albergue' => $albergueId,
     ]);
 
@@ -121,11 +120,12 @@ function capacidadYOcupadosAlojamiento(PDO $pdo, int $albergueId, string $fecha)
     $sql = 'SELECT al.capacidad,
                    COALESCE(SUM(d.cantidad), 0) AS ocupados
             FROM albergues al
-            LEFT JOIN reserva_alojamiento_dias d ON d.fecha = :fecha
             LEFT JOIN reservas_alojamiento r
-              ON r.id = d.reserva_id
-             AND r.albergue_id = al.id
+              ON r.albergue_id = al.id
              AND r.estado <> \'Cancelado\'
+            LEFT JOIN reserva_alojamiento_dias d
+              ON d.reserva_id = r.id
+             AND d.fecha = :fecha
             WHERE al.id = :albergue
             GROUP BY al.id';
 
@@ -155,69 +155,49 @@ function respuestaDisponibilidad(string $fecha, string $albergue, int $capacidad
 }
 
 /**
- * Espejo de solo lectura para las planillas de Google (opción "pull"):
- * devuelve las reservas en las columnas exactas que definió el usuario.
- * Si hay espejo_token configurado, exige ?token= compatible.
+ * Camas libres de alojamiento para cada día de un mes.
+ * Devuelve un mapa ['YYYY-MM-DD' => libres] con todos los días del mes.
+ * El frontend lo usa para dibujar el badge verde con la cantidad de camas
+ * disponibles en cada día del calendario de alojamiento.
  */
-function espejoDatos(PDO $pdo, string $tipo): void
+function disponibilidadLibresMesAlojamiento(PDO $pdo, int $albergueId, int $capacidad, int $anio, int $mes): array
 {
-    global $config;
-    $tokenEsperado = (string) ($config['espejo_token'] ?? '');
-    if ($tokenEsperado !== '' && (string) ($_GET['token'] ?? '') !== $tokenEsperado) {
-        responder(['success' => false, 'mensaje' => 'No autorizado'], 403);
-    }
+    $primerDia = sprintf('%04d-%02d-01', $anio, $mes);
+    $ultimoDia = date('Y-m-t', strtotime($primerDia));
 
-    if ($tipo === 'visitas') {
-        $columnas = [
-            'id_Reserva', 'Fecha de Tramite', 'Albergue', 'Institución/Delegación',
-            'Responsable', 'DNI', 'Contacto', 'Cantidad de Personas',
-            'Fecha de Ingreso', 'Hora de Ingreso', 'Hora de Egreso',
-        ];
-        $sql = 'SELECT r.id_reserva,
-                       r.created_at,
-                       al.nombre,
-                       r.institucion,
-                       r.responsable,
-                       r.dni,
-                       r.contacto,
-                       r.cantidad,
-                       r.fecha_ingreso,
-                       r.hora_ingreso,
-                       r.hora_egreso
-                FROM reservas_visitas r
-                JOIN albergues al ON al.id = r.albergue_id
-                ORDER BY r.created_at, r.id';
-    } else {
-        $columnas = [
-            'id_Reserva', 'Fecha Creación', 'Albergue', 'Institución',
-            'Nombre Responsable', 'DNI Responsable', 'Contacto',
-            'Cantidad Camas Reservadas', 'Dias de estadía',
-        ];
-        $sql = 'SELECT r.id_reserva,
-                       r.created_at,
-                       al.nombre,
-                       r.institucion,
-                       r.responsable,
-                       r.dni,
-                       r.contacto,
-                       r.cantidad,
-                       (SELECT COUNT(*) FROM reserva_alojamiento_dias d
-                         WHERE d.reserva_id = r.id) AS dias
-                FROM reservas_alojamiento r
-                JOIN albergues al ON al.id = r.albergue_id
-                ORDER BY r.created_at, r.id';
-    }
+    $sql = 'SELECT d.fecha::text AS fecha,
+                   COALESCE(SUM(d.cantidad), 0) AS ocupados
+            FROM reserva_alojamiento_dias d
+            JOIN reservas_alojamiento r
+              ON r.id = d.reserva_id
+             AND r.albergue_id = :albergue
+             AND r.estado <> \'Cancelado\'
+            WHERE d.fecha BETWEEN :desde AND :hasta
+            GROUP BY d.fecha';
 
-    $filas = [];
-    foreach ($pdo->query($sql)->fetchAll(PDO::FETCH_NUM) as $fila) {
-        $filas[] = array_map(static fn ($v) => $v === null ? '' : (string) $v, $fila);
-    }
-
-    responder([
-        'success'  => true,
-        'columnas' => $columnas,
-        'filas'    => $filas,
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        'albergue' => $albergueId,
+        'desde'    => $primerDia,
+        'hasta'    => $ultimoDia,
     ]);
+
+    $ocupadosPorDia = [];
+    foreach ($stmt->fetchAll() as $fila) {
+        $ocupadosPorDia[$fila['fecha']] = (int) $fila['ocupados'];
+    }
+
+    $dias = [];
+    $cursor = strtotime($primerDia);
+    $fin = strtotime($ultimoDia);
+    while ($cursor <= $fin) {
+        $iso = date('Y-m-d', $cursor);
+        $ocupados = $ocupadosPorDia[$iso] ?? 0;
+        $dias[$iso] = max(0, $capacidad - $ocupados);
+        $cursor = strtotime('+1 day', $cursor);
+    }
+
+    return $dias;
 }
 
 /**
@@ -281,7 +261,7 @@ function whereAlberguesPermitidos(string $prefijo = ''): string
 function albergueCompleto(PDO $pdo, int $id): array
 {
     $st = $pdo->prepare(
-        'SELECT id, clave, nombre, capacidad, descripcion, habilitado, color, mapa, pdf
+        'SELECT id, clave, nombre, capacidad, capacidad_visitas, descripcion, habilitado, color, mapa, pdf
          FROM albergues WHERE id = ?'
     );
     $st->execute([$id]);
@@ -475,6 +455,7 @@ try {
             $responsable    = trim(parametro('responsable'));
             $dni            = trim(parametro('dni'));
             $contacto       = trim(parametro('contacto'));
+            $email          = trim(parametro('email'));
             $cantidad       = (int) parametro('cantidad');
             $fechaIngreso   = trim(parametro('fechaIngreso'));
             $horaIngreso    = trim(parametro('horaIngreso'));
@@ -482,9 +463,12 @@ try {
             $pernoctaRaw    = strtolower(trim(parametro('pernocta', 'false')));
 
             if ($albergueNombre === '' || $institucion === '' || $responsable === ''
-                || $dni === '' || $contacto === '' || $fechaIngreso === ''
+                || $dni === '' || $contacto === '' || $email === '' || $fechaIngreso === ''
                 || $horaIngreso === '' || $horaEgreso === '') {
                 responder(['success' => false, 'message' => 'Complete todos los campos']);
+            }
+            if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+                responder(['success' => false, 'message' => 'Email inválido']);
             }
             if ($cantidad <= 0) {
                 responder(['success' => false, 'message' => 'Cantidad inválida']);
@@ -498,7 +482,8 @@ try {
                 || in_array($pernoctaRaw, ['true', '1', 'sí', 'si'], true);
 
             $alb = alberguePorNombre($pdo, $albergueNombre);
-            if ($alb === null || (int) $alb['capacidad'] <= 0) {
+            $capacidadMaxVis = (int) ($alb['capacidad_visitas'] ?? $alb['capacidad']);
+            if ($alb === null || $capacidadMaxVis <= 0) {
                 responder(['success' => false, 'message' => 'Albergue no configurado']);
             }
 
@@ -513,25 +498,29 @@ try {
             try {
                 if ($esPernocta) {
                     [$capacidad, $ocupados] = capacidadYOcupadosVisitas($pdo, (int) $alb['id'], $fechaIngreso);
-                    if ((int) $alb['capacidad'] - $ocupados - $cantidad < 0) {
+                    if ($capacidadMaxVis - $ocupados - $cantidad < 0) {
                         $pdo->rollBack();
                         responder(['success' => false]); // mismo comportamiento que Apps Script: sin mensaje
                     }
                 }
 
+                $codigoPublico = generarCodigoPublico($pdo);
+
                 $stmt = $pdo->prepare(
                     'INSERT INTO reservas_visitas
-                        (id_reserva, albergue_id, institucion, responsable, dni, contacto,
+                        (id_reserva, codigo_publico, albergue_id, institucion, responsable, dni, contacto, email,
                          cantidad, fecha_ingreso, hora_ingreso, hora_egreso, pernocta, estado, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
                 );
                 $stmt->execute([
                     $nuevoId,
+                    $codigoPublico,
                     $alb['id'],
                     $institucion,
                     $responsable,
                     $dni,
                     $contacto,
+                    $email,
                     $cantidad,
                     $fechaIngreso,
                     $horaIngreso,
@@ -542,14 +531,20 @@ try {
                 ]);
 
                 $pdo->commit();
+                responder([
+                    'success'       => true,
+                    'idReserva'     => $nuevoId,
+                    'codigoPublico' => $codigoPublico,
+                    'codigo_publico'=> $codigoPublico,
+                    'modalidad'     => 'visita',
+                    'mensaje'       => 'Reserva creada correctamente',
+                ]);
             } catch (Throwable $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
                 }
                 throw $e;
             }
-
-            responder(['success' => true, 'idReserva' => $nuevoId]);
             break;
 
         // ---------- Cancelar reserva (visita o alojamiento) ----------
@@ -563,19 +558,48 @@ try {
 
             $pdo->beginTransaction();
             try {
-                // 1) Buscar en reservas de visita
-                $stmt = $pdo->prepare('SELECT id, estado FROM reservas_visitas WHERE id_reserva = ? AND dni = ?');
+                // 1) Buscar por codigo_publico primero (identificador global)
+                $stmt = $pdo->prepare('SELECT id, estado FROM reservas_visitas WHERE codigo_publico = ? AND dni = ?');
                 $stmt->execute([$idRaw, $dniR]);
                 $visitas = $stmt->fetchAll();
 
                 if ($visitas) {
+                    $up = $pdo->prepare('UPDATE reservas_visitas SET estado = \'Cancelado\' WHERE codigo_publico = ? AND dni = ?');
+                    $up->execute([$idRaw, $dniR]);
+                    $pdo->commit();
+                    responder(['success' => true, 'message' => 'Reserva cancelada correctamente']);
+                }
+
+                $stmt = $pdo->prepare(
+                    'SELECT ra.id,
+                            ra.estado,
+                            (SELECT COUNT(*) FROM reserva_alojamiento_dias d
+                              WHERE d.reserva_id = ra.id) AS dias
+                     FROM reservas_alojamiento ra
+                     WHERE ra.codigo_publico = ? AND ra.dni = ?'
+                );
+                $stmt->execute([$idRaw, $dniR]);
+                $alo = $stmt->fetchAll();
+
+                if ($alo) {
+                    $upAlo = $pdo->prepare('UPDATE reservas_alojamiento SET estado = \'Cancelado\' WHERE codigo_publico = ? AND dni = ?');
+                    $upAlo->execute([$idRaw, $dniR]);
+                    $pdo->commit();
+                    responder(['success' => true, 'message' => 'Reserva cancelada correctamente']);
+                }
+
+                // 2) Fallback: compatibilidad con id_reserva + dni (form actual)
+                $stmt = $pdo->prepare('SELECT id, estado FROM reservas_visitas WHERE id_reserva = ? AND dni = ?');
+                $stmt->execute([$idRaw, $dniR]);
+                $visitas2 = $stmt->fetchAll();
+
+                if ($visitas2) {
                     $up = $pdo->prepare('UPDATE reservas_visitas SET estado = \'Cancelado\' WHERE id_reserva = ? AND dni = ?');
                     $up->execute([$idRaw, $dniR]);
                     $pdo->commit();
                     responder(['success' => true, 'message' => 'Reserva cancelada correctamente']);
                 }
 
-                // 2) Si no existe en visitas, buscar en alojamiento
                 $stmt = $pdo->prepare(
                     'SELECT ra.id,
                             ra.estado,
@@ -585,9 +609,9 @@ try {
                      WHERE ra.id_reserva = ? AND ra.dni = ?'
                 );
                 $stmt->execute([$idRaw, $dniR]);
-                $alo = $stmt->fetchAll();
+                $alo2 = $stmt->fetchAll();
 
-                if (!$alo) {
+                if (!$alo2) {
                     $pdo->rollBack();
                     responder(['success' => false, 'message' => 'No se encontró una reserva con ese número y DNI']);
                 }
@@ -627,6 +651,36 @@ try {
             respuestaDisponibilidad($fecha, $albergue, $capacidad, $ocupados);
             break;
 
+        // ---------- Disponibilidad de alojamiento por mes (badge de camas) ----------
+        case 'disponibilidadAlojamientoMes':
+            $albergue = trim(parametro('albergue'));
+            $anio     = (int) parametro('anio');
+            $mes      = (int) parametro('mes');
+
+            if ($albergue === '') {
+                responder(['success' => false, 'message' => 'Albergue inválido']);
+            }
+            if ($anio < 2000 || $anio > 2100 || $mes < 1 || $mes > 12) {
+                responder(['success' => false, 'message' => 'Mes o año inválido']);
+            }
+
+            $alb = alberguePorNombre($pdo, $albergue);
+            if ($alb === null) {
+                responder(['success' => false, 'message' => "Albergue no encontrado: {$albergue}"]);
+            }
+
+            $dias = disponibilidadLibresMesAlojamiento($pdo, (int) $alb['id'], (int) $alb['capacidad'], $anio, $mes);
+
+            responder([
+                'success'   => true,
+                'albergue'  => $albergue,
+                'anio'      => $anio,
+                'mes'       => $mes,
+                'capacidad' => (int) $alb['capacidad'],
+                'dias'      => $dias,
+            ]);
+            break;
+
         // ---------- Crear reserva de alojamiento ----------
         case 'crearReservaAlojamiento':
             $albergueNombre = trim(parametro('albergue'));
@@ -634,6 +688,7 @@ try {
             $responsable    = trim(parametro('responsable'));
             $dni            = trim(parametro('dni'));
             $contacto       = trim(parametro('contacto'));
+            $email          = trim(parametro('email'));
             $cantidad       = (int) parametro('cantidad');
             $rangoStr       = trim(parametro('rangoFechas'));
 
@@ -648,8 +703,11 @@ try {
                 }
             }
 
-            if ($institucion === '' || $responsable === '' || $dni === '' || $contacto === '') {
+            if ($institucion === '' || $responsable === '' || $dni === '' || $contacto === '' || $email === '') {
                 responder(['success' => false, 'message' => 'Complete todos los campos']);
+            }
+            if (filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+                responder(['success' => false, 'message' => 'Email inválido']);
             }
             if ($cantidad <= 0) {
                 responder(['success' => false, 'message' => 'Capacidad inválida']);
@@ -685,19 +743,23 @@ try {
                     }
                 }
 
+                $codigoPublico = generarCodigoPublico($pdo);
+
                 $stmt = $pdo->prepare(
                     'INSERT INTO reservas_alojamiento
-                        (id_reserva, albergue_id, institucion, responsable, dni, contacto,
+                        (id_reserva, codigo_publico, albergue_id, institucion, responsable, dni, contacto, email,
                          cantidad, rango_fechas, estado, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
                 );
                 $stmt->execute([
                     $nuevoId,
+                    $codigoPublico,
                     $alb['id'],
                     $institucion,
                     $responsable,
                     $dni,
                     $contacto,
+                    $email,
                     $cantidad,
                     $rangoCSV,
                     'Pre-Reserva',
@@ -713,6 +775,14 @@ try {
                 }
 
                 $pdo->commit();
+                responder([
+                    'success'        => true,
+                    'idReserva'      => $nuevoId,
+                    'codigoPublico'  => $codigoPublico,
+                    'codigo_publico' => $codigoPublico,
+                    'modalidad'      => 'alojamiento',
+                    'mensaje'        => 'Reserva creada correctamente',
+                ]);
             } catch (Throwable $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -1289,15 +1359,6 @@ try {
             responder(['success' => true, 'ruta' => 'Img/albergues/' . $clave . '/' . $nombreFinal]);
             break;
 
-        // ---------- Espejo para Google Sheets (vista de solo lectura) ----------
-        case 'espejoVisitas':
-            espejoDatos($pdo, 'visitas');
-            break;
-
-        case 'espejoAlojamiento':
-            espejoDatos($pdo, 'alojamiento');
-            break;
-
         // ---------- Acción desconocida ----------
         default:
             responder(['success' => false, 'message' => 'Acción no válida']);
@@ -1305,4 +1366,11 @@ try {
 } catch (Throwable $e) {
     error_log('[med_albergues] ' . $e->getMessage() . ' @ ' . $e->getFile() . ':' . $e->getLine());
     responder(['success' => false, 'message' => 'Error en el servidor']);
+}
+function generarCodigoPublico(PDO $pdo): string
+{
+    $stmt = $pdo->prepare("SELECT 'R-' || LPAD(nextval('reserva_publica_seq')::text, 6, '0') AS codigo");
+    $stmt->execute();
+    $row = $stmt->fetch();
+    return (string) $row['codigo'];
 }

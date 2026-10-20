@@ -7,9 +7,6 @@ declare(strict_types=1);
  * Ajustes:
  *  - db_*: datos de conexión a PostgreSQL
  *  - timezone: zona horaria del servidor (se usa para los timestamps)
- *  - espejo_token: clave compartida opcional para proteger los endpoints
- *    espejoVisitas / espejoAlojamiento. Si queda vacía, se exponen sin clave
- *    (solo para desarrollo). Los scripts de Google deben enviarla como 'token'.
  *
  * Las credenciales del panel viven en la tabla `usuarios` (rol super_admin/admin/lector);
  * el primer super_admin se crea con el script de instalación.
@@ -26,7 +23,6 @@ $config = [
 
     // --- General ---
     'timezone'    => 'America/Argentina/Tucuman',
-    'espejo_token' => '',
 ];
 
 // Configuración por ambiente: si existe config.local.php (ignorada por git),

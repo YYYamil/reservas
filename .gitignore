@@ -3,7 +3,6 @@
 # Migración desde Google Sheets y herramientas de migración a PostgreSQL
 /migracion/
 /migrar postgresql/
-/espejo/
 
 # Bases de datos SQLite legacy
 *.sqlite

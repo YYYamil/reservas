@@ -340,6 +340,11 @@ function htmlModalVisita(a) {
           </div>
 
           <div class="form-group">
+            <label for="email-${k}">Correo electrónico</label>
+            <input type="email" id="email-${k}" class="form-control" required placeholder="Ej: nombre@correo.com">
+          </div>
+
+          <div class="form-group">
             <label for="cantidad-${k}">Cantidad de Personas</label>
             <input type="number" id="cantidad-${k}" class="form-control" min="1" required>
           </div>
@@ -383,6 +388,7 @@ function htmlModalVisita(a) {
     <p class="terms-description">
       Al marcar esta casilla, usted declara haber leído,
       comprendido y aceptado las condiciones establecidas en el uso y reglamento de cada albergue.
+      El correo electrónico ingresado se utilizará para enviarle las notificaciones de su reserva.
     </p>
 
   </div>
@@ -535,6 +541,11 @@ function htmlModalAlojamiento(a) {
                         <input type="text" id="numero-alo-${k}" class="form-control phone-part numero" maxlength="7" placeholder="500600" required pattern="\\d{6,7}">
                         <input type="hidden" id="contacto-alo-${k}">
                       </div>
+                    </div>
+
+                    <div class="form-group">
+                      <label for="email-alo-${k}">Correo electrónico</label>
+                      <input type="email" id="email-alo-${k}" class="form-control" required placeholder="Ej: nombre@correo.com">
                     </div>
 
                     <!-- Aceptación de Uso y Reglamento -->
@@ -768,8 +779,12 @@ function handleFormSubmit(e) {
 async function submitForm(albergue) {
   const formData = getFormData(albergue);
   if (!formData.institucion || !formData.responsable || !formData.dni || !formData.contacto ||
-      !formData.cantidad || !formData.fechaIngreso || !formData.horaIngreso || !formData.horaEgreso) {
+      !formData.email || !formData.cantidad || !formData.fechaIngreso || !formData.horaIngreso || !formData.horaEgreso) {
     alert("Por favor, complete todos los campos del formulario.");
+    return;
+  }
+  if (!esEmailValido(formData.email)) {
+    alert("Por favor, ingrese un correo electrónico válido.");
     return;
   }
 
@@ -809,6 +824,7 @@ function getFormData(albergue) {
     responsable: document.getElementById(`responsable-${albergue}`).value.trim(),
     dni: document.getElementById(`dni-${albergue}`).value.trim(),
     contacto: document.getElementById(`contacto-${albergue}`).value.trim(),
+    email: document.getElementById(`email-${albergue}`).value.trim().toLowerCase(),
     cantidad: document.getElementById(`cantidad-${albergue}`).value,
     fechaIngreso: document.getElementById(`fechaIngreso-${albergue}`).value,
     horaIngreso: document.getElementById(`horaIngreso-${albergue}`).value,
@@ -826,6 +842,7 @@ function mostrarConfirmacion(albergue, formData, idReserva) {
     <p><strong>Responsable:</strong> ${esc(formData.responsable)}</p>
     <p><strong>DNI:</strong> ${esc(formData.dni)}</p>
     <p><strong>Contacto:</strong> ${esc(formData.contacto)}</p>
+    <p><strong>Email:</strong> ${esc(formData.email)}</p>
     <p><strong>Cantidad de personas:</strong> ${esc(formData.cantidad)}</p>
     <p><strong>Fecha de ingreso:</strong> ${esc(formData.fechaIngreso)}</p>
     <p><strong>Hora de ingreso:</strong> ${esc(formData.horaIngreso)}</p>
@@ -1075,6 +1092,7 @@ async function enviarReservaAGoogleSheets(data) {
       responsable: data.responsable,
       dni: data.dni,
       contacto: data.contacto,
+      email: data.email,
       cantidad: parseInt(data.cantidad, 10),
       fechaIngreso: data.fechaIngreso,
       horaIngreso: data.horaIngreso,
@@ -1297,6 +1315,10 @@ function sanitizeTelefono(v) {
   return v.replace(/\D/g, '');
 }
 
+function esEmailValido(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v || '').trim());
+}
+
 function setupFieldGuards() {
   // Responsable: solo letras y espacios
   document.querySelectorAll('input[id^="responsable-"]').forEach(el => {
@@ -1309,6 +1331,18 @@ function setupFieldGuards() {
     el.addEventListener('blur', () => {
       const ok = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:\s+[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)+$/.test(el.value.trim());
       el.setCustomValidity(ok ? '' : 'Ingrese nombre y apellido solo con letras.');
+    });
+  });
+
+  // Email: normaliza a minúsculas y valida estructura
+  document.querySelectorAll('input[id^="email-"]').forEach(el => {
+    el.addEventListener('input', () => {
+      el.setCustomValidity('');
+    });
+    el.addEventListener('blur', () => {
+      const v = el.value.trim().toLowerCase();
+      el.value = v;
+      el.setCustomValidity(v === '' || esEmailValido(v) ? '' : 'Ingrese un correo electrónico válido.');
     });
   });
 
@@ -1617,6 +1651,10 @@ async function submitFormAlo(albergue) {
       showSnackbar?.("Complete cantidad, institución y seleccione un rango válido.", 'error', 4000);
       return;
     }
+    if (!formData.email || !esEmailValido(formData.email)) {
+      showSnackbar?.("Ingrese un correo electrónico válido.", 'error', 4000);
+      return;
+    }
 
     const btn = getSubmitButtonAlo(albergue);
     if (!btn) {
@@ -1688,6 +1726,7 @@ function getFormDataAlo(albergue) {
     responsable: (document.getElementById(`responsable-alo-${albergue}`) || {}).value.trim() || '',
     dni: (document.getElementById(`dni-alo-${albergue}`) || {}).value.trim() || '',
     contacto: (document.getElementById(`contacto-alo-${albergue}`) || {}).value.trim() || '',
+    email: ((document.getElementById(`email-alo-${albergue}`) || {}).value || '').trim().toLowerCase(),
     cantidad,
     range: estado.range || []
   };
@@ -1702,6 +1741,7 @@ function mostrarConfirmacionAlo(albergue, formData, idReserva) {
     <p><strong>Responsable:</strong> ${esc(formData.responsable)}</p>
     <p><strong>DNI:</strong> ${esc(formData.dni)}</p>
     <p><strong>Contacto:</strong> ${esc(formData.contacto)}</p>
+    <p><strong>Email:</strong> ${esc(formData.email)}</p>
     <p><strong>Cantidad de camas:</strong> ${esc(String(formData.cantidad))}</p>
     <p><strong>Fechas reservadas:</strong> ${esc(formData.range.map(r => r).join(', '))}</p>
     <div class="confirmacion-alerta"><strong>Para confirmar la reserva, llamar al:</strong><br><span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
@@ -2034,7 +2074,7 @@ function resetFormAlo(albergue) {
   const hidden = document.getElementById(`delegacion-hidden-alo-${albergue}`);
   if (hidden) hidden.value = '';
 
-  ['institucion', 'responsable', 'dni', 'contacto'].forEach(c => {
+  ['institucion', 'responsable', 'dni', 'contacto', 'email'].forEach(c => {
     const el = document.getElementById(`${c}-alo-${albergue}`);
     if (el) { el.value = ''; el.disabled = false; el.classList.remove('disabled'); }
   });
@@ -2294,6 +2334,7 @@ async function enviarReservaAlojamientoAGoogleSheets(formData) {
   params.append('responsable', formData.responsable);
   params.append('dni', formData.dni);
   params.append('contacto', formData.contacto);
+  params.append('email', formData.email);
   params.append('cantidad', formData.cantidad);
   params.append('rangoFechas', formData.range.join(','));
 
@@ -2620,7 +2661,7 @@ function disableStepAlo(albergue, pasoNum) {
       break;
 
     case 4:
-      ['institucion', 'responsable', 'dni', 'contacto'].forEach(campo => {
+      ['institucion', 'responsable', 'dni', 'contacto', 'email'].forEach(campo => {
         const el = document.getElementById(`${campo}-alo-${albergue}`);
         if (el) el.disabled = true;
       });
@@ -2657,7 +2698,7 @@ function enableStepAlo(albergue, pasoNum) {
       break;
 
     case 4:
-      ['institucion', 'responsable', 'dni', 'contacto'].forEach(campo => {
+      ['institucion', 'responsable', 'dni', 'contacto', 'email'].forEach(campo => {
         const el = document.getElementById(`${campo}-alo-${albergue}`);
         if (el) el.disabled = false;
       });
@@ -2714,8 +2755,9 @@ function setupPasoListenersAlo(albergue) {
       const resp = document.getElementById(`responsable-alo-${albergue}`)?.value.trim();
       const dni = document.getElementById(`dni-alo-${albergue}`)?.value.trim();
       const cont = document.getElementById(`contacto-alo-${albergue}`)?.value.trim();
+      const mail = document.getElementById(`email-alo-${albergue}`)?.value.trim();
 
-      if (inst && resp && dni && cont) {
+      if (inst && resp && dni && cont && mail) {
         completePasoAlo(albergue, 4);
       }
 

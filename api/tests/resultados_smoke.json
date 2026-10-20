@@ -1,0 +1,167 @@
+{
+    "fecha": "2026-10-20 07:28:56",
+    "pass": 32,
+    "fail": 0,
+    "checks": [
+        {
+            "test": "Servidor local responde",
+            "ok": true,
+            "detalle": ""
+        },
+        {
+            "test": "1. listarAlbergues devuelve 3 albergues",
+            "ok": true,
+            "detalle": "recibidos=3"
+        },
+        {
+            "test": "2. albergues exponen ambas capacidades",
+            "ok": true,
+            "detalle": "capacidad=92 capacidad_visitas=150"
+        },
+        {
+            "test": "3. crearReserva (visita) responde success",
+            "ok": true,
+            "detalle": "{\"success\":true,\"idReserva\":3239,\"codigoPublico\":\"R-000001\",\"codigo_publico\":\"R-000001\",\"modalidad\":\"visita\",\"mensaje\":\"Reserva creada correctamente\"}"
+        },
+        {
+            "test": "4. visita devuelve codigo publico unico",
+            "ok": true,
+            "detalle": "codigo=R-000001"
+        },
+        {
+            "test": "5. codigo de visita = R-000001 (secuencia global desde 1)",
+            "ok": true,
+            "detalle": "codigo=R-000001"
+        },
+        {
+            "test": "6. codigo persistido en reservas_visitas",
+            "ok": true,
+            "detalle": "pk=1"
+        },
+        {
+            "test": "7. email persistido en la reserva de visita",
+            "ok": true,
+            "detalle": "email=smoke.visita@example.com"
+        },
+        {
+            "test": "8. visita sin email es rechazada",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"Complete todos los campos\"}"
+        },
+        {
+            "test": "9. crearReservaAlojamiento responde success",
+            "ok": true,
+            "detalle": "{\"success\":true,\"idReserva\":5544,\"codigoPublico\":\"R-000002\",\"codigo_publico\":\"R-000002\",\"modalidad\":\"alojamiento\",\"mensaje\":\"Reserva creada correctamente\"}"
+        },
+        {
+            "test": "10. alojamiento comparte MISMA secuencia (R-000002)",
+            "ok": true,
+            "detalle": "codigo=R-000002"
+        },
+        {
+            "test": "11. NO hay ambiguedad: codigos distintos entre modalidades",
+            "ok": true,
+            "detalle": "visita=R-000001 alo=R-000002"
+        },
+        {
+            "test": "12. codigo persistido en reservas_alojamiento",
+            "ok": true,
+            "detalle": "pk=1"
+        },
+        {
+            "test": "13. reservas de alojamiento generan 3 dias",
+            "ok": true,
+            "detalle": "dias=3"
+        },
+        {
+            "test": "14. disponibilidad visitas usa capacidad_visitas=150",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-10\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":5,\"disponibles\":145}"
+        },
+        {
+            "test": "15. ocupados visitas refleja la reserva activa (5)",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-10\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":5,\"disponibles\":145}"
+        },
+        {
+            "test": "16. disponibilidad alojamiento usa capacidad=92",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-15\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":2,\"disponibles\":90}"
+        },
+        {
+            "test": "17. ocupados alojamiento refleja la reserva activa (2)",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-15\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":2,\"disponibles\":90}"
+        },
+        {
+            "test": "18. cancelar por CODIGO PUBLICO + DNI funciona",
+            "ok": true,
+            "detalle": "{\"success\":true,\"message\":\"Reserva cancelada correctamente\"}"
+        },
+        {
+            "test": "19. alojamiento quedo en estado Cancelado",
+            "ok": true,
+            "detalle": "estado=Cancelado"
+        },
+        {
+            "test": "20. cancelar por NRO DE RESERVA + DNI (form actual) funciona",
+            "ok": true,
+            "detalle": "{\"success\":true,\"message\":\"Reserva cancelada correctamente\"}"
+        },
+        {
+            "test": "21. visita quedo en estado Cancelado",
+            "ok": true,
+            "detalle": "estado=Cancelado"
+        },
+        {
+            "test": "22. DNI incorrecto es rechazado (seguridad)",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"Error en el servidor\"}"
+        },
+        {
+            "test": "23. cancelar sin DNI es rechazado (2 campos obligatorios)",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"Faltan datos (ID o DNI)\"}"
+        },
+        {
+            "test": "24. cancelada -> cupo de visitas liberado (0)",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-10\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":0,\"disponibles\":150}"
+        },
+        {
+            "test": "25. cancelada -> cupo de alojamiento liberado (0)",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-15\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":0,\"disponibles\":92}"
+        },
+        {
+            "test": "26. v_reservas_todas expone codigo_publico",
+            "ok": true,
+            "detalle": "filas=2"
+        },
+        {
+            "test": "27. cero codigos repetidos entre modalidades",
+            "ok": true,
+            "detalle": "duplicados=0"
+        },
+        {
+            "test": "28. total de codigos = 2 reservas creadas",
+            "ok": true,
+            "detalle": "total=2"
+        },
+        {
+            "test": "29. form de cancelar conserva Nro de reserva + DNI",
+            "ok": true,
+            "detalle": "index.html sin cambios en el modal de cancelacion"
+        },
+        {
+            "test": "30. espejo de Google Sheets ya no existe",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"Acci\\u00f3n no v\\u00e1lida\"}"
+        },
+        {
+            "test": "31. BD de prueba limpiada (sin datos residuales)",
+            "ok": true,
+            "detalle": "TRUNCATE + secuencia reiniciada"
+        }
+    ]
+}
