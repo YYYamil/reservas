@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago y comprobante - Reserva de Albergues</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css?v=20261001c">
+    <link rel="shortcut icon" href="Img/icogob.png" type="image/x-icon">
+    <style>
+      .pago-wrap { max-width: 720px; margin: 2rem auto 4rem; padding: 0 1rem; }
+      .pago-card { background:#fff; border-radius:12px; box-shadow:0 4px 18px rgba(0,0,0,.08); padding:1.8rem; }
+      .pago-card h2 { color: var(--azul, #005CA2); margin-top:0; }
+      .pago-field { margin-bottom:1rem; }
+      .pago-field label { display:block; font-weight:500; margin-bottom:.35rem; }
+      .pago-field input[type=text], .pago-field input[type=file] {
+        width:100%; padding:.7rem .8rem; border:1px solid #ccc; border-radius:8px; font-size:1rem; box-sizing:border-box;
+      }
+      .pago-btn {
+        background: var(--azul, #005CA2); color:#fff; border:0; border-radius:8px;
+        padding:.8rem 1.4rem; font-size:1rem; font-weight:600; cursor:pointer;
+      }
+      .pago-btn:disabled { opacity:.6; cursor:default; }
+      .pago-msg { margin-top:1rem; padding:.9rem 1rem; border-radius:8px; font-weight:500; }
+      .pago-msg.ok { background:#e3f5e9; color:#1b7a3d; }
+      .pago-msg.err { background:#fdecea; color:#b3261e; }
+      .pago-help { color:#555; font-size:.92rem; }
+      .pago-monto { font-size:1.6rem; font-weight:700; color:#b30000; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <div class="header-content">
+            <div class="logo-container">
+                <div class="logo">
+                    <img src="Img/Blanco.png" alt="Ministerio de Educación de Tucumán">
+                </div>
+            </div>
+            <a href="index.html" class="reglamento-btn">Volver a inicio</a>
+        </div>
+    </div>
+</header>
+
+<div class="pago-wrap">
+  <div class="pago-card">
+    <h2>Pago y carga de comprobante</h2>
+    <p class="pago-help">
+      Ingresá el <strong>código de reserva</strong> que te enviamos por correo
+      y adjuntá el comprobante de transferencia o depósito (PDF, JPG o PNG; máx. 8&nbsp;MB).
+      Recordá que tenés <strong>7 días</strong> desde la pre-reserva para completar el pago.
+    </p>
+
+    <form id="pagoForm">
+      <div class="pago-field">
+        <label for="pago-codigo">Código de reserva</label>
+        <input type="text" id="pago-codigo" placeholder="Ej: R-000123" autocomplete="off" required>
+      </div>
+      <div class="pago-field">
+        <label for="pago-archivo">Comprobante</label>
+        <input type="file" id="pago-archivo" accept="application/pdf,image/jpeg,image/png" required>
+      </div>
+      <button type="submit" class="pago-btn" id="pagoBtn">Subir comprobante</button>
+    </form>
+
+    <div id="pagoMsg" class="pago-msg" hidden></div>
+  </div>
+</div>
+
+<footer>
+    <div class="container">
+        <div class="footer-content">
+            <img src="Img/3 - Blanco.png" alt="Logo Ministerio" class="footer-logo">
+            <div class="footer-text">
+                <p>© <span id="anioActual"></span> Ministerio de Educación de Tucumán. Todos los derechos reservados</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+document.getElementById('anioActual').textContent = new Date().getFullYear();
+
+const form = document.getElementById('pagoForm');
+const btn = document.getElementById('pagoBtn');
+const msg = document.getElementById('pagoMsg');
+
+function mostrar(texto, ok) {
+  msg.textContent = texto;
+  msg.className = 'pago-msg ' + (ok ? 'ok' : 'err');
+  msg.hidden = false;
+}
+
+form.addEventListener('submit', async function (ev) {
+  ev.preventDefault();
+
+  const codigo = document.getElementById('pago-codigo').value.trim().toUpperCase();
+  const archivo = document.getElementById('pago-archivo').files[0];
+
+  if (!codigo) {
+    mostrar('Ingresá el código de reserva.', false);
+    return;
+  }
+  if (!archivo) {
+    mostrar('Adjuntá el comprobante de pago.', false);
+    return;
+  }
+  if (archivo.size > 8 * 1024 * 1024) {
+    mostrar('El archivo supera los 8 MB.', false);
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append('action', 'subirComprobante');
+  fd.append('codigo', codigo);
+  fd.append('comprobante', archivo);
+
+  btn.disabled = true;
+  const original = btn.textContent;
+  btn.textContent = 'Subiendo…';
+  msg.hidden = true;
+
+  try {
+    const resp = await fetch('api/index.php', { method: 'POST', body: fd });
+    const json = await resp.json();
+    if (json && json.success) {
+      mostrar(json.mensaje || 'Comprobante recibido. El administrador lo verificará.', true);
+      form.reset();
+    } else {
+      mostrar((json && json.message) || 'No se pudo subir el comprobante.', false);
+    }
+  } catch (e) {
+    console.error(e);
+    mostrar('Error de conexión. Intente nuevamente.', false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = original;
+  }
+});
+</script>
+
+</body>
+</html>

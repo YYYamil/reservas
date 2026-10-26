@@ -19,6 +19,7 @@ declare(strict_types=1);
  */
 
 require __DIR__ . '/db.php';
+require __DIR__ . '/notificaciones.php';
 
 $config = require __DIR__ . '/config.php';
 date_default_timezone_set($config['timezone']);
@@ -66,7 +67,7 @@ function nuevoIdReserva(): int
 
 function alberguePorNombre(PDO $pdo, string $nombre): ?array
 {
-    $stmt = $pdo->prepare('SELECT id, clave, nombre, capacidad, capacidad_visitas FROM albergues WHERE nombre = ?');
+    $stmt = $pdo->prepare('SELECT id, clave, nombre, capacidad, capacidad_visitas, monto_visita, monto_cama FROM albergues WHERE nombre = ?');
     $stmt->execute([$nombre]);
     $row = $stmt->fetch();
     return $row === false ? null : $row;
@@ -74,7 +75,7 @@ function alberguePorNombre(PDO $pdo, string $nombre): ?array
 
 function alberguePorClave(PDO $pdo, string $clave): ?array
 {
-    $stmt = $pdo->prepare('SELECT id, clave, nombre, capacidad, capacidad_visitas FROM albergues WHERE clave = ?');
+    $stmt = $pdo->prepare('SELECT id, clave, nombre, capacidad, capacidad_visitas, monto_visita, monto_cama FROM albergues WHERE clave = ?');
     $stmt->execute([$clave]);
     $row = $stmt->fetch();
     return $row === false ? null : $row;
@@ -261,7 +262,8 @@ function whereAlberguesPermitidos(string $prefijo = ''): string
 function albergueCompleto(PDO $pdo, int $id): array
 {
     $st = $pdo->prepare(
-        'SELECT id, clave, nombre, capacidad, capacidad_visitas, descripcion, habilitado, color, mapa, pdf
+        'SELECT id, clave, nombre, capacidad, capacidad_visitas, descripcion, habilitado, color, mapa, pdf,
+                monto_visita, monto_cama
          FROM albergues WHERE id = ?'
     );
     $st->execute([$id]);
@@ -328,8 +330,12 @@ function urlMapaNormalizada(string $mapa): string
     ]);
     $body = @file_get_contents($m, false, $ctx);
     $final = $m;
-    if (isset($http_response_header)) {
-        foreach (array_reverse($http_response_header) as $cabecera) {
+    // PHP 8.5+ deprecó $http_response_header en favor de esta función.
+    $cabecerasHttp = function_exists('http_get_last_response_headers')
+        ? (http_get_last_response_headers() ?? [])
+        : ($http_response_header ?? []);
+    if ($cabecerasHttp !== []) {
+        foreach (array_reverse($cabecerasHttp) as $cabecera) {
             if (preg_match('/^Location:\s*(.+)$/i', $cabecera, $m2)) {
                 $final = trim($m2[1]);
                 if ($final !== '' && $final[0] === '/') {
@@ -412,7 +418,8 @@ $actionsAdmin = [
     'adminEstado', 'adminObservaciones',
     'adminUsuarios', 'adminUsuarioCrear', 'adminUsuarioEditar',
     'adminAlbergues', 'adminAlbergueCrear', 'adminAlbergueEditar', 'adminAlbergueSubirImagen',
-    'adminAlbergueSubirArchivo',
+    'adminAlbergueSubirArchivo', 'adminConfig', 'adminConfigGuardar',
+    'adminConfiguraciones', 'adminConfiguracionEditar', 'adminComprobante',
 ];
 if (in_array($action, $actionsAdmin, true)) {
     ini_set('session.use_strict_mode', '1');
@@ -488,6 +495,8 @@ try {
             }
 
             $nuevoId = nuevoIdReserva();
+            $montoVisita = (float) ($alb['monto_visita'] ?? 2000);
+            $montoTotal = $cantidad * $montoVisita;
 
             // Transacción con bloqueo de la fila del albergue (equivale al
             // BEGIN IMMEDIATE de SQLite): se revalida disponibilidad para
@@ -509,8 +518,9 @@ try {
                 $stmt = $pdo->prepare(
                     'INSERT INTO reservas_visitas
                         (id_reserva, codigo_publico, albergue_id, institucion, responsable, dni, contacto, email,
-                         cantidad, fecha_ingreso, hora_ingreso, hora_egreso, pernocta, estado, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                         cantidad, fecha_ingreso, hora_ingreso, hora_egreso, pernocta, estado, created_at,
+                         monto_total, pago_vence_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL \'7 days\')'
                 );
                 $stmt->execute([
                     $nuevoId,
@@ -528,14 +538,31 @@ try {
                     $esPernocta ? 'Sí' : 'No',
                     'Pre-Reserva',
                     date('Y-m-d H:i:s'),
+                    $montoTotal,
                 ]);
+                $reservaPkVis = (int) $pdo->lastInsertId();
+
+                // Notificación 1: detalle de la pre-reserva al cliente + aviso al
+                // administrador. Se encolan dentro de la transacción; el envío se
+                // intenta después del commit para no bloquear la operación.
+                $notifs = [];
+                $notifs[] = encolarNotificacion($pdo, 'visita', $reservaPkVis, 'creacion', $email, 'cliente', null, $config);
+                $mailAdmin = avisoAdminHabilitado($pdo, $config) ? configSistema($pdo, 'mail_admin') : '';
+                if ($mailAdmin !== '') {
+                    $notifs[] = encolarNotificacion($pdo, 'visita', $reservaPkVis, 'aviso_admin', $mailAdmin, 'admin', null, $config);
+                }
 
                 $pdo->commit();
+
+                // Envío inmediato: si SMTP falla, queda en cola para el cron.
+                enviarNotificacionesInmediatas($pdo, $config, $notifs);
+
                 responder([
                     'success'       => true,
                     'idReserva'     => $nuevoId,
                     'codigoPublico' => $codigoPublico,
                     'codigo_publico'=> $codigoPublico,
+                    'montoTotal'    => $montoTotal,
                     'modalidad'     => 'visita',
                     'mensaje'       => 'Reserva creada correctamente',
                 ]);
@@ -556,75 +583,60 @@ try {
                 responder(['success' => false, 'message' => 'Faltan datos (ID o DNI)']);
             }
 
+            /**
+             * Cancela las reservas que matchean (campo = valor AND dni), marca el
+             * origen 'web' y encola el aviso de cancelación al usuario final.
+             * Devuelve [cantidadCancelada, idsDeNotificaciones].
+             */
+            $cancelar = static function (PDO $pdo, array $cfg, string $modalidad, string $campo, $valor, string $dni): array {
+                $tabla = $modalidad === 'visita' ? 'reservas_visitas' : 'reservas_alojamiento';
+                $sel = $pdo->prepare("SELECT id, email FROM {$tabla} WHERE {$campo} = ? AND dni = ?");
+                $sel->execute([$valor, $dni]);
+                $filas = $sel->fetchAll(PDO::FETCH_ASSOC);
+
+                $notifs = [];
+                foreach ($filas as $f) {
+                    marcarCancelada($pdo, $tabla, (int) $f['id'], 'web');
+                    // Refuerzo de la cancelación: copia al usuario final.
+                    $n = encolarNotificacion($pdo, $modalidad, (int) $f['id'], 'cancelacion_cliente', (string) $f['email'], 'cliente', null, $cfg);
+                    if ($n !== null) {
+                        $notifs[] = $n;
+                    }
+                }
+                return [count($filas), $notifs];
+            };
+
             $pdo->beginTransaction();
             try {
-                // 1) Buscar por codigo_publico primero (identificador global)
-                $stmt = $pdo->prepare('SELECT id, estado FROM reservas_visitas WHERE codigo_publico = ? AND dni = ?');
-                $stmt->execute([$idRaw, $dniR]);
-                $visitas = $stmt->fetchAll();
+                $idNumerico = ctype_digit($idRaw) ? $idRaw : null;
+                // Orden de búsqueda: código público (identificador global) y luego
+                // id_reserva numérico (compatibilidad con el formulario anterior).
+                $intentos = [
+                    ['codigo_publico', $idRaw],
+                    ['id_reserva', $idNumerico],
+                ];
 
-                if ($visitas) {
-                    $up = $pdo->prepare('UPDATE reservas_visitas SET estado = \'Cancelado\' WHERE codigo_publico = ? AND dni = ?');
-                    $up->execute([$idRaw, $dniR]);
-                    $pdo->commit();
-                    responder(['success' => true, 'message' => 'Reserva cancelada correctamente']);
+                foreach ($intentos as [$campo, $valor]) {
+                    if ($valor === null) {
+                        continue;
+                    }
+                    foreach (['visita', 'alojamiento'] as $modalidad) {
+                        [$cantidad, $notifs] = $cancelar($pdo, $config, $modalidad, $campo, $valor, $dniR);
+                        if ($cantidad > 0) {
+                            $pdo->commit();
+                            enviarNotificacionesInmediatas($pdo, $config, $notifs);
+                            responder([
+                                'success' => true,
+                                'message' => $modalidad === 'alojamiento' && $campo === 'id_reserva'
+                                    ? "Cancelada {$cantidad} Reserva"
+                                    : 'Reserva cancelada correctamente',
+                            ]);
+                        }
+                    }
                 }
 
-                $stmt = $pdo->prepare(
-                    'SELECT ra.id,
-                            ra.estado,
-                            (SELECT COUNT(*) FROM reserva_alojamiento_dias d
-                              WHERE d.reserva_id = ra.id) AS dias
-                     FROM reservas_alojamiento ra
-                     WHERE ra.codigo_publico = ? AND ra.dni = ?'
-                );
-                $stmt->execute([$idRaw, $dniR]);
-                $alo = $stmt->fetchAll();
-
-                if ($alo) {
-                    $upAlo = $pdo->prepare('UPDATE reservas_alojamiento SET estado = \'Cancelado\' WHERE codigo_publico = ? AND dni = ?');
-                    $upAlo->execute([$idRaw, $dniR]);
-                    $pdo->commit();
-                    responder(['success' => true, 'message' => 'Reserva cancelada correctamente']);
-                }
-
-                // 2) Fallback: compatibilidad con id_reserva + dni (form actual)
-                $stmt = $pdo->prepare('SELECT id, estado FROM reservas_visitas WHERE id_reserva = ? AND dni = ?');
-                $stmt->execute([$idRaw, $dniR]);
-                $visitas2 = $stmt->fetchAll();
-
-                if ($visitas2) {
-                    $up = $pdo->prepare('UPDATE reservas_visitas SET estado = \'Cancelado\' WHERE id_reserva = ? AND dni = ?');
-                    $up->execute([$idRaw, $dniR]);
-                    $pdo->commit();
-                    responder(['success' => true, 'message' => 'Reserva cancelada correctamente']);
-                }
-
-                $stmt = $pdo->prepare(
-                    'SELECT ra.id,
-                            ra.estado,
-                            (SELECT COUNT(*) FROM reserva_alojamiento_dias d
-                              WHERE d.reserva_id = ra.id) AS dias
-                     FROM reservas_alojamiento ra
-                     WHERE ra.id_reserva = ? AND ra.dni = ?'
-                );
-                $stmt->execute([$idRaw, $dniR]);
-                $alo2 = $stmt->fetchAll();
-
-                if (!$alo2) {
-                    $pdo->rollBack();
-                    responder(['success' => false, 'message' => 'No se encontró una reserva con ese número y DNI']);
-                }
-
-                $upAlo = $pdo->prepare('UPDATE reservas_alojamiento SET estado = \'Cancelado\' WHERE id_reserva = ? AND dni = ?');
-                $upAlo->execute([$idRaw, $dniR]);
-                $canceladasAlo = $upAlo->rowCount();
-
-                $pdo->commit();
-                responder([
-                    'success' => true,
-                    'message' => "Cancelada {$canceladasAlo} Reserva",
-                ]);
+                $pdo->rollBack();
+                responder(['success' => false, 'message' => 'No se encontró una reserva con ese número y DNI']);
             } catch (Throwable $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -728,6 +740,9 @@ try {
 
             $nuevoId = nuevoIdReserva();
             $rangoCSV = implode(',', $rango);
+            $noches = count($rango);
+            $montoCama = (float) ($alb['monto_cama'] ?? 5000);
+            $montoTotal = $cantidad * $noches * $montoCama;
 
             // Transacción de una sola validación/escritura para todo el rango.
             // Bloqueo de la fila del albergue para serializar las escrituras.
@@ -748,8 +763,8 @@ try {
                 $stmt = $pdo->prepare(
                     'INSERT INTO reservas_alojamiento
                         (id_reserva, codigo_publico, albergue_id, institucion, responsable, dni, contacto, email,
-                         cantidad, rango_fechas, estado, created_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                         cantidad, rango_fechas, estado, created_at, monto_total, pago_vence_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL \'7 days\')'
                 );
                 $stmt->execute([
                     $nuevoId,
@@ -764,6 +779,7 @@ try {
                     $rangoCSV,
                     'Pre-Reserva',
                     date('Y-m-d H:i:s'),
+                    $montoTotal,
                 ]);
                 $reservaPk = (int) $pdo->lastInsertId();
 
@@ -774,12 +790,27 @@ try {
                     $insDia->execute([$reservaPk, $fecha, $cantidad]);
                 }
 
+                // Notificación 1: detalle de la pre-reserva al cliente + aviso al
+                // administrador. Se encolan dentro de la transacción; el envío se
+                // intenta después del commit para no bloquear la operación.
+                $notifs = [];
+                $notifs[] = encolarNotificacion($pdo, 'alojamiento', $reservaPk, 'creacion', $email, 'cliente', null, $config);
+                $mailAdmin = avisoAdminHabilitado($pdo, $config) ? configSistema($pdo, 'mail_admin') : '';
+                if ($mailAdmin !== '') {
+                    $notifs[] = encolarNotificacion($pdo, 'alojamiento', $reservaPk, 'aviso_admin', $mailAdmin, 'admin', null, $config);
+                }
+
                 $pdo->commit();
+
+                // Envío inmediato: si SMTP falla, queda en cola para el cron.
+                enviarNotificacionesInmediatas($pdo, $config, $notifs);
+
                 responder([
                     'success'        => true,
                     'idReserva'      => $nuevoId,
                     'codigoPublico'  => $codigoPublico,
                     'codigo_publico' => $codigoPublico,
+                    'montoTotal'     => $montoTotal,
                     'modalidad'      => 'alojamiento',
                     'mensaje'        => 'Reserva creada correctamente',
                 ]);
@@ -910,10 +941,10 @@ try {
                 $params['estado'] = $estado;
             }
             if ($q !== '') {
-                $sql .= ' AND (institucion ILIKE :q OR responsable ILIKE :q OR dni ILIKE :q)';
+                $sql .= ' AND (codigo_publico ILIKE :q OR institucion ILIKE :q OR responsable ILIKE :q OR dni ILIKE :q)';
                 $params['q'] = '%' . $q . '%';
             }
-            $sql .= ' ORDER BY created_at DESC, modalidad, id_reserva';
+            $sql .= ' ORDER BY created_at DESC, modalidad, codigo_publico';
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
@@ -989,12 +1020,80 @@ try {
             }
 
             $tabla = $modalidad === 'visita' ? 'reservas_visitas' : 'reservas_alojamiento';
-            $stmt  = $pdo->prepare("UPDATE {$tabla} SET estado = :estado WHERE id = :pk");
-            $stmt->execute(['estado' => $estado, 'pk' => $pk]);
-            if ($stmt->rowCount() === 0) {
+
+            $prev = $pdo->prepare("SELECT estado, email FROM {$tabla} WHERE id = ?");
+            $prev->execute([$pk]);
+            $actual = $prev->fetch(PDO::FETCH_ASSOC);
+            if ($actual === false) {
                 responder(['success' => false, 'message' => 'No se encontró la reserva']);
             }
-            responder(['success' => true]);
+            $estadoAnterior = (string) $actual['estado'];
+            $mailCliente    = (string) ($actual['email'] ?? '');
+
+            if ($estadoAnterior === $estado) {
+                responder(['success' => true, 'sin_cambios' => true]);
+            }
+
+            // Auditoría del cambio de estado (quién y cuándo, desde el panel).
+            $usuarioPanel = (string) ($_SESSION['admin']['usuario'] ?? 'admin');
+
+            if ($estado === 'Cancelado') {
+                marcarCancelada($pdo, $tabla, $pk, 'admin');
+            } else {
+                $stmt = $pdo->prepare(
+                    "UPDATE {$tabla}
+                        SET estado = :estado,
+                            estado_modificado_por = :por,
+                            estado_modificado_at  = NOW(),
+                            estado_origen         = 'panel'
+                      WHERE id = :pk"
+                );
+                $stmt->execute(['estado' => $estado, 'por' => $usuarioPanel, 'pk' => $pk]);
+            }
+
+            // marcarCancelada() no registra la auditoría del panel: se completa acá.
+            if ($estado === 'Cancelado') {
+                $pdo->prepare(
+                    "UPDATE {$tabla}
+                        SET estado_modificado_por = ?, estado_modificado_at = NOW(), estado_origen = 'panel'
+                      WHERE id = ?"
+                )->execute([$usuarioPanel, $pk]);
+            }
+
+            // Avisos automáticos al usuario final:
+            //   Pre-Reserva -> Confirmado : el admin verificó el comprobante y aprueba.
+            //   *           -> Cancelado  : el admin rechaza/cancela la solicitud.
+            $notifs = [];
+            if ($mailCliente !== '') {
+                if ($estado === 'Confirmado') {
+                    $n = encolarNotificacion($pdo, $modalidad, $pk, 'confirmacion', $mailCliente, 'cliente', null, $config);
+                    if ($n !== null) {
+                        $notifs[] = $n;
+                    }
+                } elseif ($estado === 'Cancelado') {
+                    $n = encolarNotificacion($pdo, $modalidad, $pk, 'cancelacion', $mailCliente, 'cliente', null, $config);
+                    if ($n !== null) {
+                        $notifs[] = $n;
+                    }
+                }
+            }
+
+            // Envío inmediato post-commit (si SMTP falla, el cron reintenta).
+            enviarNotificacionesInmediatas($pdo, $config, $notifs);
+
+            $meta = $pdo->prepare("SELECT estado_modificado_por, estado_modificado_at, estado_origen FROM {$tabla} WHERE id = ?");
+            $meta->execute([$pk]);
+            $m = $meta->fetch(PDO::FETCH_ASSOC) ?: [];
+
+            responder([
+                'success'             => true,
+                'estado'              => $estado,
+                'estado_anterior'     => $estadoAnterior,
+                'notificacion'        => $notifs === [] ? 'sin_email' : 'enviada',
+                'modificado_por'      => $m['estado_modificado_por'] ?? null,
+                'modificado_at'       => $m['estado_modificado_at'] ?? null,
+                'origen'              => $m['estado_origen'] ?? 'panel',
+            ]);
             break;
 
         case 'adminObservaciones':
@@ -1175,7 +1274,23 @@ try {
             foreach ($ids as $id) {
                 $salida[] = albergueCompleto($pdo, (int) $id);
             }
-            responder(['success' => true, 'albergues' => $salida]);
+            // Meses de anticipación configurables desde el panel (script.js los usa
+            // para habilitar los selectores de mes del calendario). Se lee de forma
+            // defensiva: es un endpoint público y no debe caer si falta la tabla.
+            $mesesAnticipacion = 3;
+            try {
+                $mesesAnticipacion = (int) configSistema($pdo, 'meses_anticipacion', '3');
+            } catch (Throwable $e) {
+                $mesesAnticipacion = 3;
+            }
+            if ($mesesAnticipacion < 1 || $mesesAnticipacion > 24) {
+                $mesesAnticipacion = 3;
+            }
+            responder([
+                'success'            => true,
+                'albergues'          => $salida,
+                'meses_anticipacion' => $mesesAnticipacion,
+            ]);
             break;
 
         case 'adminAlbergues':
@@ -1193,6 +1308,9 @@ try {
             $clave = claveNormalizada(parametro('clave'));
             $nombre = trim(parametro('nombre'));
             $capacidad = (int) parametro('capacidad');
+            $capacidadVisitas = (int) parametro('capacidad_visitas', (string) $capacidad);
+            $montoVisita = (float) parametro('monto_visita', '2000');
+            $montoCama = (float) parametro('monto_cama', '5000');
             $descripcion = trim(parametro('descripcion'));
             $color = trim(parametro('color')) !== '' ? trim(parametro('color')) : '#005CA2';
             $mapa = urlMapaNormalizada(parametro('mapa'));
@@ -1201,6 +1319,10 @@ try {
 
             if ($clave === '' || $nombre === '' || $capacidad <= 0) {
                 responder(['success' => false, 'message' => 'Complete clave, nombre y capacidad (> 0)']);
+            }
+            if ($capacidadVisitas <= 0) { $capacidadVisitas = $capacidad; }
+            if ($montoVisita < 0 || $montoCama < 0) {
+                responder(['success' => false, 'message' => 'Los montos no pueden ser negativos']);
             }
             if (!preg_match('/^[a-z0-9-]+$/', $clave)) {
                 responder(['success' => false, 'message' => 'Clave inválida (solo letras minúsculas, números y guiones)']);
@@ -1217,10 +1339,10 @@ try {
             $pdo->beginTransaction();
             try {
                 $ins = $pdo->prepare(
-                    'INSERT INTO albergues (clave, nombre, capacidad, descripcion, habilitado, color, mapa, pdf)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                    'INSERT INTO albergues (clave, nombre, capacidad, capacidad_visitas, descripcion, habilitado, color, mapa, pdf, monto_visita, monto_cama)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
                 );
-                $ins->execute([$clave, $nombre, $capacidad, $descripcion, $habilitado, $color, $mapa, $pdf]);
+                $ins->execute([$clave, $nombre, $capacidad, $capacidadVisitas, $descripcion, $habilitado, $color, $mapa, $pdf, $montoVisita, $montoCama]);
                 $nuevoId = (int) $pdo->lastInsertId();
                 if ($carac !== null) { reemplazarCaracteristicas($pdo, $nuevoId, $carac); }
                 if ($imgs !== null)  { reemplazarImagenes($pdo, $nuevoId, $imgs); }
@@ -1239,6 +1361,9 @@ try {
             $id = (int) parametro('id');
             $nombre = trim(parametro('nombre'));
             $capacidad = (int) parametro('capacidad');
+            $capacidadVisitas = (int) parametro('capacidad_visitas', (string) $capacidad);
+            $montoVisita = (float) parametro('monto_visita', '2000');
+            $montoCama = (float) parametro('monto_cama', '5000');
             $descripcion = trim(parametro('descripcion'));
             $color = trim(parametro('color')) !== '' ? trim(parametro('color')) : '#005CA2';
             $mapa = urlMapaNormalizada(parametro('mapa'));
@@ -1247,6 +1372,10 @@ try {
 
             if ($id <= 0 || $nombre === '' || $capacidad <= 0) {
                 responder(['success' => false, 'message' => 'Faltan datos o capacidad inválida']);
+            }
+            if ($capacidadVisitas <= 0) { $capacidadVisitas = $capacidad; }
+            if ($montoVisita < 0 || $montoCama < 0) {
+                responder(['success' => false, 'message' => 'Los montos no pueden ser negativos']);
             }
             $atum = $pdo->prepare('SELECT id FROM albergues WHERE id = ?');
             $atum->execute([$id]);
@@ -1266,10 +1395,11 @@ try {
             try {
                 $upd = $pdo->prepare(
                     'UPDATE albergues
-                     SET nombre = ?, capacidad = ?, descripcion = ?, habilitado = ?, color = ?, mapa = ?, pdf = ?
+                     SET nombre = ?, capacidad = ?, capacidad_visitas = ?, descripcion = ?, habilitado = ?,
+                         color = ?, mapa = ?, pdf = ?, monto_visita = ?, monto_cama = ?
                      WHERE id = ?'
                 );
-                $upd->execute([$nombre, $capacidad, $descripcion, $habilitado, $color, $mapa, $pdf, $id]);
+                $upd->execute([$nombre, $capacidad, $capacidadVisitas, $descripcion, $habilitado, $color, $mapa, $pdf, $montoVisita, $montoCama, $id]);
                 if ($carac !== null) { reemplazarCaracteristicas($pdo, $id, $carac); }
                 if ($imgs !== null) {
                     borrarImagenesHuerfanas($pdo, $id, $imgs);
@@ -1357,6 +1487,182 @@ try {
                 responder(['success' => false, 'message' => 'No se pudo guardar el PDF']);
             }
             responder(['success' => true, 'ruta' => 'Img/albergues/' . $clave . '/' . $nombreFinal]);
+            break;
+
+        // ---------- Configuración del sistema (super_admin) ----------
+        case 'adminConfig':
+            requiereRol(['super_admin']);
+            $rows = $pdo->query('SELECT clave, valor FROM configuracion_sistema ORDER BY clave')->fetchAll(PDO::FETCH_KEY_PAIR);
+            responder(['success' => true, 'config' => $rows]);
+            break;
+
+        case 'adminConfigGuardar':
+            requiereRol(['super_admin']);
+            $mailAdmin = trim(parametro('mail_admin'));
+            if ($mailAdmin !== '' && filter_var($mailAdmin, FILTER_VALIDATE_EMAIL) === false) {
+                responder(['success' => false, 'message' => 'Email del administrador inválido']);
+            }
+            $pdo->prepare(
+                "INSERT INTO configuracion_sistema (clave, valor, updated_at) VALUES ('mail_admin', ?, NOW())
+                 ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = NOW()"
+            )->execute([$mailAdmin]);
+            responder(['success' => true]);
+            break;
+
+        // Listado genérico de configuraciones (panel: meses_anticipacion, etc.)
+        case 'adminConfiguraciones':
+            requiereRol(['super_admin', 'admin']);
+            $filas = $pdo->query('SELECT clave, valor, updated_at FROM configuracion_sistema ORDER BY clave')
+                ->fetchAll(PDO::FETCH_ASSOC);
+            responder(['success' => true, 'configuraciones' => $filas]);
+            break;
+
+        // Edición de una configuración puntual (solo claves permitidas).
+        case 'adminConfiguracionEditar':
+            requiereRol(['super_admin']);
+            $clave = trim(parametro('clave'));
+            $valor = trim(parametro('valor'));
+            $permitidas = ['meses_anticipacion', 'mail_admin'];
+            if (!in_array($clave, $permitidas, true)) {
+                responder(['success' => false, 'message' => 'Clave de configuración no válida']);
+            }
+            if ($clave === 'meses_anticipacion') {
+                if (!ctype_digit($valor) || (int) $valor < 1 || (int) $valor > 24) {
+                    responder(['success' => false, 'message' => 'Ingresá un valor entre 1 y 24']);
+                }
+            }
+            if ($clave === 'mail_admin' && $valor !== '' && filter_var($valor, FILTER_VALIDATE_EMAIL) === false) {
+                responder(['success' => false, 'message' => 'Email del administrador inválido']);
+            }
+            $pdo->prepare(
+                'INSERT INTO configuracion_sistema (clave, valor, updated_at) VALUES (?, ?, NOW())
+                 ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = NOW()'
+            )->execute([$clave, $valor]);
+            responder(['success' => true, 'clave' => $clave, 'valor' => $valor]);
+            break;
+
+        // ---------- Comprobantes de pago (cliente) ----------
+        case 'subirComprobante':
+            $codigo = strtoupper(trim(parametro('codigo')));
+
+            if ($codigo === '') {
+                responder(['success' => false, 'message' => 'Ingrese el código de reserva']);
+            }
+            if (!isset($_FILES['comprobante']) || $_FILES['comprobante']['error'] !== UPLOAD_ERR_OK) {
+                responder(['success' => false, 'message' => 'No se recibió el comprobante']);
+            }
+            $f = $_FILES['comprobante'];
+            if ($f['size'] > 8 * 1024 * 1024) {
+                responder(['success' => false, 'message' => 'El comprobante supera los 8 MB']);
+            }
+
+            // El codigo_publico se genera con una secuencia unica compartida por ambas
+            // tablas (ver 2026-10-21_codigo_publico_unificado.sql), por lo que por si
+            // solo identifica la reserva y su modalidad.
+            $reserva    = false;
+            $modalidad  = '';
+            foreach (['visita' => 'reservas_visitas', 'alojamiento' => 'reservas_alojamiento'] as $mod => $tabla) {
+                $stmt = $pdo->prepare("SELECT id, email, estado FROM {$tabla} WHERE codigo_publico = ?");
+                $stmt->execute([$codigo]);
+                $encontrada = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($encontrada !== false) {
+                    $reserva   = $encontrada;
+                    $modalidad = $mod;
+                    break;
+                }
+            }
+            if ($reserva === false) {
+                responder(['success' => false, 'message' => 'No se encontró una reserva con ese código']);
+            }
+
+            // Validar tipo real por contenido (no solo extensión).
+            $finfo = new finfo(FILEINFO_MIME_TYPE);
+            $mime = (string) $finfo->file($f['tmp_name']);
+            $permitidos = ['application/pdf', 'image/jpeg', 'image/png'];
+            if (!in_array($mime, $permitidos, true)) {
+                responder(['success' => false, 'message' => 'Formato no permitido (PDF, JPG o PNG)']);
+            }
+            $ext = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/png' => 'png'][$mime];
+
+            $dir = __DIR__ . '/../comprobantes/' . $modalidad;
+            if (!is_dir($dir) && !mkdir($dir, 0777, true)) {
+                responder(['success' => false, 'message' => 'No se pudo crear la carpeta de comprobantes']);
+            }
+            $nombreFinal = $codigo . '_' . date('YmdHis') . '.' . $ext;
+            if (!move_uploaded_file($f['tmp_name'], $dir . '/' . $nombreFinal)) {
+                responder(['success' => false, 'message' => 'No se pudo guardar el comprobante']);
+            }
+
+            $pdo->prepare(
+                'INSERT INTO comprobantes (reserva_modalidad, reserva_pk, ruta, nombre_original, mime, tamano_bytes, subido_por)
+                 VALUES (?, ?, ?, ?, ?, ?, \'cliente\')'
+            )->execute([
+                $modalidad,
+                (int) $reserva['id'],
+                'comprobantes/' . $modalidad . '/' . $nombreFinal,
+                (string) $f['name'],
+                $mime,
+                (int) $f['size'],
+            ]);
+
+            // Avisar al administrador que llegó un comprobante. Como el aviso al
+            // admin está deshabilitado por defecto (notif_enviar_admin), no se
+            // encola: la verificación del comprobante se hace desde el panel.
+            $mailAdmin = avisoAdminHabilitado($pdo, $config) ? configSistema($pdo, 'mail_admin') : '';
+            if ($mailAdmin !== '') {
+                encolarNotificacion($pdo, $modalidad, (int) $reserva['id'], 'pago_recibido', $mailAdmin, 'admin');
+            }
+
+            responder([
+                'success'  => true,
+                'codigo'   => $codigo,
+                'mensaje'  => 'Comprobante recibido. El administrador lo verificará y confirmará tu reserva.',
+            ]);
+            break;
+
+        // ---------- Ver/descargar comprobante (admin) ----------
+        case 'adminComprobante':
+            requiereRol(['admin']);
+            $id = (int) parametro('id');
+            if ($id <= 0) {
+                responder(['success' => false, 'message' => 'ID inválido']);
+            }
+            $stmt = $pdo->prepare('SELECT ruta, nombre_original, mime FROM comprobantes WHERE id = ?');
+            $stmt->execute([$id]);
+            $c = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($c === false) {
+                responder(['success' => false, 'message' => 'Comprobante no encontrado']);
+            }
+            $rutaAbs = __DIR__ . '/../' . $c['ruta'];
+            if (!is_file($rutaAbs)) {
+                responder(['success' => false, 'message' => 'El archivo no está disponible']);
+            }
+            header_remove('Content-Type');
+            header('Content-Type: ' . ($c['mime'] ?: 'application/octet-stream'));
+            header('Content-Disposition: inline; filename="' . basename((string) $c['nombre_original']) . '"');
+            header('Content-Length: ' . filesize($rutaAbs));
+            readfile($rutaAbs);
+            exit;
+
+        // ---------- Worker de notificaciones (cron) ----------
+        case 'procesarNotificaciones':
+            $token = trim(parametro('token'));
+            $tokEsperado = (string) ($config['cron_token'] ?? '');
+            if ($tokEsperado !== '' && $token !== $tokEsperado) {
+                responder(['success' => false, 'message' => 'No autorizado']);
+            }
+            $resultado = procesarNotificaciones($pdo, $config);
+            $vencidos  = tareasVencimiento($pdo);
+            responder(['success' => true, 'enviados' => $resultado['enviados'], 'fallidos' => $resultado['fallidos'], 'vencimientos' => $vencidos]);
+            break;
+
+        case 'tareasVencimiento':
+            $token = trim(parametro('token'));
+            $tokEsperado = (string) ($config['cron_token'] ?? '');
+            if ($tokEsperado !== '' && $token !== $tokEsperado) {
+                responder(['success' => false, 'message' => 'No autorizado']);
+            }
+            responder(['success' => true, 'vencimientos' => tareasVencimiento($pdo)]);
             break;
 
         // ---------- Acción desconocida ----------

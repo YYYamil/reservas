@@ -2925,3 +2925,124 @@ input[readonly], select[disabled] {
         transform: scale(0.94);
     }
 }
+
+/* ==========================================================================
+   Resumen de montos (modales de Reservar visita / Reservar alojamiento)
+   ========================================================================== */
+.monto-resumen {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background-color: #f4f9ff;
+    border: 1px solid #cfe3f7;
+    border-left: 4px solid #005ca2;
+}
+
+.monto-resumen .monto-linea {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 3px 0;
+}
+
+.monto-resumen .monto-etiqueta {
+    color: #005ca2;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.monto-resumen .monto-etiqueta i {
+    margin-right: 6px;
+    color: #2196f3;
+}
+
+.monto-resumen .monto-valor {
+    color: #0d3f6b;
+    font-size: 16px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.monto-resumen .monto-linea-total {
+    border-top: 1px dashed #cfe3f7;
+    margin-top: 4px;
+    padding-top: 8px;
+}
+
+.monto-resumen .monto-total {
+    color: #b30000;
+    font-size: 20px;
+}
+
+.monto-resumen .monto-ayuda {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: #4a6b86;
+    line-height: 1.35;
+}
+
+.modal.tinku .monto-resumen {
+    background-color: #fff8ef;
+    border-color: #f3ddc3;
+    border-left-color: #b5651d;
+}
+
+.modal.tinku .monto-resumen .monto-etiqueta,
+.modal.tinku .monto-resumen .monto-valor {
+    color: #b5651d;
+}
+
+.modal.aquilina .monto-resumen {
+    background-color: #f7f2fb;
+    border-color: #e2d3ee;
+    border-left-color: #6a3d9a;
+}
+
+.modal.aquilina .monto-resumen .monto-etiqueta,
+.modal.aquilina .monto-resumen .monto-valor {
+    color: #6a3d9a;
+}
+
+.modal.dyn .monto-resumen {
+    background-color: var(--acc-light, #f4f9ff);
+    border-color: var(--acc-light, #cfe3f7);
+    border-left-color: var(--acc, #005ca2);
+}
+
+.modal.dyn .monto-resumen .monto-etiqueta,
+.modal.dyn .monto-resumen .monto-valor {
+    color: var(--acc-dark, #004a8c);
+}
+
+@media (max-width: 480px) {
+    .monto-resumen .monto-valor {
+        font-size: 15px;
+    }
+
+    .monto-resumen .monto-total {
+        font-size: 18px;
+    }
+}
+
+
+/* Contenedor de los dos botones, uno al lado del otro */
+.acciones {
+  display: flex;
+  gap: 12px;              /* separación entre botones */
+  max-width: 350px;       /* mismo ancho que el botón original */
+  margin: 20px auto 0;    /* mismo margen superior y centrado */
+}
+
+/* Los botones dentro del flex: sin margen propio y repartidos 50/50 */
+.acciones .btn-cancelar {
+  margin: 0;
+  flex: 1;                /* cada uno ocupa la mitad */
+}
+
+/* Variante de color para el botón Pago (verde) */
+.btn-cancelar.btn-pago {
+  background: linear-gradient(to right, #28a745, #1e7e34);
+  box-shadow: 0 4px 10px rgba(40,167,69,.25);
+}

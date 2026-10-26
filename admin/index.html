@@ -65,7 +65,7 @@
       </label>
       <label>Albergue<br><select id="fAlbergue"><option value="">Todos</option></select></label>
       <label id="fEstadoWrap">Estado<br><select id="fEstado"><option value="">Todos</option></select></label>
-      <label>Buscar<br><input type="search" id="fQ" placeholder="Institución, responsable o DNI"></label>
+      <label>Buscar<br><input type="search" id="fQ" placeholder="Código, institución, responsable o DNI"></label>
       <button id="btnFiltrar">Aplicar Filtro</button>
       <button id="btnActualizar" title="Refrescar datos">Actualizar</button>
       <button id="btnExportar">Exportar Excel</button>
@@ -76,6 +76,7 @@
       <table id="grilla">
         <colgroup>
           <col><col><col><col><col><col><col><col><col><col>
+          <col id="colMonto">
           <col id="colDetalle" class="col-detalle">
           <col id="colEstado">
           <col id="colWp">
@@ -83,9 +84,9 @@
         </colgroup>
         <thead>
           <tr>
-            <th>ID</th><th>Modalidad</th><th>Trámite</th><th>Albergue</th>
+            <th>Código</th><th>Modalidad</th><th>Trámite</th><th>Albergue</th>
             <th>Institución</th><th>Responsable</th><th>DNI</th>
-            <th>Contacto</th><th>Email</th><th>Cant.</th><th>Detalle</th><th>Estado</th><th class="col-wp" title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th><th class="col-obs">Observaciones</th>
+            <th>Contacto</th><th>Email</th><th>Cant.</th><th>Monto</th><th>Detalle</th><th>Estado</th><th class="col-wp" title="Abrir WhatsApp con el mensaje (adjuntar Anexo-nomina.pdf manualmente)">Enviar WP</th><th class="col-obs">Observaciones</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -120,6 +121,24 @@
         <tbody id="alberguesBody"></tbody>
       </table>
     </div>
+
+    <div class="card">
+      <div class="card-encabezado">
+        <h2>Notificaciones</h2>
+      </div>
+      <form id="formConfig" class="gestor-form">
+        <div class="ancho-completo bloque-editor">
+          <h4>Correo del administrador</h4>
+          <label class="ancho-completo">Dirección que recibe los avisos de nuevas reservas y comprobantes subidos<br>
+            <input type="email" id="cfgMailAdmin" placeholder="admin@ejemplo.com">
+          </label>
+        </div>
+        <div class="gestor-acciones ancho-completo">
+          <button type="submit">Guardar</button>
+        </div>
+        <p id="cfgNotifMsg" class="ayuda" hidden></p>
+      </form>
+    </div>
   </section>
 
   <!-- Modal: alta / edición de albergue -->
@@ -137,6 +156,8 @@
           <label>Nombre<br><input type="text" id="aNombre" required></label>
           <label>Capacidad de alojamiento (camas)<br><input type="number" id="aCapacidad" min="1" required></label>
           <label>Capacidad de visitas<br><input type="number" id="aCapacidadVisitas" min="1" required></label>
+          <label>Monto visita por persona ($)<br><input type="number" id="aMontoVisita" min="0" step="0.01" value="2000"></label>
+          <label>Monto alojamiento por cama/noche ($)<br><input type="number" id="aMontoCama" min="0" step="0.01" value="5000"></label>
           <label>Color tarjeta<br><input type="color" id="aColor" value="#005CA2"></label>
           <label>Visible en el landing<br>
             <input type="checkbox" id="aHabilitado" checked>
@@ -256,6 +277,6 @@
  
 
 <script src="xlsx.full.min.js"></script>
-  <script src="admin.js?v=20261013e"></script>
+  <script src="admin.js?v=20261026a"></script>
 </body>
 </html>

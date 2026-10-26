@@ -1,6 +1,6 @@
 {
-    "fecha": "2026-10-20 07:28:56",
-    "pass": 32,
+    "fecha": "2026-10-26 14:04:57",
+    "pass": 67,
     "fail": 0,
     "checks": [
         {
@@ -19,9 +19,19 @@
             "detalle": "capacidad=92 capacidad_visitas=150"
         },
         {
+            "test": "2b. albergues exponen monto_visita y monto_cama (precio por albergue)",
+            "ok": true,
+            "detalle": "monto_visita=2000.00 monto_cama=5000.00"
+        },
+        {
+            "test": "2c. listarAlbergues expone meses_anticipacion",
+            "ok": true,
+            "detalle": "meses=3"
+        },
+        {
             "test": "3. crearReserva (visita) responde success",
             "ok": true,
-            "detalle": "{\"success\":true,\"idReserva\":3239,\"codigoPublico\":\"R-000001\",\"codigo_publico\":\"R-000001\",\"modalidad\":\"visita\",\"mensaje\":\"Reserva creada correctamente\"}"
+            "detalle": "{\"success\":true,\"idReserva\":8168,\"codigoPublico\":\"R-000001\",\"codigo_publico\":\"R-000001\",\"montoTotal\":10000,\"modalidad\":\"visita\",\"mensaje\":\"Reserva creada correctamente\"}"
         },
         {
             "test": "4. visita devuelve codigo publico unico",
@@ -51,7 +61,7 @@
         {
             "test": "9. crearReservaAlojamiento responde success",
             "ok": true,
-            "detalle": "{\"success\":true,\"idReserva\":5544,\"codigoPublico\":\"R-000002\",\"codigo_publico\":\"R-000002\",\"modalidad\":\"alojamiento\",\"mensaje\":\"Reserva creada correctamente\"}"
+            "detalle": "{\"success\":true,\"idReserva\":2586,\"codigoPublico\":\"R-000002\",\"codigo_publico\":\"R-000002\",\"montoTotal\":30000,\"modalidad\":\"alojamiento\",\"mensaje\":\"Reserva creada correctamente\"}"
         },
         {
             "test": "10. alojamiento comparte MISMA secuencia (R-000002)",
@@ -116,7 +126,7 @@
         {
             "test": "22. DNI incorrecto es rechazado (seguridad)",
             "ok": true,
-            "detalle": "{\"success\":false,\"message\":\"Error en el servidor\"}"
+            "detalle": "{\"success\":false,\"message\":\"No se encontr\\u00f3 una reserva con ese n\\u00famero y DNI\"}"
         },
         {
             "test": "23. cancelar sin DNI es rechazado (2 campos obligatorios)",
@@ -149,9 +159,9 @@
             "detalle": "total=2"
         },
         {
-            "test": "29. form de cancelar conserva Nro de reserva + DNI",
+            "test": "29. form de cancelar conserva codigo de reserva + DNI",
             "ok": true,
-            "detalle": "index.html sin cambios en el modal de cancelacion"
+            "detalle": "index.html: inputs cancel-id y cancel-dni presentes"
         },
         {
             "test": "30. espejo de Google Sheets ya no existe",
@@ -159,9 +169,174 @@
             "detalle": "{\"success\":false,\"message\":\"Acci\\u00f3n no v\\u00e1lida\"}"
         },
         {
+            "test": "32. visita responde montoTotal = cantidad x monto_visita (4 x 2000)",
+            "ok": true,
+            "detalle": "{\"success\":true,\"idReserva\":6065,\"codigoPublico\":\"R-000003\",\"codigo_publico\":\"R-000003\",\"montoTotal\":8000,\"modalidad\":\"visita\",\"mensaje\":\"Reserva creada correctamente\"}"
+        },
+        {
+            "test": "33. monto_total persistido (congelado) en visita",
+            "ok": true,
+            "detalle": "monto=8000"
+        },
+        {
+            "test": "34. pago_vence_at seteado (~7 dias)",
+            "ok": true,
+            "detalle": "vence=2026-11-02 14:04:49.978003+00 dias=7"
+        },
+        {
+            "test": "35. visita sin email es rechazada",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"Complete todos los campos\"}"
+        },
+        {
+            "test": "36. creacion encolada al cliente",
+            "ok": true,
+            "detalle": "n=1"
+        },
+        {
+            "test": "37. alojamiento responde montoTotal = camas x noches x monto_cama (3 x 2 x 5000)",
+            "ok": true,
+            "detalle": "{\"success\":true,\"idReserva\":140,\"codigoPublico\":\"R-000004\",\"codigo_publico\":\"R-000004\",\"montoTotal\":30000,\"modalidad\":\"alojamiento\",\"mensaje\":\"Reserva creada correctamente\"}"
+        },
+        {
+            "test": "38. monto_total persistido (congelado) en alojamiento",
+            "ok": true,
+            "detalle": "monto=30000"
+        },
+        {
+            "test": "39. super_admin guarda mail_admin",
+            "ok": true,
+            "detalle": "{\"login\":{\"success\":true,\"rol\":\"super_admin\",\"nombre\":\"superadmin\"},\"cfg\":{\"success\":true}}"
+        },
+        {
+            "test": "40. mail_admin persistido en configuracion_sistema",
+            "ok": true,
+            "detalle": "mail=smoke.admin@example.com"
+        },
+        {
+            "test": "41. subirComprobante sin archivo es rechazado",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"No se recibi\\u00f3 el comprobante\"}"
+        },
+        {
+            "test": "42. procesarNotificaciones responde (worker outbox, cola drenada)",
+            "ok": true,
+            "detalle": "{\"success\":true,\"enviados\":0,\"fallidos\":0,\"vencimientos\":{\"recordatorios\":0,\"canceladas\":0}}"
+        },
+        {
+            "test": "43. tareasVencimiento responde",
+            "ok": true,
+            "detalle": "{\"success\":true,\"vencimientos\":{\"recordatorios\":0,\"canceladas\":0}}"
+        },
+        {
+            "test": "44. v_reservas_todas expone monto_total y comprobante_id",
+            "ok": true,
+            "detalle": "cantidad,estado_modificado_at,pk,id_reserva,monto_total,pago_vence_at,comprobante_id,created_at,hora_ingreso,hora_egreso,pernocta,estado,rango_fechas,observaciones,estado_modificado_por,estado_origen,email,modalidad,comprobante_ruta,codigo_publico,albergue,institucion,responsable,dni,contacto,fecha_p"
+        },
+        {
+            "test": "45. adminConfiguraciones lista claves (panel)",
+            "ok": true,
+            "detalle": "{\"success\":true,\"configuraciones\":[{\"clave\":\"app_url\",\"valor\":\"\",\"updated_at\":\"2026-10-26 10:43:25.244233-03\"},{\"clave\":\"mail_admin\",\"valor\":\"smoke.admin@example.com\",\"updated_at\":\"2026-10-26 11:04:58.501353-03\"},{\"clave\":\"notif_enviar_admin\",\"valor\":\"0\",\"updated_at\":\"2026-10-26 11:01:53.370621-03\"},{\"clave\":\"notif_envio_inmediato\",\"valor\":\"0\",\"updated_at\":\"2026-10-26 10:43:25.244233-03\"}]}"
+        },
+        {
+            "test": "46. adminConfiguracionEditar guarda meses_anticipacion",
+            "ok": true,
+            "detalle": "{\"resp\":{\"success\":true,\"clave\":\"meses_anticipacion\",\"valor\":\"6\"},\"db\":\"6\"}"
+        },
+        {
+            "test": "47. adminConfiguracionEditar rechaza claves no permitidas",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"Clave de configuraci\\u00f3n no v\\u00e1lida\"}"
+        },
+        {
+            "test": "48. adminReservas expone codigo_publico en todas las filas",
+            "ok": true,
+            "detalle": "codigos=R-000004,R-000003,R-000002,R-000001"
+        },
+        {
+            "test": "49. adminReservas filtra por codigo de reserva (parametro q)",
+            "ok": true,
+            "detalle": "q=R-000004 resultados=1"
+        },
+        {
+            "test": "50. pre-reserva de visita creada para probar notificaciones",
+            "ok": true,
+            "detalle": "codigo=R-000005 pk=3"
+        },
+        {
+            "test": "51. mail de creación encolado al usuario",
+            "ok": true,
+            "detalle": "\"ok\""
+        },
+        {
+            "test": "52. el mail incluye el DETALLE completo de la pre-reserva",
+            "ok": true,
+            "detalle": "todos los campos presentes"
+        },
+        {
+            "test": "53. el mail de creación incluye el enlace para subir el comprobante",
+            "ok": true,
+            "detalle": "link pago.html?codigo=R-000005"
+        },
+        {
+            "test": "54. alojamiento: mail con fechas y noches",
+            "ok": true,
+            "detalle": "pk=3"
+        },
+        {
+            "test": "55. alojamiento: monto y modalidad correctos en el mail",
+            "ok": true,
+            "detalle": "esperado \"$60.000\""
+        },
+        {
+            "test": "56. al cancelar el usuario se envía el mail de refuerzo de cancelación",
+            "ok": true,
+            "detalle": "{\"cancel\":{\"success\":true,\"message\":\"Reserva cancelada correctamente\"},\"evento\":\"cancelacion_cliente\"}"
+        },
+        {
+            "test": "57. el mail de cancelación incluye el detalle y el estado Cancelado",
+            "ok": true,
+            "detalle": "codigo=R-000005"
+        },
+        {
+            "test": "58a. la cuenta admin inicia sesión con rol admin",
+            "ok": true,
+            "detalle": "{\"rol\":\"admin\"}"
+        },
+        {
+            "test": "58. al pasar a Confirmado se notifica al usuario final",
+            "ok": true,
+            "detalle": "{\"estado\":{\"success\":true,\"estado\":\"Confirmado\",\"estado_anterior\":\"Pre-Reserva\",\"notificacion\":\"enviada\",\"modificado_por\":\"admin\",\"modificado_at\":\"2026-10-26 11:05:15.95895\",\"origen\":\"panel\"},\"evento\":\"confirmacion\"}"
+        },
+        {
+            "test": "59. el mail de confirmación incluye detalle, monto y estado Confirmado",
+            "ok": true,
+            "detalle": "codigo=R-000006"
+        },
+        {
+            "test": "60. adminEstado sin cambio real de estado no duplica avisos",
+            "ok": true,
+            "detalle": "segunda llamada con el mismo estado"
+        },
+        {
+            "test": "61. al cancelar desde el panel se avisa al usuario final",
+            "ok": true,
+            "detalle": "{\"success\":true,\"estado\":\"Cancelado\",\"estado_anterior\":\"Confirmado\",\"notificacion\":\"enviada\",\"modificado_por\":\"admin\",\"modificado_at\":\"2026-10-26 11:05:19.908401\",\"origen\":\"panel\"}"
+        },
+        {
+            "test": "62. cancelación del usuario registra cancelado_at y origen web",
+            "ok": true,
+            "detalle": "{\"cancelado_at\":\"2026-10-26 14:05:11.628793+00\",\"cancelado_origen\":\"web\"}"
+        },
+        {
+            "test": "63. el cambio desde el panel registra usuario, fecha y origen",
+            "ok": true,
+            "detalle": "{\"estado_modificado_por\":\"admin\",\"estado_modificado_at\":\"2026-10-26 11:05:19.908401\",\"estado_origen\":\"panel\"}"
+        },
+        {
             "test": "31. BD de prueba limpiada (sin datos residuales)",
             "ok": true,
-            "detalle": "TRUNCATE + secuencia reiniciada"
+            "detalle": "TRUNCATE + secuencia reiniciada + config de prueba eliminada"
         }
     ]
 }

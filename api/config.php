@@ -23,6 +23,36 @@ $config = [
 
     // --- General ---
     'timezone'    => 'America/Argentina/Tucuman',
+
+    // --- Email / SMTP (Resend) ---
+    // Sin credenciales por defecto: cada ambiente las define en api/config.local.php
+    // (archivo ignorado por git). No commitear secretos.
+    'smtp_host'   => 'smtp.resend.com',
+    'smtp_port'   => 587,
+    'smtp_user'   => 'resend',
+    'smtp_pass'   => '',
+    'smtp_secure' => 'tls', // STARTTLS
+    'mail_from'       => 'notificaciones@reservas.yamy.fun',
+    'mail_from_name'  => 'Albergues Tucumán',
+
+    // --- Notificaciones ---
+    // URL pública del sitio, usada en los enlaces de los correos.
+    // Si queda vacía se toma configuracion_sistema.app_url y, como último
+    // recurso, el host del request actual.
+    'app_url' => '',
+
+    // Intenta enviar el correo en el mismo request (transacción de la reserva).
+    // Si SMTP falla, la notificación queda en cola y el cron la reintenta.
+    // En bases de prueba conviene dejarlo en false (no envía correos reales).
+    'notif_envio_inmediato' => true,
+
+    // Copias del aviso al mail del administrador (configuracion_sistema.mail_admin).
+    // false = solo se notifica al usuario final que cargó su mail en la reserva.
+    'notif_enviar_admin' => false,
+
+    // Token para invocar los endpoints de cron (procesarNotificaciones,
+    // tareasVencimiento). Definir uno propio en config.local.php en producción.
+    'cron_token'  => '',
 ];
 
 // Configuración por ambiente: si existe config.local.php (ignorada por git),

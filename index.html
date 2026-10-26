@@ -32,6 +32,7 @@
     <div class="container">
         <div class="main-title">
             <h2>Reserva de Albergues</h2>
+            <!-- AVISO de 3 pasos  -->
 
             <div class="reserva-box">
               <h3 class="reserva-title">Pasos para reservar</h3>
@@ -41,7 +42,7 @@
                   <strong>Seleccionar el albergue y la modalidad:</strong>
                   <ul>
                     <li>Reservar visita: pasar el día</li>
-                    <li>Reservar alojamiento: estadía con pernocta</li>
+                    <li>Reservar alojamiento: estadía con cama reservada</li>
                   </ul>
                 </li>
 
@@ -51,11 +52,13 @@
                 </li>
 
                 <li>
-                  Llamar <strong>obligatoriamente</strong> a la Dirección de Educación Física para
+                  <strong>Subir</strong> comprobante de pago para
                   <strong>confirmar la reserva</strong>.
                 </li>
               </ol>
             </div>
+
+
 
             <p>Seleccione un albergue para realizar su reserva</p>
         </div>
@@ -69,11 +72,20 @@
 
 <!-- Botón cancelar (ancho tarjeta) -->
 <div>
-<div class="container">
-  <button class="btn-cancelar" id="open-cancel-modal">
-    Cancelar reserva
-  </button>
-</div>
+  <div class="container">
+    <div class="acciones">
+      <button type="button" class="btn-cancelar" id="open-cancel-modal">
+        Cancelar reserva
+      </button>
+
+      <button type="button" class="btn-cancelar btn-pago"
+              onclick="window.location.href='http://127.0.0.1:8000/pago.html'">
+        Pago y comprobante
+      </button>
+    </div>
+  </div>
+
+
 
 <!-- Modal cancelar reserva -->
             <div id="modal-cancelar" class="modal">
@@ -87,15 +99,14 @@
                     <div class="form-grid">
 
                                 <div class="form-group" style="grid-column: 1 / -1;">
-                                <label for="cancel-id">Número de reserva:</label>
+                                <label for="cancel-id">Código de reserva:</label>
 
                                 <input
-                                  type="number"
+                                  type="text"
                                   id="cancel-id"
-                                  class="form-control no-spinners"
-                                  placeholder="Ej: 1234"
-                                  min="0"
-                                  max="9999"
+                                  class="form-control"
+                                  placeholder="Ej: R-000123"
+                                  autocomplete="off"
                                   required
                                 >
 
@@ -140,7 +151,7 @@
     </footer>
 
    <script src="https://cdnjs.cloudflare.com/ajax/libs/Glide.js/3.5.0/glide.min.js"></script>
-   <script src="script.js?v=20261002a"></script>
+   <script src="script.js?v=20261026a"></script>
 
 
     <!-- Modal de confirmación de reserva -->

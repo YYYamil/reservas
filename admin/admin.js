@@ -59,6 +59,8 @@
     aNombre: f('aNombre'),
     aCapacidad: f('aCapacidad'),
     aCapacidadVisitas: f('aCapacidadVisitas'),
+    aMontoVisita: f('aMontoVisita'),
+    aMontoCama: f('aMontoCama'),
     aColor: f('aColor'),
     aHabilitado: f('aHabilitado'),
     aDescripcion: f('aDescripcion'),
@@ -79,6 +81,9 @@
     albergueModal: f('albergueModal'),
     albergueModalTitulo: f('albergueModalTitulo'),
     btnCerrarAlbergue: f('btnCerrarAlbergue'),
+    formConfig: f('formConfig'),
+    cfgMailAdmin: f('cfgMailAdmin'),
+    cfgNotifMsg: f('cfgNotifMsg'),
   };
 
   var ESTADOS = ['Pre-Reserva', 'Confirmado', 'Cancelado'];
@@ -119,6 +124,24 @@
     }
     var href = 'https://wa.me/' + num + '?text=' + encodeURIComponent(MSG_WP + '\nDescargá la planilla de nómina: ' + URL_PDF);
     return '<a class="btn-wp" href="' + href + '" target="_blank" rel="noopener" title="Abrir WhatsApp (el mensaje incluye el enlace de descarga de Anexo-nomina.pdf)">' + ICONO_WP + '</a>';
+  }
+
+  function formatoMonto(n) {
+    if (n === null || n === undefined || n === '') { return '—'; }
+    var v = Number(n);
+    if (isNaN(v)) { return '—'; }
+    return '$' + v.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function montoCelda(r) {
+    var html = formatoMonto(r.monto_total);
+    if (r.comprobante_id) {
+      // Se usa API ('../api/index.php') y no 'api/index.php': este archivo se sirve
+      // desde /admin/, por lo que la ruta relativa simple apuntaba a /admin/api/... (404).
+      html += '<br><a class="link-comprobante" target="_blank" rel="noopener" title="Ver comprobante subido por el cliente" ' +
+        'href="' + API + '?action=adminComprobante&id=' + encodeURIComponent(r.comprobante_id) + '">ver comprobante</a>';
+    }
+    return html;
   }
 
   function claseEstado(estado) {
@@ -220,6 +243,13 @@
     cargarListaUsuarios();
     cargarListaAlbergues();
     cargarOpcionesAlbergues();
+    cargarConfigNotificaciones();
+  }
+
+  function cargarConfigNotificaciones() {
+    llamar('adminConfig', new Map()).then(function (j) {
+      ui.cfgMailAdmin.value = (j.config && j.config.mail_admin) ? j.config.mail_admin : '';
+    }).catch(function () {});
   }
 
   function aplicarColumnasLector() {
@@ -361,7 +391,7 @@
   function cargarReservas() {
     var params = parametrosFiltro();
 
-    ui.grilla.innerHTML = '<tr><td colspan="14" class="cargando">Cargando...</td></tr>';
+    ui.grilla.innerHTML = '<tr><td colspan="15" class="cargando">Cargando...</td></tr>';
     llamar('adminReservas', params).then(function (j) {
       var lista = esLector
         ? j.reservas.filter(function (r) { return r.estado === 'Confirmado'; })
@@ -374,7 +404,7 @@
       ui.sinResultados.hidden = true;
       ui.grilla.innerHTML = lista.map(function (r) {
         return '<tr>' +
-          '<td>' + esc(r.id_reserva) + '</td>' +
+          '<td>' + esc(r.codigo_publico || r.id_reserva) + '</td>' +
           '<td><span class="badge ' + esc(r.modalidad) + '">' + esc(r.modalidad) + '</span></td>' +
           '<td>' + esc(r.created_at) + '</td>' +
           '<td>' + esc(r.albergue) + '</td>' +
@@ -384,6 +414,7 @@
           '<td>' + esc(r.contacto) + '</td>' +
           '<td>' + esc(r.email) + '</td>' +
           '<td>' + esc(r.cantidad) + '</td>' +
+          '<td>' + montoCelda(r) + '</td>' +
           '<td class="col-detalle">' + esc(detalle(r)) + '</td>' +
           (esLector
             ? '<td><span class="badge ' + claseEstado(r.estado) + '">' + esc(r.estado) + '</span></td>'
@@ -434,7 +465,7 @@ ui.btnActualizar.addEventListener('click', function () {
     cargarReservas();
   });
 
-  var CABECERAS = ['ID', 'Modalidad', 'Trámite', 'Albergue', 'Institución', 'Responsable', 'DNI', 'Contacto', 'Email', 'Cant.', 'Detalle', 'Estado', 'Modif. por', 'Modif. el', 'Origen', 'Observaciones'];
+  var CABECERAS = ['Código', 'Modalidad', 'Trámite', 'Albergue', 'Institución', 'Responsable', 'DNI', 'Contacto', 'Email', 'Cant.', 'Monto', 'Detalle', 'Estado', 'Modif. por', 'Modif. el', 'Origen', 'Observaciones'];
 
   function exportarExcel() {
     if (typeof XLSX === 'undefined') {
@@ -449,16 +480,16 @@ ui.btnActualizar.addEventListener('click', function () {
       var filas = [CABECERAS.slice()];
       j.reservas.forEach(function (r) {
         filas.push([
-          r.id_reserva, r.modalidad, r.created_at, r.albergue, r.institucion,
-          r.responsable, r.dni, r.contacto, r.email, r.cantidad, detalle(r), r.estado,
+          (r.codigo_publico || r.id_reserva), r.modalidad, r.created_at, r.albergue, r.institucion,
+          r.responsable, r.dni, r.contacto, r.email, r.cantidad, (r.monto_total || ''), detalle(r), r.estado,
           esLector ? '' : (r.estado_modificado_por || ''),
           r.estado_modificado_at || '', r.estado_origen || '', r.observaciones
         ]);
       });
       var ws = XLSX.utils.aoa_to_sheet(filas);
       ws['!cols'] = [
-        { wch: 6 }, { wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 32 },
-        { wch: 22 }, { wch: 13 }, { wch: 16 }, { wch: 26 }, { wch: 6 }, { wch: 42 }, { wch: 13 },
+        { wch: 11 }, { wch: 12 }, { wch: 20 }, { wch: 18 }, { wch: 32 },
+        { wch: 22 }, { wch: 13 }, { wch: 16 }, { wch: 26 }, { wch: 6 }, { wch: 12 }, { wch: 42 }, { wch: 13 },
         { wch: 14 }, { wch: 18 }, { wch: 9 }, { wch: 32 }
       ];
       ws['!autofilter'] = {
@@ -828,6 +859,8 @@ ui.btnActualizar.addEventListener('click', function () {
       ui.aNombre.value = a.nombre;
       ui.aCapacidad.value = a.capacidad;
       ui.aCapacidadVisitas.value = a.capacidad_visitas;
+      ui.aMontoVisita.value = (a.monto_visita !== null && a.monto_visita !== undefined) ? a.monto_visita : 2000;
+      ui.aMontoCama.value = (a.monto_cama !== null && a.monto_cama !== undefined) ? a.monto_cama : 5000;
       ui.aColor.value = a.color || '#005CA2';
       ui.aHabilitado.checked = !!a.habilitado;
       ui.aDescripcion.value = a.descripcion || '';
@@ -877,6 +910,8 @@ ui.btnActualizar.addEventListener('click', function () {
     ui.aNombre.value = '';
     ui.aCapacidad.value = '';
     ui.aCapacidadVisitas.value = '';
+    ui.aMontoVisita.value = 2000;
+    ui.aMontoCama.value = 5000;
     ui.aColor.value = '#005CA2';
     ui.aHabilitado.checked = true;
     ui.aDescripcion.value = '';
@@ -1005,6 +1040,8 @@ ui.btnActualizar.addEventListener('click', function () {
     params.set('nombre', ui.aNombre.value.trim());
     params.set('capacidad', ui.aCapacidad.value);
     params.set('capacidad_visitas', ui.aCapacidadVisitas.value);
+    params.set('monto_visita', ui.aMontoVisita.value);
+    params.set('monto_cama', ui.aMontoCama.value);
     params.set('descripcion', ui.aDescripcion.value.trim());
     params.set('color', ui.aColor.value);
     params.set('mapa', ui.aMapa.value.trim());
@@ -1020,6 +1057,22 @@ ui.btnActualizar.addEventListener('click', function () {
     }).catch(function (e) {
       ui.albergueMsg.textContent = e.message || 'Error al guardar';
       ui.albergueMsg.hidden = false;
+    });
+  });
+
+  ui.formConfig.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    ui.cfgNotifMsg.hidden = true;
+    var params = new Map();
+    params.set('mail_admin', ui.cfgMailAdmin.value.trim());
+    llamar('adminConfigGuardar', params).then(function () {
+      ui.cfgNotifMsg.textContent = 'Configuración guardada.';
+      ui.cfgNotifMsg.classList.remove('error');
+      ui.cfgNotifMsg.hidden = false;
+    }).catch(function (e) {
+      ui.cfgNotifMsg.textContent = e.message || 'Error al guardar';
+      ui.cfgNotifMsg.classList.add('error');
+      ui.cfgNotifMsg.hidden = false;
     });
   });
 

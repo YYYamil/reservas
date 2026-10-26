@@ -94,6 +94,30 @@ function setAlbergues(lista) {
 }
 
 // =====================================================================
+//  Helpers de montos
+// =====================================================================
+const MONTO_VISITA_DEFAULT = 2000;
+const MONTO_CAMA_DEFAULT = 5000;
+
+function formatoMoneda(n) {
+  const v = Number(n);
+  if (!isFinite(v)) return '$0';
+  return '$' + v.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+function montoVisitaDe(a) {
+  if (!a) return MONTO_VISITA_DEFAULT;
+  const v = Number(a.monto_visita);
+  return isFinite(v) && v >= 0 ? v : MONTO_VISITA_DEFAULT;
+}
+
+function montoCamaDe(a) {
+  if (!a) return MONTO_CAMA_DEFAULT;
+  const v = Number(a.monto_cama);
+  return isFinite(v) && v >= 0 ? v : MONTO_CAMA_DEFAULT;
+}
+
+// =====================================================================
 //  Helpers de renderizado
 // =====================================================================
 function esc(s) {
@@ -349,6 +373,18 @@ function htmlModalVisita(a) {
             <input type="number" id="cantidad-${k}" class="form-control" min="1" required>
           </div>
 
+          <div class="form-group full-width monto-resumen" id="monto-box-${k}">
+            <div class="monto-linea">
+              <span class="monto-etiqueta"><i class="fas fa-tag"></i> Monto por persona:</span>
+              <span class="monto-valor" id="monto-unitario-${k}">${formatoMoneda(montoVisitaDe(a))}</span>
+            </div>
+            <div class="monto-linea monto-linea-total">
+              <span class="monto-etiqueta"><i class="fas fa-calculator"></i> Monto total:</span>
+              <span class="monto-valor monto-total" id="monto-total-${k}">—</span>
+            </div>
+            <p class="monto-ayuda" id="monto-ayuda-${k}">El monto total se calcula según la cantidad de personas indicada.</p>
+          </div>
+
           <div style="display: none;">
             <input type="hidden" id="fechaIngreso-${k}" required>
           </div>
@@ -450,6 +486,18 @@ function htmlModalAlojamiento(a) {
                     </label>
                     <input type="number" id="cantidad-alo-${k}" name="cantidad" min="1" max="${maxCap}" required placeholder="máx. ${maxCap}" class="form-control">
                 </div>
+
+                <div class="monto-resumen" id="monto-box-alo-${k}">
+                    <div class="monto-linea">
+                        <span class="monto-etiqueta"><i class="fas fa-tag"></i> Monto por cama / noche:</span>
+                        <span class="monto-valor" id="monto-unitario-alo-${k}">${formatoMoneda(montoCamaDe(a))}</span>
+                    </div>
+                    <div class="monto-linea monto-linea-total">
+                        <span class="monto-etiqueta"><i class="fas fa-calculator"></i> Monto total:</span>
+                        <span class="monto-valor monto-total" id="monto-total-alo-${k}">—</span>
+                    </div>
+                    <p class="monto-ayuda" id="monto-ayuda-alo-${k}">El monto total se calcula como camas × noches × monto por cama.</p>
+                </div>
             </div>
 
             <!-- Paso 2: Tipo de Delegación -->
@@ -491,6 +539,18 @@ function htmlModalAlojamiento(a) {
 </div>
 
 <div id="calendario-alo-${k}" class="calendario-grid"></div>
+
+            <div class="monto-resumen monto-resumen-alo-p3" id="monto-box-alo-p3-${k}">
+                <div class="monto-linea">
+                    <span class="monto-etiqueta"><i class="fas fa-tag"></i> Monto por cama / noche:</span>
+                    <span class="monto-valor" id="monto-unitario-alo-p3-${k}">${formatoMoneda(montoCamaDe(a))}</span>
+                </div>
+                <div class="monto-linea monto-linea-total">
+                    <span class="monto-etiqueta"><i class="fas fa-calculator"></i> Monto total:</span>
+                    <span class="monto-valor monto-total" id="monto-total-alo-p3-${k}">—</span>
+                </div>
+                <p class="monto-ayuda" id="monto-ayuda-alo-p3-${k}">Seleccione el rango de fechas para ver el monto total.</p>
+            </div>
 
             <div class="fecha-range-info step-3" id="fecha-range-display-alo-${k}">
                 <span class="leyenda-color">
@@ -741,6 +801,7 @@ function openModal(albergue) {
   resetForm(albergue);
   resetCalendarToToday(albergue);
   generarCalendario(albergue);
+  actualizarMontoVisita(albergue);
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -795,7 +856,7 @@ async function submitForm(albergue) {
     const resultado = await enviarReservaAGoogleSheets(formData);
 
     if (resultado && resultado.success) {
-      mostrarConfirmacion(albergue, formData, resultado.idReserva);
+      mostrarConfirmacion(albergue, formData, resultado.idReserva, resultado.codigoPublico, resultado.montoTotal);
       setBtnSuccess(btn);
 
       setTimeout(() => {
@@ -833,10 +894,18 @@ function getFormData(albergue) {
   };
 }
 
-function mostrarConfirmacion(albergue, formData, idReserva) {
+function mostrarConfirmacion(albergue, formData, idReserva, codigoPublico, montoTotal) {
   const nombre = toFullName(albergue);
+  const codigo = codigoPublico || String(idReserva);
+  const montoTxt = (montoTotal !== undefined && montoTotal !== null && montoTotal !== '')
+    ? formatoMoneda(montoTotal)
+    : '';
+  const unitarioVisita = montoVisitaDe(alberguePorClave(albergue));
+  const detalleMonto = montoTxt
+    ? `${formData.cantidad} ${String(formData.cantidad) === '1' ? 'persona' : 'personas'} × ${formatoMoneda(unitarioVisita)}`
+    : '';
   const html = `
-    <p><strong>Número de reserva:</strong> <span style="color:var(--azul)">${esc(String(idReserva))}</span></p>
+    <p><strong>Código de reserva:</strong> <span style="color:var(--azul);font-weight:700">${esc(codigo)}</span></p>
     <p><strong>Albergue:</strong> ${esc(nombre)}</p>
     <p><strong>Institución:</strong> ${esc(formData.institucion)}</p>
     <p><strong>Responsable:</strong> ${esc(formData.responsable)}</p>
@@ -844,10 +913,13 @@ function mostrarConfirmacion(albergue, formData, idReserva) {
     <p><strong>Contacto:</strong> ${esc(formData.contacto)}</p>
     <p><strong>Email:</strong> ${esc(formData.email)}</p>
     <p><strong>Cantidad de personas:</strong> ${esc(formData.cantidad)}</p>
+    ${montoTxt ? `<p><strong>Monto a abonar:</strong> <span style="color:#b30000;font-weight:600">${esc(montoTxt)}</span><br><small>${esc(detalleMonto)}</small></p>` : ''}
     <p><strong>Fecha de ingreso:</strong> ${esc(formData.fechaIngreso)}</p>
     <p><strong>Hora de ingreso:</strong> ${esc(formData.horaIngreso)}</p>
     <p><strong>Hora de egreso:</strong> ${esc(formData.horaEgreso)}</p>
-    <div class="confirmacion-alerta"><strong>Para confirmar la reserva, llamar al:</strong><br><span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
+    <div class="confirmacion-alerta"><strong>Tenés 7 días para abonar y subir el comprobante.</strong><br>
+      Podés subirlo desde <a href="pago.html">Pago y comprobante</a> con tu código de reserva.<br>
+      Ante dudas, llamar al: <span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
   `;
   const modal = document.getElementById('modal-confirmacion');
   const datosDiv = document.getElementById('datos-reserva-confirmacion');
@@ -1463,15 +1535,46 @@ function setCantidadMaxFor(albergue) {
   input.value = String(v);
 }
 
+function actualizarMontoVisita(albergue) {
+  const input = document.getElementById(`cantidad-${albergue}`);
+  const totalEl = document.getElementById(`monto-total-${albergue}`);
+  const unitEl = document.getElementById(`monto-unitario-${albergue}`);
+  const ayudaEl = document.getElementById(`monto-ayuda-${albergue}`);
+  if (!input || !totalEl) return;
+
+  const alb = alberguePorClave(albergue);
+  const unitario = montoVisitaDe(alb);
+  if (unitEl) unitEl.textContent = formatoMoneda(unitario);
+
+  const cantidad = parseInt(input.value, 10);
+  if (!Number.isFinite(cantidad) || cantidad <= 0) {
+    totalEl.textContent = '—';
+    if (ayudaEl) ayudaEl.textContent = 'El monto total se calcula según la cantidad de personas indicada.';
+    return;
+  }
+
+  totalEl.textContent = formatoMoneda(cantidad * unitario);
+  if (ayudaEl) {
+    ayudaEl.textContent = `${cantidad} ${cantidad === 1 ? 'persona' : 'personas'} × ${formatoMoneda(unitario)}`;
+  }
+}
+
 function setupCantidadLimits() {
   ALBERGUE_KEYS.forEach(albergue => {
     const input = document.getElementById(`cantidad-${albergue}`);
     if (!input) return;
 
     setCantidadMaxFor(albergue);
+    actualizarMontoVisita(albergue);
 
-    input.addEventListener('input', () => setCantidadMaxFor(albergue));
-    input.addEventListener('blur', () => setCantidadMaxFor(albergue));
+    input.addEventListener('input', () => {
+      setCantidadMaxFor(albergue);
+      actualizarMontoVisita(albergue);
+    });
+    input.addEventListener('blur', () => {
+      setCantidadMaxFor(albergue);
+      actualizarMontoVisita(albergue);
+    });
 
     input.addEventListener('paste', (e) => {
       e.preventDefault();
@@ -1573,7 +1676,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dniVal = document.getElementById('cancel-dni')?.value?.trim();
 
       if (!idVal) {
-        showSnackbar('Ingrese un ID válido', 'error', 2500);
+        showSnackbar('Ingrese un código de reserva válido', 'error', 2500);
         return;
       }
       if (!dniVal) {
@@ -1674,7 +1777,7 @@ async function submitFormAlo(albergue) {
 
     if (resultado?.success) {
       setBtnSuccess(btn);
-      mostrarConfirmacionAlo?.(albergue, formData, resultado.idReserva);
+      mostrarConfirmacionAlo?.(albergue, formData, resultado.idReserva, resultado.codigoPublico, resultado.montoTotal);
 
       setTimeout(() => {
         resetFormAlo?.(albergue);
@@ -1732,10 +1835,19 @@ function getFormDataAlo(albergue) {
   };
 }
 
-function mostrarConfirmacionAlo(albergue, formData, idReserva) {
+function mostrarConfirmacionAlo(albergue, formData, idReserva, codigoPublico, montoTotal) {
   const nombre = toFullName(albergue);
+  const codigo = codigoPublico || String(idReserva);
+  const montoTxt = (montoTotal !== undefined && montoTotal !== null && montoTotal !== '')
+    ? formatoMoneda(montoTotal)
+    : '';
+  const noches = Array.isArray(formData.range) ? formData.range.length : 0;
+  const unitarioCama = montoCamaDe(alberguePorClave(albergue));
+  const detalleMonto = montoTxt
+    ? `${formData.cantidad} ${String(formData.cantidad) === '1' ? 'cama' : 'camas'} × ${noches} ${noches === 1 ? 'noche' : 'noches'} × ${formatoMoneda(unitarioCama)}`
+    : '';
   const html = `
-    <p><strong>Número de reserva:</strong> <span style="color:var(--azul)">${esc(String(idReserva))}</span></p>
+    <p><strong>Código de reserva:</strong> <span style="color:var(--azul);font-weight:700">${esc(codigo)}</span></p>
     <p><strong>Albergue:</strong> ${esc(nombre)}</p>
     <p><strong>Institución:</strong> ${esc(formData.institucion)}</p>
     <p><strong>Responsable:</strong> ${esc(formData.responsable)}</p>
@@ -1744,7 +1856,10 @@ function mostrarConfirmacionAlo(albergue, formData, idReserva) {
     <p><strong>Email:</strong> ${esc(formData.email)}</p>
     <p><strong>Cantidad de camas:</strong> ${esc(String(formData.cantidad))}</p>
     <p><strong>Fechas reservadas:</strong> ${esc(formData.range.map(r => r).join(', '))}</p>
-    <div class="confirmacion-alerta"><strong>Para confirmar la reserva, llamar al:</strong><br><span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
+    ${montoTxt ? `<p><strong>Monto a abonar:</strong> <span style="color:#b30000;font-weight:600">${esc(montoTxt)}</span><br><small>${esc(detalleMonto)}</small></p>` : ''}
+    <div class="confirmacion-alerta"><strong>Tenés 7 días para abonar y subir el comprobante.</strong><br>
+      Podés subirlo desde <a href="pago.html">Pago y comprobante</a> con tu código de reserva.<br>
+      Ante dudas, llamar al: <span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
   `;
   const modal = document.getElementById('modal-confirmacion');
   const datosDiv = document.getElementById('datos-reserva-confirmacion');
@@ -2082,12 +2197,53 @@ function resetFormAlo(albergue) {
   resetRangoAlo(albergue);
 }
 
+function actualizarMontoAlo(albergue) {
+  // El resumen existe dos veces: en el Paso 1 (cantidad) y en el Paso 3 (fechas).
+  const variantes = ['', '-p3'];
+  const alb = alberguePorClave(albergue);
+  const unitario = montoCamaDe(alb);
+
+  const input = document.getElementById(`cantidad-alo-${albergue}`);
+  const cantidad = parseInt((input || {}).value, 10) || 0;
+  const estado = estadoCalendarioAlo[albergue];
+  const noches = (estado && Array.isArray(estado.range)) ? estado.range.length : 0;
+
+  variantes.forEach(sufijo => {
+    const unitEl = document.getElementById(`monto-unitario-alo${sufijo}-${albergue}`) ||
+                   document.getElementById(`monto-unitario-alo-${albergue}`);
+    const totalEl = document.getElementById(`monto-total-alo${sufijo}-${albergue}`) ||
+                    document.getElementById(`monto-total-alo-${albergue}`);
+    const ayudaEl = document.getElementById(`monto-ayuda-alo${sufijo}-${albergue}`) ||
+                    document.getElementById(`monto-ayuda-alo-${albergue}`);
+    if (!totalEl) return;
+
+    if (unitEl) unitEl.textContent = formatoMoneda(unitario);
+
+    if (cantidad <= 0 || noches <= 0) {
+      totalEl.textContent = '—';
+      if (ayudaEl) {
+        ayudaEl.textContent = sufijo === '-p3'
+          ? 'Seleccione el rango de fechas para ver el monto total.'
+          : 'Indique la cantidad de camas y seleccione el rango de fechas para ver el monto total.';
+      }
+      return;
+    }
+
+    totalEl.textContent = formatoMoneda(cantidad * noches * unitario);
+    if (ayudaEl) {
+      ayudaEl.textContent = `${cantidad} ${cantidad === 1 ? 'cama' : 'camas'} × ${noches} ${noches === 1 ? 'noche' : 'noches'} × ${formatoMoneda(unitario)}`;
+    }
+  });
+}
+
 function setupCantidadListenerAlo() {
   ALBERGUE_KEYS.forEach(albergue => {
     const input = document.getElementById(`cantidad-alo-${albergue}`);
     if (!input) return;
+    actualizarMontoAlo(albergue);
     input.addEventListener('input', () => {
       const cantidad = parseInt(input.value, 10) || 0;
+      actualizarMontoAlo(albergue);
       const estado = estadoCalendarioAlo[albergue];
       if (estado && estado.range && estado.range.length > 0 && cantidad > 0) {
         mostrarInfoRangoAlo(albergue, estado.range);
@@ -2109,6 +2265,7 @@ function updateCalendarHighlightsAlo(albergue) {
 
 function updateRangeDisplay(albergue, range) {
   const display = document.getElementById(`fecha-range-display-alo-${albergue}`);
+  actualizarMontoAlo(albergue);
   if (!display) return;
 
   if (range.length === 0) {
@@ -2153,6 +2310,7 @@ function resetRangoAlo(albergue) {
   estado.diasValidos = [];
 
   estado.disponibilidadConfirmada = false;
+  actualizarMontoAlo(albergue);
   updateRangeDisplay(albergue, []);
   updateCalendarHighlightsAlo(albergue);
 }
@@ -2525,6 +2683,7 @@ function openAlojamientoModal(albergue) {
     fechasOcupadasAlo[albergue] = [];
     generarCalendarioAlo(albergue);
     initPasoFlujoAlo(albergue);
+    actualizarMontoAlo(albergue);
   } catch (err) {
     console.error(`[ERROR] Al inicializar modal alojamiento ${albergue}:`, err);
   }

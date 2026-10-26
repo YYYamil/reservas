@@ -24,3 +24,6 @@ Thumbs.db
 .DS_Store
 
 Img/albergues/
+
+# Comprobantes de pago subidos por los clientes (datos personales)
+/comprobantes/
