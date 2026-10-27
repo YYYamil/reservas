@@ -1,0 +1,37 @@
+# Normalizacion de fin de linea entre Windows (desarrollo) y Linux (produccion).
+# En el repositorio los archivos de texto se guardan siempre con LF.
+* text=auto
+
+# Codigo y configuracion: LF en todas las plataformas.
+*.php    text eol=lf
+*.js     text eol=lf
+*.css    text eol=lf
+*.html   text eol=lf
+*.sql    text eol=lf
+*.sh     text eol=lf
+*.md     text eol=lf
+*.json   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.conf   text eol=lf
+*.htaccess text eol=lf
+
+# Scripts de Windows: CRLF para que PowerShell/CMD los lea sin problemas.
+*.ps1    text eol=crlf
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+
+# Binarios: no tocar.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.ico    binary
+*.pdf    binary
+*.zip    binary
+*.gz     binary
+*.tgz    binary
+*.woff   binary
+*.woff2  binary
+*.ttf    binary
