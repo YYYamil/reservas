@@ -17,6 +17,8 @@ PC Windows (desarrollo)            GitHub                 Oracle (produccion)
 - `main` es la **unica rama de despliegue**. Todo lo que esta en `main` esta
   probado en local.
 - `mailv1` quedo como rama historica. Ya no se usa para desplegar.
+- `.gitlab-ci.yml` es legado del repositorio anterior. GitHub no lo ejecuta:
+  el unico deploy valido es `scripts/deploy-reservas.sh` en Oracle.
 - Produccion **no** tiene base de desarrollo: usa `reserva_albergue`.
 - Desarrollo local usa `reserva_albergue_dev`, aislada de produccion.
 
