@@ -233,16 +233,11 @@ function alberguesPermitidos(): ?array
 
 /**
  * Exige sesión Y que el rol esté dentro de la lista permitida.
- * super_admin hereda todos los permisos de admin.
  */
 function requiereRol(array $roles): void
 {
     requiereAdmin();
-    $rol = rolActual();
-    if ($rol === 'super_admin' && in_array('admin', $roles, true)) {
-        return;
-    }
-    if (!in_array($rol, $roles, true)) {
+    if (!in_array(rolActual(), $roles, true)) {
         responder(['success' => false, 'message' => 'Permiso denegado'], 403);
     }
 }
