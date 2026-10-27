@@ -57,7 +57,31 @@ main {
 }
 
 #panel { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
-#panel[hidden], #loginBox[hidden], #sesionInfo[hidden], #gestor[hidden], #uAlbWrap[hidden], #uActWrap[hidden] { display: none !important; }
+#panel[hidden], #loginBox[hidden], #sesionInfo[hidden], #gestor[hidden], #uAlbWrap[hidden], #uActWrap[hidden], #tabsSuper[hidden] { display: none !important; }
+
+/* Pestañas de super_admin: Reservas / Gestión */
+.tabs-super {
+  display: flex;
+  gap: 8px;
+  flex: none;
+  margin-bottom: 14px;
+}
+
+.tabs-super button {
+  padding: 8px 20px;
+  border: 2px solid var(--azul);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--azul);
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tabs-super button:hover { background: var(--gris-claro); }
+.tabs-super button.activo { background: var(--azul); color: #fff; }
 
 .card {
   background: #fff;

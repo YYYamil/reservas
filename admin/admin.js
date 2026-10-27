@@ -8,6 +8,9 @@
     loginBox: f('loginBox'),
     panel: f('panel'),
     gestor: f('gestor'),
+    tabsSuper: f('tabsSuper'),
+    tabReservas: f('tabReservas'),
+    tabGestion: f('tabGestion'),
     loginForm: f('loginForm'),
     usuario: f('usuario'),
     pass: f('pass'),
@@ -93,6 +96,7 @@
   var pendienteRestaurar = null;
   var rol = null;
   var esLector = false;
+  var usuarioActual = '';
 
   var ROL_LABEL = {
     super_admin: 'Super Admin',
@@ -200,6 +204,7 @@
   }
 
   function estadoSesion(usuario) {
+    usuarioActual = usuario || '';
     var n = document.createElement('span');
     n.textContent = usuario || '';
     n.style.fontWeight = '600';
@@ -216,7 +221,16 @@
   function mostrarLogin() {
     ui.panel.hidden = true;
     ui.gestor.hidden = true;
+    ui.tabsSuper.hidden = true;
     ui.loginBox.hidden = false;
+  }
+
+  function mostrarTabs(activa) {
+    var esSuper = (rol === 'super_admin');
+    ui.tabsSuper.hidden = !esSuper;
+    if (!esSuper) { return; }
+    ui.tabReservas.classList.toggle('activo', activa === 'reservas');
+    ui.tabGestion.classList.toggle('activo', activa === 'gestion');
   }
 
   function mostrarPanel(usuario) {
@@ -224,6 +238,7 @@
     ui.gestor.hidden = true;
     ui.panel.hidden = false;
     estadoSesion(usuario);
+    mostrarTabs('reservas');
     ui.btnConfig.hidden = (rol === 'lector');
     ui.fEstadoWrap.hidden = esLector;
     if (esLector) { ui.fEstado.value = ''; }
@@ -239,6 +254,7 @@
     ui.panel.hidden = true;
     ui.gestor.hidden = false;
     estadoSesion(usuario);
+    mostrarTabs('gestion');
     if (ui.uRol.value === 'lector') { ui.uAlbWrap.hidden = false; } else { ui.uAlbWrap.hidden = true; }
     cargarListaUsuarios();
     cargarListaAlbergues();
@@ -439,7 +455,7 @@
     llamar('adminLogin', params).then(function (j) {
       rol = j.rol;
       esLector = (rol === 'lector');
-      if (j.rol === 'super_admin') { mostrarGestor(j.usuario); } else { mostrarPanel(j.usuario); }
+      mostrarPanel(j.usuario);
     }).catch(function (e) {
       ui.loginError.textContent = e.unauthorized ? 'Credenciales inválidas' : (e.message || 'Error de conexión');
       ui.loginError.hidden = false;
@@ -450,6 +466,14 @@
 
   ui.btnFiltrar.addEventListener('click', function () {
     cargarReservas();
+  });
+
+  ui.tabReservas.addEventListener('click', function () {
+    mostrarPanel(usuarioActual);
+  });
+
+  ui.tabGestion.addEventListener('click', function () {
+    mostrarGestor(usuarioActual);
   });
 
 ui.btnActualizar.addEventListener('click', function () {
@@ -1086,8 +1110,7 @@ ui.btnActualizar.addEventListener('click', function () {
   llamar('adminSesion', new Map()).then(function (j) {
     rol = j.rol;
     esLector = (rol === 'lector');
-    estadoSesion(j.usuario);
-    if (rol === 'super_admin') { mostrarGestor(j.usuario); } else { mostrarPanel(j.usuario); }
+    mostrarPanel(j.usuario);
   }).catch(function () {
     mostrarLogin();
   });
