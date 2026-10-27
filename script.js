@@ -740,9 +740,14 @@ function initGlides() {
 // =====================================================================
 //  Aviso con video (elementos estáticos)
 // =====================================================================
+// El aviso inicial con video está desactivado. El video y el modal se
+// conservan en el HTML: para volver a mostrarlo, poner true.
+const AVISO_VIDEO_ACTIVO = false;
+
 document.addEventListener('DOMContentLoaded', function () {
   const notice = document.getElementById('site-notice');
   if (!notice) return;
+  if (!AVISO_VIDEO_ACTIVO) return;
 
   const video = document.getElementById('aviso-video');
   const closeBtn = notice.querySelector('.notice-close');
