@@ -512,7 +512,7 @@ try {
                         (id_reserva, codigo_publico, albergue_id, institucion, responsable, dni, contacto, email,
                          cantidad, fecha_ingreso, hora_ingreso, hora_egreso, estado, created_at,
                          monto_total, pago_vence_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL \'7 days\')'
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL \'7 days\')'
                 );
                 $stmt->execute([
                     $nuevoId,
