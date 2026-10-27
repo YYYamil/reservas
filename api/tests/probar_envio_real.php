@@ -132,8 +132,7 @@ try {
             'cantidad'     => 4,
             'fechaIngreso' => $fecha,
             'horaIngreso'  => '09:00',
-            'horaEgreso'   => '17:00',
-            'pernocta'     => 'false',
+            'horaEgreso'   => '17:00'
         ], 120);
         $ms = (int) round((microtime(true) - $t0) * 1000);
         echo 'Respuesta (' . $ms . ' ms): ' . json_encode($resp, JSON_UNESCAPED_UNICODE) . "\n\n";

@@ -231,7 +231,7 @@
         {
             "test": "44. v_reservas_todas expone monto_total y comprobante_id",
             "ok": true,
-            "detalle": "cantidad,estado_modificado_at,pk,id_reserva,monto_total,pago_vence_at,comprobante_id,created_at,hora_ingreso,hora_egreso,pernocta,estado,rango_fechas,observaciones,estado_modificado_por,estado_origen,email,modalidad,comprobante_ruta,codigo_publico,albergue,institucion,responsable,dni,contacto,fecha_p"
+            "detalle": "cantidad,estado_modificado_at,pk,id_reserva,monto_total,pago_vence_at,comprobante_id,created_at,hora_ingreso,hora_egreso,estado,rango_fechas,observaciones,estado_modificado_por,estado_origen,email,modalidad,comprobante_ruta,codigo_publico,albergue,institucion,responsable,dni,contacto,fecha_p"
         },
         {
             "test": "45. adminConfiguraciones lista claves (panel)",

@@ -30,7 +30,6 @@ $visita = [
     'fecha_ingreso' => '2026-12-01',
     'hora_ingreso'  => '08:30',
     'hora_egreso'   => '18:00',
-    'pernocta'      => 'Sí',
     'estado'        => 'Pre-Reserva',
     'monto_total'   => 10000,
     'pago_vence_at' => date('Y-m-d H:i:s', strtotime('+7 days')),
@@ -45,7 +44,7 @@ $alojamiento['cantidad']      = 4;
 $alojamiento['monto_total']   = 60000;
 $alojamiento['rango_fechas']  = '2026-12-10,2026-12-11,2026-12-12';
 $alojamiento['estado']        = 'Confirmado';
-unset($alojamiento['fecha_ingreso'], $alojamiento['hora_ingreso'], $alojamiento['hora_egreso'], $alojamiento['pernocta']);
+unset($alojamiento['fecha_ingreso'], $alojamiento['hora_ingreso'], $alojamiento['hora_egreso']);
 
 $eventos = ['creacion', 'recordatorio', 'confirmacion', 'cancelacion', 'cancelacion_cliente', 'pago_recibido', 'aviso_admin'];
 
@@ -76,7 +75,7 @@ $baseVisita = [
     'Código de reserva', 'R-000123', 'Maestro José Fierro', 'Visita diaria',
     'Escuela N° 12 "General San Martín"', 'Ana Pérez', '30111222',
     '3811234567', 'ana.perez@example.com', 'Cantidad de personas',
-    '01/12/2026', '08:30', '18:00', 'Pernocta', 'Monto total', '$10.000',
+    '01/12/2026', '08:30', '18:00', 'Monto total', '$10.000',
     'Vence el', 'Pre-Reserva', 'Pre-reserva registrada',
 ];
 
@@ -87,7 +86,7 @@ $revisar('cancelacion', $visita, array_merge($baseVisita, ['cupo fue liberado'])
 $revisar('aviso_admin', $visita, $baseVisita);
 $revisar('pago_recibido', $visita, $baseVisita);
 $revisar('confirmacion', $alojamiento, [
-    'Código de reserva', 'R-000124', 'Alojamiento con pernocta',
+    'Código de reserva', 'R-000124', 'Alojamiento con estadía',
     'Fechas de alojamiento', '10/12/2026 / 11/12/2026 / 12/12/2026', 'Noches',
     'Monto total', '$60.000', '>Confirmado<',
 ]);

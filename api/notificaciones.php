@@ -201,7 +201,7 @@ function datosReserva(PDO $pdo, string $modalidad, int $reservaPk): ?array
     if ($modalidad === 'visita') {
         $sql = 'SELECT r.id, r.codigo_publico, r.id_reserva, r.institucion, r.responsable,
                        r.dni, r.contacto, r.email, r.cantidad, r.fecha_ingreso, r.hora_ingreso,
-                       r.hora_egreso, r.pernocta, r.estado, r.monto_total, r.pago_vence_at, r.created_at,
+                       r.hora_egreso, r.estado, r.monto_total, r.pago_vence_at, r.created_at,
                        al.nombre AS albergue, al.monto_visita, al.monto_cama
                 FROM reservas_visitas r JOIN albergues al ON al.id = r.albergue_id
                 WHERE r.id = ?';
@@ -234,7 +234,7 @@ function detalleReserva(array $r): array
 
     $filas[] = ['Código de reserva', (string) ($r['codigo_publico'] ?? '')];
     $filas[] = ['Albergue', (string) ($r['albergue'] ?? '')];
-    $filas[] = ['Modalidad', $esVis ? 'Visita diaria' : 'Alojamiento con pernocta'];
+    $filas[] = ['Modalidad', $esVis ? 'Visita diaria' : 'Alojamiento con estadía'];
     $filas[] = ['Institución', (string) ($r['institucion'] ?? '')];
     $filas[] = ['Responsable', (string) ($r['responsable'] ?? '')];
 
@@ -257,9 +257,6 @@ function detalleReserva(array $r): array
         }
         if (!empty($r['hora_egreso'])) {
             $filas[] = ['Hora de egreso', (string) $r['hora_egreso']];
-        }
-        if (!empty($r['pernocta'])) {
-            $filas[] = ['Pernocta', $r['pernocta'] === 'Sí' ? 'Sí (se quedan a dormir)' : 'No'];
         }
     } else {
         $dias = array_values(array_filter(array_map('trim', explode(',', (string) ($r['rango_fechas'] ?? ''))), static fn ($d) => $d !== ''));

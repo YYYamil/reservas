@@ -889,8 +889,7 @@ function getFormData(albergue) {
     cantidad: document.getElementById(`cantidad-${albergue}`).value,
     fechaIngreso: document.getElementById(`fechaIngreso-${albergue}`).value,
     horaIngreso: document.getElementById(`horaIngreso-${albergue}`).value,
-    horaEgreso: document.getElementById(`horaEgreso-${albergue}`).value,
-    pernocta: true
+    horaEgreso: document.getElementById(`horaEgreso-${albergue}`).value
   };
 }
 
@@ -1168,8 +1167,7 @@ async function enviarReservaAGoogleSheets(data) {
       cantidad: parseInt(data.cantidad, 10),
       fechaIngreso: data.fechaIngreso,
       horaIngreso: data.horaIngreso,
-      horaEgreso: data.horaEgreso,
-      pernocta: data.pernocta
+      horaEgreso: data.horaEgreso
     };
 
     const response = await fetch(CONFIG.googleScriptUrl, {

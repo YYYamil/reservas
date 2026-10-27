@@ -139,7 +139,6 @@ $visita = api('crearReserva', [
     'fechaIngreso'=> '2026-11-10',
     'horaIngreso' => '09:00',
     'horaEgreso'  => '17:00',
-    'pernocta'    => 'true',
 ]);
 $codeV = $visita['codigoPublico'] ?? '';
 check('3. crearReserva (visita) responde success', ($visita['success'] ?? false) === true, json_encode($visita));
@@ -157,7 +156,6 @@ $sinEmail = api('crearReserva', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'X', 'responsable' => 'X',
     'dni' => '30111333', 'contacto' => '3810000000', 'email' => '',
     'cantidad' => 1, 'fechaIngreso' => '2026-11-11', 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
-    'pernocta' => 'true',
 ]);
 check('8. visita sin email es rechazada', ($sinEmail['success'] ?? true) === false, json_encode($sinEmail));
 
@@ -254,7 +252,6 @@ $vMonto = api('crearReserva', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'MONTO VISITA', 'responsable' => 'Monto V',
     'dni' => '30444555', 'contacto' => '3811111111', 'email' => 'monto.visita@example.com',
     'cantidad' => 4, 'fechaIngreso' => '2026-11-20', 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
-    'pernocta' => 'true',
 ]);
 check('32. visita responde montoTotal = cantidad x monto_visita (4 x 2000)', (float) ($vMonto['montoTotal'] ?? 0) === 8000.0, json_encode($vMonto));
 $pkVM = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($vMonto['codigoPublico'] ?? ''))->fetchColumn();
@@ -270,7 +267,6 @@ $vSinMail = api('crearReserva', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'SIN MAIL', 'responsable' => 'X',
     'dni' => '30444666', 'contacto' => '3810000000', 'email' => '',
     'cantidad' => 1, 'fechaIngreso' => '2026-11-21', 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
-    'pernocta' => 'true',
 ]);
 check('35. visita sin email es rechazada', ($vSinMail['success'] ?? true) === false, json_encode($vSinMail));
 
@@ -392,7 +388,6 @@ $nuevaVisita = api('crearReserva', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'NOTIF VISITA', 'responsable' => 'Notif V',
     'dni' => '30666777', 'contacto' => '3813333333', 'email' => 'notif.visita@example.com',
     'cantidad' => 6, 'fechaIngreso' => '2026-12-01', 'horaIngreso' => '08:30', 'horaEgreso' => '18:00',
-    'pernocta' => 'true',
 ]);
 $codNV = (string) ($nuevaVisita['codigoPublico'] ?? '');
 $pkNV = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($codNV))->fetchColumn();
@@ -416,7 +411,6 @@ $itemsEsperados = [
     'Fecha de ingreso'        => '01/12/2026',
     'Hora de ingreso'         => '08:30',
     'Hora de egreso'          => '18:00',
-    'Pernocta'                => 'Sí',
     'Monto total'             => '$12.000',
     'Vence el'                => date('d/m/Y', strtotime('+7 days')),
     'Estado'                  => 'Pre-Reserva',
@@ -451,7 +445,7 @@ check('54. alojamiento: mail con fechas y noches',
     && str_contains($cuerpoAlo, 'Noches'),
     'pk=' . $pkNA);
 check('55. alojamiento: monto y modalidad correctos en el mail',
-    str_contains($cuerpoAlo, 'Alojamiento con pernocta') && str_contains($cuerpoAlo, '$60.000'),
+    str_contains($cuerpoAlo, 'Alojamiento con estadía') && str_contains($cuerpoAlo, '$60.000'),
     'esperado "$60.000"');
 
 // ---------- 56. el usuario final cancela: refuerzo de la cancelación ----------

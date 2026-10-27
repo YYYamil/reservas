@@ -83,8 +83,7 @@ function alberguePorClave(PDO $pdo, string $clave): ?array
 
 /**
  * Capacidad y cantidad ocupada de visita diaria para una fecha y albergue.
- * La disponibilidad se deriva siempre de las reservas existentes
- * (solo las que consumen capacidad: pernocta = 'Sí').
+ * La disponibilidad se deriva siempre de las reservas de visita activas.
  * Usa capacidad_visitas (separada de la capacidad de alojamiento).
  */
 function capacidadYOcupadosVisitas(PDO $pdo, int $albergueId, string $fecha): array
@@ -467,7 +466,6 @@ try {
             $fechaIngreso   = trim(parametro('fechaIngreso'));
             $horaIngreso    = trim(parametro('horaIngreso'));
             $horaEgreso     = trim(parametro('horaEgreso'));
-            $pernoctaRaw    = strtolower(trim(parametro('pernocta', 'false')));
 
             if ($albergueNombre === '' || $institucion === '' || $responsable === ''
                 || $dni === '' || $contacto === '' || $email === '' || $fechaIngreso === ''
@@ -483,10 +481,6 @@ try {
             if (!esFechaISOValida($fechaIngreso)) {
                 responder(['success' => false, 'message' => 'Fecha inválida']);
             }
-
-            $hospeda   = ($horaEgreso === 'Pasar la noche');
-            $esPernocta = $hospeda
-                || in_array($pernoctaRaw, ['true', '1', 'sí', 'si'], true);
 
             $alb = alberguePorNombre($pdo, $albergueNombre);
             $capacidadMaxVis = (int) ($alb['capacidad_visitas'] ?? $alb['capacidad']);
@@ -505,12 +499,10 @@ try {
             $lock = $pdo->prepare('SELECT id FROM albergues WHERE id = ? FOR UPDATE');
             $lock->execute([$alb['id']]);
             try {
-                if ($esPernocta) {
-                    [$capacidad, $ocupados] = capacidadYOcupadosVisitas($pdo, (int) $alb['id'], $fechaIngreso);
-                    if ($capacidadMaxVis - $ocupados - $cantidad < 0) {
-                        $pdo->rollBack();
-                        responder(['success' => false]); // mismo comportamiento que Apps Script: sin mensaje
-                    }
+                [$capacidad, $ocupados] = capacidadYOcupadosVisitas($pdo, (int) $alb['id'], $fechaIngreso);
+                if ($capacidadMaxVis - $ocupados - $cantidad < 0) {
+                    $pdo->rollBack();
+                    responder(['success' => false]); // mismo comportamiento que Apps Script: sin mensaje
                 }
 
                 $codigoPublico = generarCodigoPublico($pdo);
@@ -518,9 +510,9 @@ try {
                 $stmt = $pdo->prepare(
                     'INSERT INTO reservas_visitas
                         (id_reserva, codigo_publico, albergue_id, institucion, responsable, dni, contacto, email,
-                         cantidad, fecha_ingreso, hora_ingreso, hora_egreso, pernocta, estado, created_at,
+                         cantidad, fecha_ingreso, hora_ingreso, hora_egreso, estado, created_at,
                          monto_total, pago_vence_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL \'7 days\')'
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL \'7 days\')'
                 );
                 $stmt->execute([
                     $nuevoId,
@@ -535,7 +527,6 @@ try {
                     $fechaIngreso,
                     $horaIngreso,
                     $horaEgreso,
-                    $esPernocta ? 'Sí' : 'No',
                     'Pre-Reserva',
                     date('Y-m-d H:i:s'),
                     $montoTotal,
