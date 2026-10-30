@@ -673,6 +673,19 @@ async function cargarAlbergues() {
       maxTotalMonths = minTotalMonths + meses - 1;
     }
 
+    // Horizonte mínimo de reserva (anticipación + ventana mínima de pago).
+    // Lo define el servidor: el calendario solo deshabilita fechas.
+    const horizonte = parseInt(json.horizonte_horas, 10);
+    if (horizonte > 0) {
+      CONFIG.horizonteHoras = horizonte;
+    }
+
+    // Primera fecha reservable según el servidor (evita desfasajes de reloj).
+    const minFecha = String(json.fecha_minima_reserva || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(minFecha)) {
+      CONFIG.fechaMinimaReserva = minFecha;
+    }
+
     setAlbergues(json.albergues);
     if (ALBERGUE_KEYS.length === 0) {
       contenedor.innerHTML = '<p>No hay albergues disponibles por el momento.</p>';
@@ -961,10 +974,31 @@ function resetForm(albergue) {
 // =====================================================================
 //  Funciones para fechas / calendario (VISITA)
 // =====================================================================
+// Fecha mínima reservable: el primer día cuyo inicio (00:00) cae fuera del
+// horizonte (66 h por defecto). Se toma el mayor entre la fecha que informa
+// el servidor y el cálculo local: así el calendario nunca habilita un día que
+// la API vaya a rechazar (reloj del navegador desfasado, pestaña abierta mucho
+// tiempo, huso horario distinto).
+function fechaMinimaReservaISO() {
+  const horas = (CONFIG && CONFIG.horizonteHoras) ? CONFIG.horizonteHoras : 66;
+  const limite = new Date(Date.now() + horas * 3600 * 1000);
+
+  // Una reserva empieza a las 00:00 del día elegido. Si el límite tiene hora,
+  // ese mismo día todavía no alcanza: hay que pasar al siguiente.
+  const d = new Date(limite.getFullYear(), limite.getMonth(), limite.getDate());
+  if (limite.getTime() > d.getTime()) {
+    d.setDate(d.getDate() + 1);
+  }
+
+  const local = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const servidor = (CONFIG && CONFIG.fechaMinimaReserva) ? CONFIG.fechaMinimaReserva : '';
+  return servidor > local ? servidor : local;
+}
+
 function setMinDates() {
-  const today = new Date().toISOString().split('T')[0];
+  const min = fechaMinimaReservaISO();
   document.querySelectorAll('input[type="date"]').forEach(input => {
-    input.min = today;
+    input.min = min;
   });
 }
 
@@ -1039,10 +1073,11 @@ function generarCalendario(albergue) {
 
     const esPasado = fechaActual < hoy;
     const esHoy = fechaActual.getTime() === hoy.getTime();
+    const antesDelMinimo = iso < fechaMinimaReservaISO();
 
     let clases = [];
     if (estaOcupado) clases.push('ocupado');
-    if (esPasado || esHoy) clases.push('inactiva');
+    if (esPasado || esHoy || antesDelMinimo) clases.push('inactiva');
 
     const dia = crearDiaElemento(i, clases.join(' '));
     dia.dataset.iso = iso;
@@ -1053,7 +1088,7 @@ function generarCalendario(albergue) {
       dia.classList.add('seleccionado');
     }
 
-    if (!esPasado && !esHoy && !estaOcupado) {
+    if (!esPasado && !esHoy && !antesDelMinimo && !estaOcupado) {
       dia.addEventListener('click', () => {
         setSelectedDate(albergue, iso, dia);
         mostrarInfoDia(albergue, año, mes, i);
@@ -1780,6 +1815,8 @@ async function submitFormAlo(albergue) {
 
     if (resultado?.success) {
       setBtnSuccess(btn);
+      // El cupo cambió: el badge del calendario tiene que reflejarlo.
+      invalidarLibresMesAlo(albergue);
       mostrarConfirmacionAlo?.(albergue, formData, resultado.idReserva, resultado.codigoPublico, resultado.montoTotal);
 
       setTimeout(() => {
@@ -1911,6 +1948,17 @@ async function mostrarInfoRangoAlo(albergue, range) {
   resultados.forEach(r => {
     if (typeof r.disponibles === 'number' && r.disponibles < minDisp) minDisp = r.disponibles;
     if (r.disponibles >= cantidad) estado.diasValidos.push(r.iso);
+
+    // El dato por día es fresco: corrige el badge del mes y el número de la
+    // celda, que pueden venir de un cache anterior a la última reserva.
+    const [anio, mes1] = r.iso.split('-').map(Number);
+    const claveMes = `${albergue}|${anio}|${mes1 - 1}`;
+    if (!cacheLibresMesAlo[claveMes]) cacheLibresMesAlo[claveMes] = {};
+    cacheLibresMesAlo[claveMes][r.iso] = r.disponibles;
+
+    const celda = document.querySelector(`#calendario-alo-${albergue} [data-date="${r.iso}"]`);
+    const badge = celda ? celda.querySelector('.badge-libre') : null;
+    if (badge) badge.textContent = String(r.disponibles);
   });
   if (!isFinite(minDisp)) minDisp = 0;
 
@@ -2082,10 +2130,11 @@ function generarCalendarioAlo(albergue) {
         fechasOcupadasAlo[albergue].some(f => f.toDateString() === fechaActual.toDateString()));
 
     const esPasado = fechaActual < hoy;
+    const antesDelMinimo = iso < fechaMinimaReservaISO();
     const clases = [];
 
     if (estaOcupado) clases.push('ocupado');
-    if (esPasado) clases.push('inactiva');
+    if (esPasado || antesDelMinimo) clases.push('inactiva');
 
     if (estado.range?.includes(iso)) {
       clases.push('en-rango');
@@ -2112,14 +2161,14 @@ function generarCalendarioAlo(albergue) {
         : `${ddmmyyyy} · sin camas disponibles`;
     }
 
-    if (!esPasado && libres !== null && libres > 0) {
+    if (!esPasado && !antesDelMinimo && libres !== null && libres > 0) {
       const badge = document.createElement('span');
       badge.className = 'badge-libre';
       badge.textContent = String(libres);
       celda.appendChild(badge);
     }
 
-    if (!esPasado && !estaOcupado) {
+    if (!esPasado && !antesDelMinimo && !estaOcupado) {
       celda.onclick = () => handleClickDiaAlo(albergue, iso, celda);
     }
 
@@ -2559,15 +2608,32 @@ async function obtenerDisponibilidadDiaAlo(albergueKey, fechaISO) {
 }
 
 const cacheLibresMesAlo = {};
+const cacheLibresMesAloAt = {};
 const enCursoLibresMesAlo = {};
+// El cupo cambia (una reserva nueva, un vencimiento, una cancelación): el badge
+// del mes no puede quedar cacheado para siempre.
+const LIBRES_MES_TTL_MS = 60000;
 
 function estadoLibresMesAlo(albergue, mes, año) {
   return cacheLibresMesAlo[`${albergue}|${año}|${mes}`] || null;
 }
 
+/** Descarta la disponibilidad cacheada de todos los meses de un albergue. */
+function invalidarLibresMesAlo(albergue) {
+  const prefijo = albergue + '|';
+  Object.keys(cacheLibresMesAlo).forEach(k => {
+    if (k.indexOf(prefijo) === 0) {
+      delete cacheLibresMesAlo[k];
+      delete cacheLibresMesAloAt[k];
+    }
+  });
+}
+
 function asegurarLibresMesAlo(albergue, mes, año) {
   const key = `${albergue}|${año}|${mes}`;
-  if (cacheLibresMesAlo[key] || enCursoLibresMesAlo[key]) return;
+  if (enCursoLibresMesAlo[key]) return;
+  const edad = Date.now() - (cacheLibresMesAloAt[key] || 0);
+  if (cacheLibresMesAlo[key] && edad < LIBRES_MES_TTL_MS) return;
   if (!CONFIG.googleScriptUrlAlo || CONFIG.googleScriptUrlAlo.includes('undefined')) return;
 
   enCursoLibresMesAlo[key] = true;
@@ -2587,6 +2653,7 @@ function asegurarLibresMesAlo(albergue, mes, año) {
       const json = JSON.parse(texto);
       if (!json.success) throw new Error(json.message || 'Sin datos de disponibilidad');
       cacheLibresMesAlo[key] = json.dias || {};
+      cacheLibresMesAloAt[key] = Date.now();
       const e = estadoCalendarioAlo[albergue];
       if (e && e.año === año && e.mes === mes) {
         generarCalendarioAlo(albergue);

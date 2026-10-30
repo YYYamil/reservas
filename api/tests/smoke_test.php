@@ -14,6 +14,16 @@ $CPID = 0;
 $results = [];
 $CFG  = require dirname(__DIR__) . '/config.php';
 
+// Fechas relativas: el test no debe romperse cuando pasa el tiempo ni caer
+// dentro del horizonte mínimo de reserva (anticipacion + ventana mínima).
+$rel = static fn (int $d): string => date('Y-m-d', strtotime("+{$d} days"));
+$f12 = $rel(12); $f13 = $rel(13);
+$f17 = $rel(17); $f18 = $rel(18); $f19 = $rel(19);
+$f22 = $rel(22); $f23 = $rel(23);
+$f27 = $rel(27); $f28 = $rel(28);
+$f33 = $rel(33);
+$f42 = $rel(42); $f43 = $rel(43); $f44 = $rel(44);
+
 function check(string $name, bool $ok, string $detalle = ''): void
 {
     global $results;
@@ -112,6 +122,21 @@ try {
     // si la migracion 2026-10-26 no se aplico, se continua igual
 }
 
+// Restaurar el flag SIEMPRE, incluso si el test aborta por un error fatal:
+// si quedaba en '0' el sistema dejaba de enviar correos hasta que alguien lo
+// notara (pasó al abortar la corrida por un fatal en un check).
+register_shutdown_function(static function () use ($db, $inmediatoAntes): void {
+    try {
+        if ($inmediatoAntes === false || $inmediatoAntes === null) {
+            $db->exec("DELETE FROM configuracion_sistema WHERE clave='notif_envio_inmediato'");
+        } else {
+            $db->exec("UPDATE configuracion_sistema SET valor = " . $db->quote((string) $inmediatoAntes) . " WHERE clave='notif_envio_inmediato'");
+        }
+    } catch (Throwable $e) {
+        // sin base disponible: nada que restaurar
+    }
+});
+
 // ---------- 1. listado de albergues ----------
 $r = api('listarAlbergues', [], 'GET');
 $ok = ($r['success'] ?? false) === true && count($r['albergues'] ?? []) >= 3;
@@ -136,7 +161,7 @@ $visita = api('crearReserva', [
     'contacto'    => '3811234567',
     'email'       => 'smoke.visita@example.com',
     'cantidad'    => 5,
-    'fechaIngreso'=> '2026-11-10',
+    'fechaIngreso'=> $f12,
     'horaIngreso' => '09:00',
     'horaEgreso'  => '17:00',
 ]);
@@ -155,7 +180,7 @@ $idResV = (int) $db->query("SELECT id_reserva FROM reservas_visitas WHERE id = $
 $sinEmail = api('crearReserva', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'X', 'responsable' => 'X',
     'dni' => '30111333', 'contacto' => '3810000000', 'email' => '',
-    'cantidad' => 1, 'fechaIngreso' => '2026-11-11', 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+    'cantidad' => 1, 'fechaIngreso' => $f13, 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
 ]);
 check('8. visita sin email es rechazada', ($sinEmail['success'] ?? true) === false, json_encode($sinEmail));
 
@@ -168,7 +193,7 @@ $alo = api('crearReservaAlojamiento', [
     'contacto'    => '3819876543',
     'email'       => 'smoke.alojamiento@example.com',
     'cantidad'    => 2,
-    'rangoFechas' => '2026-11-15,2026-11-16,2026-11-17',
+    'rangoFechas' => "{$f17},{$f18},{$f19}",
 ]);
 $codeA = $alo['codigoPublico'] ?? '';
 check('9. crearReservaAlojamiento responde success', ($alo['success'] ?? false) === true, json_encode($alo));
@@ -182,11 +207,11 @@ check('13. reservas de alojamiento generan 3 dias', $dias === 3, "dias=$dias");
 $idResA = (int) $db->query("SELECT id_reserva FROM reservas_alojamiento WHERE id = $pkA")->fetchColumn();
 
 // ---------- 14. disponibilidad visitas con capacidad separada (ANTES de cancelar) ----------
-$disp = api('obtenerDisponibilidadDia', ['albergue' => 'Maestro José Fierro', 'fecha' => '2026-11-10'], 'GET');
+$disp = api('obtenerDisponibilidadDia', ['albergue' => 'Maestro José Fierro', 'fecha' => $f12], 'GET');
 check('14. disponibilidad visitas usa capacidad_visitas=150', ($disp['capacidad'] ?? 0) == 150, json_encode($disp));
 check('15. ocupados visitas refleja la reserva activa (5)', ($disp['ocupados'] ?? -1) == 5, json_encode($disp));
 
-$dispAlo = api('obtenerDisponibilidadDiaAlojamiento', ['albergue' => 'Maestro José Fierro', 'fecha' => '2026-11-15'], 'GET');
+$dispAlo = api('obtenerDisponibilidadDiaAlojamiento', ['albergue' => 'Maestro José Fierro', 'fecha' => $f17], 'GET');
 check('16. disponibilidad alojamiento usa capacidad=92', ($dispAlo['capacidad'] ?? 0) == 92, json_encode($dispAlo));
 check('17. ocupados alojamiento refleja la reserva activa (2)', ($dispAlo['ocupados'] ?? -1) == 2, json_encode($dispAlo));
 
@@ -211,9 +236,9 @@ $sinDni = api('cancelarReserva', ['idReserva' => $codeV, 'dni' => '']);
 check('23. cancelar sin DNI es rechazado (2 campos obligatorios)', ($sinDni['success'] ?? true) === false, json_encode($sinDni));
 
 // ---------- 24. tras cancelar, el cupo se libera ----------
-$disp2 = api('obtenerDisponibilidadDia', ['albergue' => 'Maestro José Fierro', 'fecha' => '2026-11-10'], 'GET');
+$disp2 = api('obtenerDisponibilidadDia', ['albergue' => 'Maestro José Fierro', 'fecha' => $f12], 'GET');
 check('24. cancelada -> cupo de visitas liberado (0)', ($disp2['ocupados'] ?? -1) == 0, json_encode($disp2));
-$disp2Alo = api('obtenerDisponibilidadDiaAlojamiento', ['albergue' => 'Maestro José Fierro', 'fecha' => '2026-11-15'], 'GET');
+$disp2Alo = api('obtenerDisponibilidadDiaAlojamiento', ['albergue' => 'Maestro José Fierro', 'fecha' => $f17], 'GET');
 check('25. cancelada -> cupo de alojamiento liberado (0)', ($disp2Alo['ocupados'] ?? -1) == 0, json_encode($disp2Alo));
 
 // ---------- 26. vista unificada expone codigo_publico ----------
@@ -251,7 +276,7 @@ check('30. espejo de Google Sheets ya no existe', isset($espejo['success']) && $
 $vMonto = api('crearReserva', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'MONTO VISITA', 'responsable' => 'Monto V',
     'dni' => '30444555', 'contacto' => '3811111111', 'email' => 'monto.visita@example.com',
-    'cantidad' => 4, 'fechaIngreso' => '2026-11-20', 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+    'cantidad' => 4, 'fechaIngreso' => $f22, 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
 ]);
 check('32. visita responde montoTotal = cantidad x monto_visita (4 x 2000)', (float) ($vMonto['montoTotal'] ?? 0) === 8000.0, json_encode($vMonto));
 $pkVM = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($vMonto['codigoPublico'] ?? ''))->fetchColumn();
@@ -260,13 +285,13 @@ check('33. monto_total persistido (congelado) en visita', $mtV === 8000.0, "mont
 $pv = $db->query("SELECT pago_vence_at FROM reservas_visitas WHERE id = $pkVM")->fetchColumn();
 $pvDias = $pv === false || $pv === null ? null
     : (int) $db->query("SELECT (DATE(" . $db->quote((string) $pv) . ") - DATE(NOW()))")->fetchColumn();
-check('34. pago_vence_at seteado (~7 dias)', $pvDias === 7, "vence=$pv dias=$pvDias");
+check('34. pago_vence_at = min(creacion + 48 h, inicio - 60 h) -> 2 dias', $pvDias === 2, "vence=$pv dias=$pvDias");
 
 // ---------- 35. visita sin email rechazada (email obligatorio) ----------
 $vSinMail = api('crearReserva', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'SIN MAIL', 'responsable' => 'X',
     'dni' => '30444666', 'contacto' => '3810000000', 'email' => '',
-    'cantidad' => 1, 'fechaIngreso' => '2026-11-21', 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+    'cantidad' => 1, 'fechaIngreso' => $f23, 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
 ]);
 check('35. visita sin email es rechazada', ($vSinMail['success'] ?? true) === false, json_encode($vSinMail));
 
@@ -278,7 +303,7 @@ check('36. creacion encolada al cliente', $nCre === 1, "n=$nCre");
 $aLote = api('crearReservaAlojamiento', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'MONTO ALO', 'responsable' => 'Monto A',
     'dni' => '30555666', 'contacto' => '3812222222', 'email' => 'monto.alo@example.com',
-    'cantidad' => 3, 'rangoFechas' => '2026-11-25,2026-11-26',
+    'cantidad' => 3, 'rangoFechas' => "{$f27},{$f28}",
 ]);
 check('37. alojamiento responde montoTotal = camas x noches x monto_cama (3 x 2 x 5000)', (float) ($aLote['montoTotal'] ?? 0) === 30000.0, json_encode($aLote));
 $pkAM = (int) $db->query("SELECT id FROM reservas_alojamiento WHERE codigo_publico = " . $db->quote($aLote['codigoPublico'] ?? ''))->fetchColumn();
@@ -387,7 +412,7 @@ check('49. adminReservas filtra por codigo de reserva (parametro q)', ($admQ['su
 $nuevaVisita = api('crearReserva', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'NOTIF VISITA', 'responsable' => 'Notif V',
     'dni' => '30666777', 'contacto' => '3813333333', 'email' => 'notif.visita@example.com',
-    'cantidad' => 6, 'fechaIngreso' => '2026-12-01', 'horaIngreso' => '08:30', 'horaEgreso' => '18:00',
+    'cantidad' => 6, 'fechaIngreso' => $f33, 'horaIngreso' => '08:30', 'horaEgreso' => '18:00',
 ]);
 $codNV = (string) ($nuevaVisita['codigoPublico'] ?? '');
 $pkNV = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($codNV))->fetchColumn();
@@ -408,11 +433,11 @@ $itemsEsperados = [
     'Teléfono'                => '3813333333',
     'Email'                   => 'notif.visita@example.com',
     'Cantidad de personas'    => '6',
-    'Fecha de ingreso'        => '01/12/2026',
+    'Fecha de ingreso'        => date('d/m/Y', strtotime($f33)),
     'Hora de ingreso'         => '08:30',
     'Hora de egreso'          => '18:00',
     'Monto total'             => '$12.000',
-    'Vence el'                => date('d/m/Y', strtotime('+7 days')),
+    'Vence el'                => date('d/m/Y', strtotime('+2 days')),
     'Estado'                  => 'Pre-Reserva',
 ];
 $faltantes = [];
@@ -432,7 +457,7 @@ check('53. el mail de creación incluye el enlace para subir el comprobante',
 $nuevaAlo = api('crearReservaAlojamiento', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'NOTIF ALO', 'responsable' => 'Notif A',
     'dni' => '30777888', 'contacto' => '3814444444', 'email' => 'notif.alo@example.com',
-    'cantidad' => 4, 'rangoFechas' => '2026-12-10,2026-12-11,2026-12-12',
+    'cantidad' => 4, 'rangoFechas' => "{$f42},{$f43},{$f44}",
 ]);
 $codNA = (string) ($nuevaAlo['codigoPublico'] ?? '');
 $pkNA = (int) $db->query("SELECT id FROM reservas_alojamiento WHERE codigo_publico = " . $db->quote($codNA))->fetchColumn();
@@ -441,7 +466,7 @@ $cuerpoAlo = (string) $db->query("SELECT cuerpo FROM notificaciones_email
 check('54. alojamiento: mail con fechas y noches',
     $pkNA > 0
     && str_contains($cuerpoAlo, 'Fechas de alojamiento')
-    && str_contains($cuerpoAlo, '10/12/2026 / 11/12/2026 / 12/12/2026')
+    && str_contains($cuerpoAlo, date('d/m/Y', strtotime($f42)) . ' / ' . date('d/m/Y', strtotime($f43)) . ' / ' . date('d/m/Y', strtotime($f44)))
     && str_contains($cuerpoAlo, 'Noches'),
     'pk=' . $pkNA);
 check('55. alojamiento: monto y modalidad correctos en el mail',
@@ -461,7 +486,60 @@ check('57. el mail de cancelación incluye el detalle y el estado Cancelado',
     && str_contains((string) ($notifCanc['cuerpo'] ?? ''), 'cupo fue liberado'),
     'codigo=' . $codNV);
 
-// ---------- 58/59. el admin confirma desde el panel ----------
+/**
+ * POST multipart real, para probar la subida de comprobantes de punta a punta.
+ */
+function apiMultipart(string $action, array $campos, string $campoArchivo, string $nombreArchivo, string $mime, string $contenido): array
+{
+    global $BASE;
+    $b = '----smoke' . bin2hex(random_bytes(8));
+    $body = '';
+    foreach ($campos as $k => $v) {
+        $body .= "--{$b}\r\nContent-Disposition: form-data; name=\"{$k}\"\r\n\r\n{$v}\r\n";
+    }
+    $body .= "--{$b}\r\nContent-Disposition: form-data; name=\"{$campoArchivo}\"; filename=\"{$nombreArchivo}\"\r\n"
+        . "Content-Type: {$mime}\r\n\r\n{$contenido}\r\n--{$b}--\r\n";
+
+    $ctx = stream_context_create(['http' => [
+        'method'  => 'POST',
+        'header'  => "Content-Type: multipart/form-data; boundary={$b}\r\nContent-Length: " . strlen($body) . "\r\n",
+        'content' => $body,
+        'timeout' => 60,
+        'ignore_errors' => true,
+    ]]);
+    $resp = @file_get_contents($BASE . '?action=' . urlencode($action), false, $ctx);
+    $json = json_decode((string) $resp, true);
+    return is_array($json) ? $json : ['_raw' => (string) $resp];
+}
+
+// ---------- 58. el cliente sube el comprobante: Pre-Reserva -> Comprobar ----------
+// PNG 1x1 válido: finfo lo detecta por contenido, igual que un comprobante real.
+$png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
+$subida = apiMultipart('subirComprobante', ['codigo' => $codNA], 'comprobante', 'pago.png', 'image/png', $png);
+$estadoTrasSubir = (string) $db->query("SELECT estado FROM reservas_alojamiento WHERE id = $pkNA")->fetchColumn();
+$compPend = $db->query("SELECT id, estado FROM comprobantes
+    WHERE reserva_modalidad='alojamiento' AND reserva_pk=$pkNA ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+check('58. subir comprobante deja la reserva en Comprobar con el comprobante pendiente',
+    ($subida['success'] ?? false) === true && $estadoTrasSubir === 'Comprobar'
+    && $compPend !== false && $compPend['estado'] === 'pendiente',
+    json_encode(['resp' => $subida, 'estado' => $estadoTrasSubir, 'comp' => $compPend]));
+
+$doble = apiMultipart('subirComprobante', ['codigo' => $codNA], 'comprobante', 'pago2.png', 'image/png', $png);
+check('58b. no se acepta un segundo comprobante si ya hay uno en revisión',
+    ($doble['success'] ?? true) === false, json_encode($doble));
+
+$nAcuse = (int) $db->query("SELECT COUNT(*) FROM notificaciones_email
+    WHERE reserva_modalidad='alojamiento' AND reserva_pk=$pkNA AND tipo_evento='comprobante_recibido'")->fetchColumn();
+$nAdmin = (int) $db->query("SELECT COUNT(*) FROM notificaciones_email
+    WHERE reserva_modalidad='alojamiento' AND reserva_pk=$pkNA AND tipo_evento='pago_recibido'")->fetchColumn();
+check('58d. la subida genera acuse al cliente y aviso al admin',
+    $nAcuse === 1 && $nAdmin === 1, "acuse=$nAcuse admin=$nAdmin");
+
+$compOcupa = api('obtenerDisponibilidadDiaAlojamiento', ['albergue' => 'Maestro José Fierro', 'fecha' => $f42], 'GET');
+check('58c. una reserva en Comprobar sigue ocupando cupo',
+    ($compOcupa['ocupados'] ?? -1) === 4, json_encode($compOcupa));
+
+// ---------- 59/60. el admin aprueba desde el panel ----------
 // adminEstado exige el rol 'admin': el super_admin administra usuarios y
 // configuración, pero NO opera el panel de reservas. Se usa la cuenta admin.
 $cookieAdmin = '';
@@ -469,27 +547,51 @@ $loginAdm = apiConCookie('adminLogin', ['usuario' => 'admin', 'pass' => 'Admin20
 check('58a. la cuenta admin inicia sesión con rol admin',
     ($loginAdm['rol'] ?? '') === 'admin', json_encode(['rol' => $loginAdm['rol'] ?? null]));
 
-$admEstado = apiConCookie('adminEstado', ['pk' => (string) $pkNA, 'modalidad' => 'alojamiento', 'estado' => 'Confirmado'], $cookieAdmin);
+$admEstado = apiConCookie('adminEstado', ['accion' => 'aprobar', 'pk' => (string) $pkNA, 'modalidad' => 'alojamiento'], $cookieAdmin);
 $notifConf = $db->query("SELECT * FROM notificaciones_email
     WHERE reserva_modalidad='alojamiento' AND reserva_pk=$pkNA AND tipo_evento='confirmacion'")->fetch(PDO::FETCH_ASSOC);
-check('58. al pasar a Confirmado se notifica al usuario final',
-    ($admEstado['success'] ?? false) === true && $notifConf !== false,
-    json_encode(['estado' => $admEstado, 'evento' => $notifConf['tipo_evento'] ?? null]));
-check('59. el mail de confirmación incluye detalle, monto y estado Confirmado',
+$estadoConf = (string) $db->query("SELECT estado FROM reservas_alojamiento WHERE id = $pkNA")->fetchColumn();
+check('59. al aprobar, la reserva pasa a Confirmado y se notifica al usuario final',
+    ($admEstado['success'] ?? false) === true && $estadoConf === 'Confirmado' && $notifConf !== false,
+    json_encode(['estado' => $admEstado, 'db' => $estadoConf, 'evento' => $notifConf['tipo_evento'] ?? null]));
+
+$compAprob = $db->query("SELECT estado, revisado_por FROM comprobantes
+    WHERE reserva_modalidad='alojamiento' AND reserva_pk=$pkNA ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+check('59b. el comprobante queda aprobado y con el revisor registrado',
+    $compAprob !== false && $compAprob['estado'] === 'aprobado' && $compAprob['revisado_por'] === 'admin',
+    json_encode($compAprob));
+
+check('59c. el mail de confirmación incluye detalle, monto y estado Confirmado',
     str_contains((string) ($notifConf['cuerpo'] ?? ''), $codNA)
     && str_contains((string) ($notifConf['cuerpo'] ?? ''), '$60.000')
     && str_contains((string) ($notifConf['cuerpo'] ?? ''), '>Confirmado<'),
     'codigo=' . $codNA);
-check('60. adminEstado sin cambio real de estado no duplica avisos',
-    (apiConCookie('adminEstado', ['pk' => (string) $pkNA, 'modalidad' => 'alojamiento', 'estado' => 'Confirmado'], $cookieAdmin)['sin_cambios'] ?? false) === true,
-    'segunda llamada con el mismo estado');
 
-// ---------- 61. el admin cancela: aviso de cancelación al usuario ----------
-$admCancela = apiConCookie('adminEstado', ['pk' => (string) $pkNA, 'modalidad' => 'alojamiento', 'estado' => 'Cancelado'], $cookieAdmin);
+// Aviso extra al administrador, con el nombre de quien validó.
+$notifValAdmin = $db->query("SELECT * FROM notificaciones_email
+    WHERE reserva_modalidad='alojamiento' AND reserva_pk=$pkNA AND tipo_evento='validacion_admin'")->fetch(PDO::FETCH_ASSOC);
+check('59d. al aprobar se avisa al admin con el nombre de quien validó',
+    $notifValAdmin !== false
+    && $notifValAdmin['destinatario'] === 'smoke.admin@example.com'
+    && str_contains((string) $notifValAdmin['cuerpo'], 'por admin'),
+    json_encode(['dest' => $notifValAdmin['destinatario'] ?? null]));
+
+$reaprobar = apiConCookie('adminEstado', ['accion' => 'aprobar', 'pk' => (string) $pkNA, 'modalidad' => 'alojamiento'], $cookieAdmin);
+check('60. aprobar dos veces es rechazado (transición inválida)',
+    ($reaprobar['success'] ?? true) === false, json_encode($reaprobar));
+
+// ---------- 61. el admin anula una Pre-Reserva: aviso de cancelación ----------
+$preCanc = api('crearReserva', [
+    'albergue' => 'Maestro José Fierro', 'institucion' => 'CANCELA ADMIN', 'responsable' => 'Canc Admin',
+    'dni' => '30888999', 'contacto' => '3815555555', 'email' => 'canc.admin@example.com',
+    'cantidad' => 2, 'fechaIngreso' => $f19, 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$pkCanc = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($preCanc['codigoPublico'] ?? ''))->fetchColumn();
+$admCancela = apiConCookie('adminEstado', ['accion' => 'anular', 'pk' => (string) $pkCanc, 'modalidad' => 'visita'], $cookieAdmin);
 $cancAdmin = (int) $db->query("SELECT COUNT(*) FROM notificaciones_email
-    WHERE reserva_modalidad='alojamiento' AND reserva_pk=$pkNA AND tipo_evento='cancelacion'
-      AND destinatario='notif.alo@example.com'")->fetchColumn();
-check('61. al cancelar desde el panel se avisa al usuario final',
+    WHERE reserva_modalidad='visita' AND reserva_pk=$pkCanc AND tipo_evento='cancelacion'
+      AND destinatario='canc.admin@example.com'")->fetchColumn();
+check('61. al anular desde el panel se avisa al usuario final',
     ($admCancela['success'] ?? false) === true && $cancAdmin === 1,
     json_encode($admCancela));
 
@@ -513,6 +615,185 @@ check('63. el cambio desde el panel registra usuario, fecha y origen',
     && !empty($audita['estado_modificado_at'])
     && ($audita['estado_origen'] ?? '') === 'panel',
     json_encode($audita));
+
+// =====================================================================
+//  ETAPA 4: máquina de estados, plazos y liberación de cupos
+// =====================================================================
+
+// ---------- 64. horizonte mínimo ----------
+$r = api('crearReserva', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'HORIZONTE', 'responsable' => 'Hor',
+    'dni' => '31111111', 'contacto' => '3810000001', 'email' => 'horizonte@example.com',
+    'cantidad' => 1, 'fechaIngreso' => date('Y-m-d', strtotime('+1 day')),
+    'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+check('64. reserva dentro del horizonte mínimo (66 h) es rechazada',
+    ($r['success'] ?? true) === false, json_encode($r));
+
+// ---------- 65/66. validaciones del rango de alojamiento ----------
+$f20 = $rel(20); $f21 = $rel(21);
+$r = api('crearReservaAlojamiento', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'NO CONSEC', 'responsable' => 'NC',
+    'dni' => '31111112', 'contacto' => '3810000002', 'email' => 'nocon@example.com',
+    'cantidad' => 1, 'rangoFechas' => "{$f17},{$f19}",
+]);
+check('65. rango no consecutivo es rechazado', ($r['success'] ?? true) === false, json_encode($r));
+
+$r = api('crearReservaAlojamiento', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'CINCO DIAS', 'responsable' => 'CD',
+    'dni' => '31111113', 'contacto' => '3810000003', 'email' => 'cinco@example.com',
+    'cantidad' => 1, 'rangoFechas' => "{$f17},{$f18},{$f19},{$f20},{$f21}",
+]);
+check('66. estadía de más de 4 días es rechazada', ($r['success'] ?? true) === false, json_encode($r));
+
+// ---------- 67. monto 0 ----------
+$montoTinku = (float) $db->query("SELECT monto_visita FROM albergues WHERE clave = 'tinku'")->fetchColumn();
+$db->exec("UPDATE albergues SET monto_visita = 0 WHERE clave = 'tinku'");
+$r = api('crearReserva', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'MONTO CERO', 'responsable' => 'MC',
+    'dni' => '31111114', 'contacto' => '3810000004', 'email' => 'cero@example.com',
+    'cantidad' => 1, 'fechaIngreso' => $f12, 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$db->exec("UPDATE albergues SET monto_visita = " . $db->quote((string) $montoTinku) . " WHERE clave = 'tinku'");
+check('67. reserva con monto total 0 es rechazada', ($r['success'] ?? true) === false, json_encode($r));
+
+// ---------- 68. el vencimiento se ata al inicio cuando la fecha está cerca ----------
+$cerca = $rel(4);
+$r = api('crearReserva', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'CERCANA', 'responsable' => 'Ce',
+    'dni' => '31111115', 'contacto' => '3810000005', 'email' => 'cerca@example.com',
+    'cantidad' => 1, 'fechaIngreso' => $cerca, 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$codCerca = (string) ($r['codigoPublico'] ?? '');
+$pkCerca  = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($codCerca))->fetchColumn();
+$desvioHoras = $pkCerca > 0
+    ? (float) $db->query("SELECT EXTRACT(EPOCH FROM (pago_vence_at - (inicio_at - INTERVAL '60 hours'))) / 3600
+                            FROM reservas_visitas WHERE id = $pkCerca")->fetchColumn()
+    : 999.0;
+check('68. el vencimiento queda en inicio - 60 h cuando la fecha está cerca',
+    ($r['success'] ?? false) === true && abs($desvioHoras) < 0.02, "desvio={$desvioHoras} h");
+
+$dispAntes = api('obtenerDisponibilidadDia', ['albergue' => 'Tinku Huasi', 'fecha' => $cerca], 'GET');
+check('69. la pre-reserva vigente ocupa cupo', ($dispAntes['ocupados'] ?? -1) === 1, json_encode($dispAntes));
+
+// ---------- 70/71. vencimiento perezoso + barrido ----------
+$db->exec("UPDATE reservas_visitas SET pago_vence_at = NOW() - INTERVAL '1 hour' WHERE id = $pkCerca");
+$subVencida = apiMultipart('subirComprobante', ['codigo' => $codCerca], 'comprobante', 'vencida.png', 'image/png', $png);
+check('70. no se acepta comprobante de una pre-reserva vencida',
+    ($subVencida['success'] ?? true) === false, json_encode($subVencida));
+
+$dispLazy = api('obtenerDisponibilidadDia', ['albergue' => 'Tinku Huasi', 'fecha' => $cerca], 'GET');
+check('71. una pre-reserva vencida libera el cupo sin esperar al barrido',
+    ($dispLazy['ocupados'] ?? -1) === 0, json_encode($dispLazy));
+
+$venc = api('tareasVencimiento', ['token' => '']);
+$estadoVencido = (string) $db->query("SELECT estado FROM reservas_visitas WHERE id = $pkCerca")->fetchColumn();
+$mailVenc = (int) $db->query("SELECT COUNT(*) FROM notificaciones_email
+    WHERE reserva_modalidad='visita' AND reserva_pk=$pkCerca AND tipo_evento='vencimiento'")->fetchColumn();
+check('72. el barrido pasa la pre-reserva a Vencido y encola el aviso',
+    ($venc['success'] ?? false) === true && $estadoVencido === 'Vencido' && $mailVenc === 1,
+    json_encode(['barrido' => $venc['vencimientos'] ?? null, 'estado' => $estadoVencido, 'mails' => $mailVenc]));
+
+// ---------- 73/74/75. cancelación de una reserva paga (>48 h) ----------
+$cancelConf = api('cancelarReserva', ['idReserva' => $codNA, 'dni' => '30777888']);
+$dev = $db->query("SELECT estado, devolucion_pct, devolucion_monto FROM reservas_alojamiento WHERE id = $pkNA")->fetch(PDO::FETCH_ASSOC);
+check('73. cancelar una reserva paga con más de 48 h deja Devolver con devolución 100%',
+    ($cancelConf['success'] ?? false) === true && ($dev['estado'] ?? '') === 'Devolver'
+    && (int) round((float) ($dev['devolucion_pct'] ?? 0)) === 100
+    && (float) ($dev['devolucion_monto'] ?? 0) === 60000.0,
+    json_encode(['resp' => $cancelConf, 'dev' => $dev]));
+
+$dispDev = api('obtenerDisponibilidadDiaAlojamiento', ['albergue' => 'Maestro José Fierro', 'fecha' => $f42], 'GET');
+check('74. el estado Devolver ya liberó el cupo', ($dispDev['ocupados'] ?? -1) === 0, json_encode($dispDev));
+
+$marcarDev = apiConCookie('adminEstado', ['accion' => 'devolver', 'pk' => (string) $pkNA, 'modalidad' => 'alojamiento'], $cookieAdmin);
+$devFinal = $db->query("SELECT estado, devolucion_ejecutada_at, devolucion_ejecutada_por FROM reservas_alojamiento WHERE id = $pkNA")->fetch(PDO::FETCH_ASSOC);
+check('75. el operador marca la devolución y la reserva queda Cancelada',
+    ($marcarDev['success'] ?? false) === true && ($devFinal['estado'] ?? '') === 'Cancelado'
+    && !empty($devFinal['devolucion_ejecutada_at']) && ($devFinal['devolucion_ejecutada_por'] ?? '') === 'admin',
+    json_encode(['resp' => $marcarDev, 'dev' => $devFinal]));
+
+$reactivar = apiConCookie('adminEstado', ['accion' => 'aprobar', 'pk' => (string) $pkNA, 'modalidad' => 'alojamiento'], $cookieAdmin);
+check('76. no se puede reactivar una reserva cancelada', ($reactivar['success'] ?? true) === false, json_encode($reactivar));
+
+// ---------- 77. cancelación dentro de las 48 h: devolución 50% ----------
+$r = api('crearReserva', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'CANCELA 50', 'responsable' => 'C50',
+    'dni' => '31111116', 'contacto' => '3810000006', 'email' => 'c50@example.com',
+    'cantidad' => 2, 'fechaIngreso' => $rel(5), 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$cod50 = (string) ($r['codigoPublico'] ?? '');
+$pk50  = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($cod50))->fetchColumn();
+apiMultipart('subirComprobante', ['codigo' => $cod50], 'comprobante', 'c50.png', 'image/png', $png);
+apiConCookie('adminEstado', ['accion' => 'aprobar', 'pk' => (string) $pk50, 'modalidad' => 'visita'], $cookieAdmin);
+// Se simula el paso del tiempo: el inicio queda a 20 h.
+$db->exec("UPDATE reservas_visitas SET inicio_at = NOW() + INTERVAL '20 hours' WHERE id = $pk50");
+$cancel50 = api('cancelarReserva', ['idReserva' => $cod50, 'dni' => '31111116']);
+$dev50 = $db->query("SELECT estado, devolucion_pct, devolucion_monto FROM reservas_visitas WHERE id = $pk50")->fetch(PDO::FETCH_ASSOC);
+check('77. cancelar dentro de las 48 h deja Devolver con devolución 50%',
+    ($cancel50['success'] ?? false) === true && ($dev50['estado'] ?? '') === 'Devolver'
+    && (int) round((float) ($dev50['devolucion_pct'] ?? 0)) === 50
+    && (float) ($dev50['devolucion_monto'] ?? 0) === 2000.0,
+    json_encode(['resp' => $cancel50, 'dev' => $dev50]));
+
+// ---------- 78. cancelación el día de ingreso: bloqueada ----------
+$r = api('crearReserva', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'CANCELA HOY', 'responsable' => 'CH',
+    'dni' => '31111117', 'contacto' => '3810000007', 'email' => 'choy@example.com',
+    'cantidad' => 1, 'fechaIngreso' => $rel(6), 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$codHoy = (string) ($r['codigoPublico'] ?? '');
+$pkHoy  = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($codHoy))->fetchColumn();
+apiMultipart('subirComprobante', ['codigo' => $codHoy], 'comprobante', 'choy.png', 'image/png', $png);
+apiConCookie('adminEstado', ['accion' => 'aprobar', 'pk' => (string) $pkHoy, 'modalidad' => 'visita'], $cookieAdmin);
+$db->exec("UPDATE reservas_visitas SET inicio_at = NOW() - INTERVAL '2 hours' WHERE id = $pkHoy");
+$cancelHoy = api('cancelarReserva', ['idReserva' => $codHoy, 'dni' => '31111117']);
+$estadoHoy = (string) $db->query("SELECT estado FROM reservas_visitas WHERE id = $pkHoy")->fetchColumn();
+check('78. no se puede cancelar el día de ingreso ni después',
+    ($cancelHoy['success'] ?? true) === false && $estadoHoy === 'Confirmado',
+    json_encode(['resp' => $cancelHoy, 'estado' => $estadoHoy]));
+
+// ---------- 79. cancelar una pre-reserva impaga: Cancelado sin devolución ----------
+$r = api('crearReserva', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'IMPAGA', 'responsable' => 'Im',
+    'dni' => '31111118', 'contacto' => '3810000008', 'email' => 'impaga@example.com',
+    'cantidad' => 1, 'fechaIngreso' => $rel(7), 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$codImp = (string) ($r['codigoPublico'] ?? '');
+$pkImp  = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($codImp))->fetchColumn();
+$cancelImp = api('cancelarReserva', ['idReserva' => $codImp, 'dni' => '31111118']);
+$devImp = $db->query("SELECT estado, devolucion_monto FROM reservas_visitas WHERE id = $pkImp")->fetch(PDO::FETCH_ASSOC);
+check('79. cancelar una pre-reserva impaga deja Cancelado y sin devolución',
+    ($cancelImp['success'] ?? false) === true && ($devImp['estado'] ?? '') === 'Cancelado'
+    && $devImp['devolucion_monto'] === null,
+    json_encode(['resp' => $cancelImp, 'dev' => $devImp]));
+
+// ---------- 80. rechazo de comprobante: vuelve a Pre-Reserva con nuevo plazo ----------
+$r = api('crearReserva', [
+    'albergue' => 'Tinku Huasi', 'institucion' => 'RECHAZO', 'responsable' => 'Re',
+    'dni' => '31111119', 'contacto' => '3810000009', 'email' => 'rechazo@example.com',
+    'cantidad' => 1, 'fechaIngreso' => $rel(8), 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$codRe = (string) ($r['codigoPublico'] ?? '');
+$pkRe  = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($codRe))->fetchColumn();
+apiMultipart('subirComprobante', ['codigo' => $codRe], 'comprobante', 're.png', 'image/png', $png);
+$rechazo = apiConCookie('adminEstado', [
+    'accion' => 'rechazar', 'motivo' => 'El importe no coincide con el total',
+    'pk' => (string) $pkRe, 'modalidad' => 'visita',
+], $cookieAdmin);
+$reRow = $db->query("SELECT estado, comprobado_at FROM reservas_visitas WHERE id = $pkRe")->fetch(PDO::FETCH_ASSOC);
+$compRe = $db->query("SELECT estado, motivo_rechazo FROM comprobantes
+    WHERE reserva_modalidad='visita' AND reserva_pk=$pkRe ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
+$mailRe = (int) $db->query("SELECT COUNT(*) FROM notificaciones_email
+    WHERE reserva_modalidad='visita' AND reserva_pk=$pkRe AND tipo_evento='rechazo'")->fetchColumn();
+check('80. rechazar el comprobante devuelve la reserva a Pre-Reserva y avisa con el motivo',
+    ($rechazo['success'] ?? false) === true && ($reRow['estado'] ?? '') === 'Pre-Reserva'
+    && $reRow['comprobado_at'] === null
+    && ($compRe['estado'] ?? '') === 'rechazado'
+    && ($compRe['motivo_rechazo'] ?? '') === 'El importe no coincide con el total'
+    && $mailRe === 1,
+    json_encode(['resp' => $rechazo, 'fila' => $reRow, 'comp' => $compRe, 'mails' => $mailRe]));
+
 
 // Restaurar el flag de envío inmediato tal como estaba antes de la prueba.
 try {

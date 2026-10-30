@@ -4,14 +4,17 @@ declare(strict_types=1);
 /**
  * Notificaciones por email: encolado (outbox), plantillas y worker de envío.
  *
- * Flujo:
- *   1. crear reserva            -> 'creacion'            al cliente (envío inmediato)
- *   2. cliente cancela          -> 'cancelacion_cliente' al cliente (envío inmediato)
- *   3. cron día 6               -> 'recordatorio'        al cliente
- *   4. cron día 7               -> cancelar + 'cancelacion'
- *   5. cliente sube comprobante -> 'pago_recibido'       al admin
- *   6. admin pasa a Confirmado  -> 'confirmacion'        al cliente (envío inmediato)
- *   7. admin cancela            -> 'cancelacion'         al cliente (envío inmediato)
+ * Flujo (ver docs/MAQUINA-ESTADOS-RESERVAS.md):
+ *   1. crear reserva              -> 'creacion'            al cliente (envío inmediato)
+ *   2. barrido: vence el pago     -> 'vencimiento'         al cliente
+ *   3. barrido: vence en < 12 h   -> 'recordatorio'        al cliente
+ *   4. cliente sube comprobante   -> 'pago_recibido'       al admin
+ *   5. admin aprueba (Comprobar)  -> 'confirmacion'        al cliente
+ *   6. admin aprueba (Comprobar)  -> 'validacion_admin'    al admin (con el nombre de quien validó)
+ *   7. admin rechaza (Comprobar)  -> 'rechazo'             al cliente (con el motivo)
+ *   7. cliente cancela impaga     -> 'cancelacion_cliente' al cliente
+ *   8. cliente cancela paga       -> 'devolucion'          al cliente (con el importe)
+ *   9. admin anula una Pre-Reserva-> 'cancelacion'         al cliente
  *
  * Todos los correos incluyen el detalle completo de la reserva (código, albergue,
  * institución, responsable, fechas, cantidad, monto, vencimiento y estado).
@@ -145,7 +148,8 @@ function encolarNotificacion(
     string $destinatario,
     string $destinatarioTipo = 'cliente',
     ?DateTimeInterface $programadoPara = null,
-    ?array $config = null
+    ?array $config = null,
+    array $extra = []
 ): ?int {
     if (!in_array($modalidad, ['visita', 'alojamiento'], true)) {
         throw new InvalidArgumentException('Modalidad inválida');
@@ -157,6 +161,9 @@ function encolarNotificacion(
     $ctx = datosReserva($pdo, $modalidad, $reservaPk);
     if ($ctx === null) {
         return null;
+    }
+    if ($extra !== []) {
+        $ctx = array_merge($ctx, $extra);
     }
     [$asunto, $html] = plantillaCorreo($tipoEvento, $ctx, appUrl($pdo, $config ?? []));
 
@@ -199,19 +206,33 @@ function encolarNotificacion(
 function datosReserva(PDO $pdo, string $modalidad, int $reservaPk): ?array
 {
     if ($modalidad === 'visita') {
-        $sql = 'SELECT r.id, r.codigo_publico, r.id_reserva, r.institucion, r.responsable,
+        $sql = "SELECT r.id, r.codigo_publico, r.id_reserva, r.institucion, r.responsable,
                        r.dni, r.contacto, r.email, r.cantidad, r.fecha_ingreso, r.hora_ingreso,
                        r.hora_egreso, r.estado, r.monto_total, r.pago_vence_at, r.created_at,
-                       al.nombre AS albergue, al.monto_visita, al.monto_cama
+                       r.inicio_at, r.comprobado_at, r.confirmado_at, r.validacion_vence_at, r.motivo_cierre,
+                       r.estado_modificado_por, r.estado_modificado_at,
+                       r.devolucion_pct, r.devolucion_monto, r.devolucion_ejecutada_at, r.cancelado_at,
+                       al.nombre AS albergue, al.monto_visita, al.monto_cama,
+                       (SELECT c.motivo_rechazo FROM comprobantes c
+                         WHERE c.reserva_modalidad = 'visita' AND c.reserva_pk = r.id
+                           AND c.estado = 'rechazado'
+                         ORDER BY c.revisado_at DESC NULLS LAST, c.id DESC LIMIT 1) AS motivo_rechazo
                 FROM reservas_visitas r JOIN albergues al ON al.id = r.albergue_id
-                WHERE r.id = ?';
+                WHERE r.id = ?";
     } else {
-        $sql = 'SELECT r.id, r.codigo_publico, r.id_reserva, r.institucion, r.responsable,
+        $sql = "SELECT r.id, r.codigo_publico, r.id_reserva, r.institucion, r.responsable,
                        r.dni, r.contacto, r.email, r.cantidad, r.rango_fechas, r.estado,
                        r.monto_total, r.pago_vence_at, r.created_at,
-                       al.nombre AS albergue, al.monto_visita, al.monto_cama
+                       r.inicio_at, r.comprobado_at, r.confirmado_at, r.validacion_vence_at, r.motivo_cierre,
+                       r.estado_modificado_por, r.estado_modificado_at,
+                       r.devolucion_pct, r.devolucion_monto, r.devolucion_ejecutada_at, r.cancelado_at,
+                       al.nombre AS albergue, al.monto_visita, al.monto_cama,
+                       (SELECT c.motivo_rechazo FROM comprobantes c
+                         WHERE c.reserva_modalidad = 'alojamiento' AND c.reserva_pk = r.id
+                           AND c.estado = 'rechazado'
+                         ORDER BY c.revisado_at DESC NULLS LAST, c.id DESC LIMIT 1) AS motivo_rechazo
                 FROM reservas_alojamiento r JOIN albergues al ON al.id = r.albergue_id
-                WHERE r.id = ?';
+                WHERE r.id = ?";
     }
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$reservaPk]);
@@ -268,10 +289,22 @@ function detalleReserva(array $r): array
 
     $filas[] = ['Monto total', formatoMonto($r['monto_total'] ?? 0)];
 
-    if (!empty($r['pago_vence_at'])) {
+    $estado = (string) ($r['estado'] ?? '');
+
+    if ($estado === 'Pre-Reserva' && !empty($r['pago_vence_at'])) {
         $filas[] = ['Vence el', fmtFecha((string) $r['pago_vence_at'])];
     }
-    $filas[] = ['Estado', (string) ($r['estado'] ?? '')];
+    if (!empty($r['comprobado_at'])) {
+        $filas[] = ['Comprobante subido', fmtFechaHora((string) $r['comprobado_at'])];
+    }
+    if (isset($r['devolucion_monto']) && $r['devolucion_monto'] !== null && (float) $r['devolucion_monto'] > 0) {
+        $pct = isset($r['devolucion_pct']) && $r['devolucion_pct'] !== null ? (int) round((float) $r['devolucion_pct']) : 0;
+        $filas[] = ['Devolución', ($pct > 0 ? $pct . '% · ' : '') . formatoMonto($r['devolucion_monto'])];
+        if (!empty($r['devolucion_ejecutada_at'])) {
+            $filas[] = ['Devolución realizada', fmtFechaHora((string) $r['devolucion_ejecutada_at'])];
+        }
+    }
+    $filas[] = ['Estado', $estado];
 
     if (!empty($r['created_at'])) {
         $filas[] = ['Pre-reserva registrada', fmtFechaHora((string) $r['created_at'])];
@@ -296,7 +329,10 @@ function plantillaCorreo(string $tipoEvento, array $r, string $appUrl = ''): arr
         case 'creacion':
             $asunto = "Pre-reserva {$codigo} recibida - {$alb}";
             $intro  = 'Recibimos tu pre-reserva. Este es el detalle registrado:';
-            $nota   = 'Para confirmarla, realizá el pago dentro de los próximos 7 días y subí el comprobante. Vencido ese plazo la pre-reserva se cancela y el cupo se libera.';
+            $venceTxt = !empty($r['pago_vence_at']) ? fmtFecha((string) $r['pago_vence_at']) : '';
+            $nota   = $venceTxt !== ''
+                ? 'Para confirmarla, subí el comprobante de pago antes del ' . $venceTxt . '. Vencido ese plazo la pre-reserva se cancela y el cupo se libera.'
+                : 'Para confirmarla, subí el comprobante de pago dentro del plazo indicado. Vencido ese plazo la pre-reserva se cancela y el cupo se libera.';
             $cta    = $linkPago !== '' ? ['texto' => 'Subir comprobante de pago', 'url' => $linkPago] : null;
             return [$asunto, $base('Detalle de tu pre-reserva', $intro, $nota, $cta)];
 
@@ -326,10 +362,74 @@ function plantillaCorreo(string $tipoEvento, array $r, string $appUrl = ''): arr
             return [$asunto, $base('Pre-reserva cancelada', $intro, $nota, null)];
 
         case 'pago_recibido':
-            $asunto = "Comprobante de pago recibido - Reserva {$codigo}";
-            $intro  = 'Se recibió un comprobante de pago para la reserva ' . $codigo . '. Revisá el panel para verificarlo y confirmar la reserva.';
-            $nota   = 'Cuando lo verifiques, cambiá el estado de la reserva a "Confirmado" desde el panel: el usuario recibirá el aviso automáticamente.';
+            $asunto = "Comprobante para validar - Reserva {$codigo}";
+            $intro  = 'El cliente subió el comprobante de pago de la reserva ' . $codigo
+                . '. Tenés que validarlo desde el panel.';
+            $limiteVal = !empty($r['validacion_vence_at'])
+                ? fmtFechaHora((string) $r['validacion_vence_at'])
+                : '';
+            $nota = $limiteVal !== ''
+                ? 'Fecha límite para aprobar o rechazar: ' . $limiteVal
+                    . '. Si no se valida, la reserva queda en Comprobar y el cupo sigue retenido.'
+                : 'Aprobá o rechazá el comprobante desde el panel. Mientras no se valide, la reserva queda en Comprobar y el cupo sigue retenido.';
+            return [$asunto, $base('Comprobante para validar', $intro, $nota, null)];
+
+        case 'comprobante_recibido':
+            $asunto = "Comprobante recibido - Reserva {$codigo}";
+            $intro  = 'Recibimos tu comprobante de pago. La administración del albergue lo va a verificar '
+                . 'y te avisaremos cuando la reserva quede confirmada.';
+            $limiteVis = !empty($r['validacion_vence_at'])
+                ? fmtFecha((string) $r['validacion_vence_at'])
+                : '';
+            $nota = 'Tu reserva sigue reservada; no tenés que hacer nada más.'
+                . ($limiteVis !== '' ? ' La revisión está prevista antes del ' . $limiteVis . '.' : '');
             return [$asunto, $base('Comprobante recibido', $intro, $nota, null)];
+
+        case 'validacion_admin':
+            $quien = trim((string) ($r['validado_por_nombre'] ?? ''));
+            if ($quien === '') {
+                $quien = trim((string) ($r['estado_modificado_por'] ?? ''));
+            }
+            $cuando = !empty($r['estado_modificado_at'])
+                ? fmtFechaHora((string) $r['estado_modificado_at'])
+                : '';
+            $asunto = "Reserva {$codigo} validada - {$alb}";
+            $intro  = 'El comprobante de pago de la reserva ' . $codigo . ' fue aprobado'
+                . ($quien !== '' ? ' por ' . $quien : '')
+                . ($cuando !== '' ? ' el ' . $cuando : '')
+                . '. La reserva quedó confirmada y el cliente recibió el aviso.';
+            $nota   = 'Podés ver el detalle en el panel de administración.';
+            return [$asunto, $base('Reserva validada', $intro, $nota, null)];
+
+        case 'vencimiento':
+            $asunto = "Pre-reserva {$codigo} vencida - {$alb}";
+            $intro  = 'La pre-reserva venció porque no se recibió el comprobante de pago dentro del plazo.';
+            $nota   = 'El cupo fue liberado. Si todavía querés reservar, podés iniciar una nueva pre-reserva desde el sitio.';
+            return [$asunto, $base('Pre-reserva vencida', $intro, $nota, null)];
+
+        case 'rechazo':
+            // El motivo lo escribe el operador: se le quita el punto final para
+            // no duplicarlo si ya lo escribió.
+            $motivo = rtrim(trim((string) ($r['motivo_rechazo'] ?? '')), ". \t\n\r\0\x0B");
+            $asunto = "Comprobante rechazado - Reserva {$codigo}";
+            $intro  = $motivo !== ''
+                ? 'El comprobante de pago que subiste no pudo ser validado: ' . $motivo . '.'
+                : 'El comprobante de pago que subiste no pudo ser validado.';
+            $venceTxt = !empty($r['pago_vence_at']) ? fmtFecha((string) $r['pago_vence_at']) : '';
+            $nota   = $venceTxt !== ''
+                ? 'Tu pre-reserva volvió a estado Pre-Reserva. Tenés tiempo hasta el ' . $venceTxt . ' para subir un comprobante válido; si no, el cupo se libera.'
+                : 'Tu pre-reserva volvió a estado Pre-Reserva, pero ya no queda tiempo para reintentar. El cupo será liberado.';
+            $cta    = $linkPago !== '' ? ['texto' => 'Subir un nuevo comprobante', 'url' => $linkPago] : null;
+            return [$asunto, $base('Comprobante rechazado', $intro, $nota, $cta)];
+
+        case 'devolucion':
+            $pct    = isset($r['devolucion_pct']) ? (int) round((float) $r['devolucion_pct']) : 0;
+            $monto  = formatoMonto($r['devolucion_monto'] ?? 0);
+            $asunto = "Reserva {$codigo} cancelada - devolución {$pct}%";
+            $intro  = 'Registramos la cancelación de tu reserva. Corresponde una devolución del ' . $pct . '% ('
+                . $monto . ') sobre el total abonado.';
+            $nota   = 'La devolución se realiza por transferencia desde la administración del albergue en los días hábiles siguientes. El cupo ya fue liberado.';
+            return [$asunto, $base('Reserva cancelada', $intro, $nota, null)];
 
         case 'aviso_admin':
             $asunto = "Nueva pre-reserva {$codigo} - {$alb}";
@@ -551,64 +651,21 @@ function procesarNotificaciones(PDO $pdo, array $config, int $limite = 50): arra
 }
 
 /**
- * Tarea cron diaria:
- *  - día 6: encola recordatorio.
- *  - día 7+: cancela pre-reservas vencidas y encola cancelación.
- * Devuelve contadores.
+ * Barrido de vencimientos y recordatorios.
+ *
+ * La lógica vive en reservas_estado.php (reservaBarrido): aplica la política
+ * de tiempos vigente, usa LEAST(pago_vence_at, inicio_at - anticipacion) y
+ * libera el cupo pasando la reserva a 'Vencido'. Se conserva este alias para
+ * las llamadas existentes (endpoint tareasVencimiento / cron).
  */
-function tareasVencimiento(PDO $pdo): array
+function tareasVencimiento(PDO $pdo, ?array $config = null): array
 {
-    $recordatorios = 0;
-    $canceladas = 0;
-
-    foreach (['visita' => 'reservas_visitas', 'alojamiento' => 'reservas_alojamiento'] as $modalidad => $tabla) {
-        // Recordatorio: pre-reservas que vencen en <= 1 día y sin recordatorio aún
-        $stmt = $pdo->prepare(
-            "SELECT r.id, r.email FROM {$tabla} r
-              WHERE r.estado = 'Pre-Reserva'
-                AND r.pago_vence_at IS NOT NULL
-                AND r.pago_vence_at <= NOW() + INTERVAL '1 day'
-                AND r.pago_vence_at > NOW()
-                AND NOT EXISTS (
-                    SELECT 1 FROM notificaciones_email n
-                     WHERE n.reserva_modalidad = ? AND n.reserva_pk = r.id AND n.tipo_evento = 'recordatorio'
-                )"
-        );
-        $stmt->execute([$modalidad]);
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-            encolarNotificacion($pdo, $modalidad, (int) $r['id'], 'recordatorio', (string) $r['email']);
-            $recordatorios++;
-        }
-
-        // Cancelación: pre-reservas ya vencidas
-        $stmt = $pdo->prepare(
-            "SELECT r.id, r.email FROM {$tabla} r
-              WHERE r.estado = 'Pre-Reserva'
-                AND r.pago_vence_at IS NOT NULL
-                AND r.pago_vence_at < NOW()"
-        );
-        $stmt->execute();
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-            if (soportaColumnasCancelacion($pdo, $tabla)) {
-                $pdo->prepare(
-                    "UPDATE {$tabla}
-                        SET estado = 'Cancelado', estado_origen = 'auto-vencimiento',
-                            estado_modificado_at = NOW(), cancelado_at = NOW(),
-                            cancelado_origen = 'auto-vencimiento'
-                      WHERE id = ?"
-                )->execute([$r['id']]);
-            } else {
-                $pdo->prepare(
-                    "UPDATE {$tabla}
-                        SET estado = 'Cancelado', estado_origen = 'auto-vencimiento',
-                            estado_modificado_at = NOW()
-                      WHERE id = ?"
-                )->execute([$r['id']]);
-            }
-            encolarNotificacion($pdo, $modalidad, (int) $r['id'], 'cancelacion', (string) $r['email']);
-            $canceladas++;
-        }
+    if (!function_exists('reservaBarrido')) {
+        require_once __DIR__ . '/reservas_estado.php';
     }
-
-    return ['recordatorios' => $recordatorios, 'canceladas' => $canceladas];
+    if ($config === null) {
+        $config = require __DIR__ . '/config.php';
+    }
+    return reservaBarrido($pdo, $config);
 }
+

@@ -20,6 +20,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/db.php';
 require __DIR__ . '/notificaciones.php';
+require __DIR__ . '/reservas_estado.php';
 
 $config = require __DIR__ . '/config.php';
 date_default_timezone_set($config['timezone']);
@@ -86,17 +87,19 @@ function alberguePorClave(PDO $pdo, string $clave): ?array
  * La disponibilidad se deriva siempre de las reservas de visita activas.
  * Usa capacidad_visitas (separada de la capacidad de alojamiento).
  */
-function capacidadYOcupadosVisitas(PDO $pdo, int $albergueId, string $fecha): array
+function capacidadYOcupadosVisitas(PDO $pdo, int $albergueId, string $fecha, ?array $pol = null): array
 {
-    $sql = 'SELECT COALESCE(al.capacidad_visitas, al.capacidad) AS capacidad,
-                   COALESCE(SUM(r.cantidad), 0) AS ocupados
+    $pol   = $pol ?? reservaPolitica($pdo);
+    $ocupa = reservaSqlOcupa('r.', $pol);
+
+    $sql = "SELECT COALESCE(al.capacidad_visitas, al.capacidad) AS capacidad,
+                   COALESCE(SUM(CASE WHEN {$ocupa} THEN r.cantidad ELSE 0 END), 0) AS ocupados
             FROM albergues al
             LEFT JOIN reservas_visitas r
               ON r.albergue_id = al.id
              AND r.fecha_ingreso = :fecha
-             AND r.estado <> \'Cancelado\'
             WHERE al.id = :albergue
-            GROUP BY al.id, al.capacidad_visitas, al.capacidad';
+            GROUP BY al.id, al.capacidad_visitas, al.capacidad";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -114,20 +117,24 @@ function capacidadYOcupadosVisitas(PDO $pdo, int $albergueId, string $fecha): ar
 /**
  * Capacidad y cantidad ocupada de alojamiento para una fecha y albergue.
  * Un día queda ocupado por toda reserva de alojamiento que lo incluya.
+ * Solo consumen cupo los estados de RESERVA_ESTADOS_OCUPA; una Pre-Reserva
+ * vencida deja de ocupar en el mismo instante en que vence (sin esperar al cron).
  */
-function capacidadYOcupadosAlojamiento(PDO $pdo, int $albergueId, string $fecha): array
+function capacidadYOcupadosAlojamiento(PDO $pdo, int $albergueId, string $fecha, ?array $pol = null): array
 {
-    $sql = 'SELECT al.capacidad,
-                   COALESCE(SUM(d.cantidad), 0) AS ocupados
+    $pol   = $pol ?? reservaPolitica($pdo);
+    $ocupa = reservaSqlOcupa('r.', $pol);
+
+    $sql = "SELECT al.capacidad,
+                   COALESCE(SUM(CASE WHEN {$ocupa} THEN d.cantidad ELSE 0 END), 0) AS ocupados
             FROM albergues al
             LEFT JOIN reservas_alojamiento r
               ON r.albergue_id = al.id
-             AND r.estado <> \'Cancelado\'
             LEFT JOIN reserva_alojamiento_dias d
               ON d.reserva_id = r.id
              AND d.fecha = :fecha
             WHERE al.id = :albergue
-            GROUP BY al.id';
+            GROUP BY al.id, al.capacidad";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -160,20 +167,22 @@ function respuestaDisponibilidad(string $fecha, string $albergue, int $capacidad
  * El frontend lo usa para dibujar el badge verde con la cantidad de camas
  * disponibles en cada día del calendario de alojamiento.
  */
-function disponibilidadLibresMesAlojamiento(PDO $pdo, int $albergueId, int $capacidad, int $anio, int $mes): array
+function disponibilidadLibresMesAlojamiento(PDO $pdo, int $albergueId, int $capacidad, int $anio, int $mes, ?array $pol = null): array
 {
+    $pol   = $pol ?? reservaPolitica($pdo);
+    $ocupa = reservaSqlOcupa('r.', $pol);
+
     $primerDia = sprintf('%04d-%02d-01', $anio, $mes);
     $ultimoDia = date('Y-m-t', strtotime($primerDia));
 
-    $sql = 'SELECT d.fecha::text AS fecha,
-                   COALESCE(SUM(d.cantidad), 0) AS ocupados
+    $sql = "SELECT d.fecha::text AS fecha,
+                   COALESCE(SUM(CASE WHEN {$ocupa} THEN d.cantidad ELSE 0 END), 0) AS ocupados
             FROM reserva_alojamiento_dias d
             JOIN reservas_alojamiento r
               ON r.id = d.reserva_id
              AND r.albergue_id = :albergue
-             AND r.estado <> \'Cancelado\'
             WHERE d.fecha BETWEEN :desde AND :hasta
-            GROUP BY d.fecha';
+            GROUP BY d.fecha";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -488,9 +497,30 @@ try {
                 responder(['success' => false, 'message' => 'Albergue no configurado']);
             }
 
+            // --- Política de tiempos (idéntica para las dos modalidades) ---
+            $pol    = reservaPolitica($pdo);
+            $ahora  = reservaAhora($config);
+            $inicio = reservaInicioDesdeFecha($fechaIngreso, $config);
+            if ($inicio === null) {
+                responder(['success' => false, 'message' => 'Fecha inválida']);
+            }
+            $horizonte        = reservaHorizonteHoras($pol);
+            $horasHastaInicio = ($inicio->getTimestamp() - $ahora->getTimestamp()) / 3600;
+            if ($horasHastaInicio < $horizonte) {
+                responder([
+                    'success' => false,
+                    'message' => 'La fecha de ingreso queda dentro del plazo mínimo de reserva ('
+                        . $horizonte . ' h). Para fechas más próximas, comunicate con el albergue.',
+                ]);
+            }
+
             $nuevoId = nuevoIdReserva();
             $montoVisita = (float) ($alb['monto_visita'] ?? 2000);
             $montoTotal = $cantidad * $montoVisita;
+            if ($montoTotal <= 0) {
+                responder(['success' => false, 'message' => 'El albergue no tiene una tarifa configurada']);
+            }
+            $vence = reservaVencimiento($ahora, $inicio, $pol);
 
             // Transacción con bloqueo de la fila del albergue (equivale al
             // BEGIN IMMEDIATE de SQLite): se revalida disponibilidad para
@@ -499,10 +529,10 @@ try {
             $lock = $pdo->prepare('SELECT id FROM albergues WHERE id = ? FOR UPDATE');
             $lock->execute([$alb['id']]);
             try {
-                [$capacidad, $ocupados] = capacidadYOcupadosVisitas($pdo, (int) $alb['id'], $fechaIngreso);
+                [$capacidad, $ocupados] = capacidadYOcupadosVisitas($pdo, (int) $alb['id'], $fechaIngreso, $pol);
                 if ($capacidadMaxVis - $ocupados - $cantidad < 0) {
                     $pdo->rollBack();
-                    responder(['success' => false]); // mismo comportamiento que Apps Script: sin mensaje
+                    responder(['success' => false]);
                 }
 
                 $codigoPublico = generarCodigoPublico($pdo);
@@ -511,8 +541,8 @@ try {
                     'INSERT INTO reservas_visitas
                         (id_reserva, codigo_publico, albergue_id, institucion, responsable, dni, contacto, email,
                          cantidad, fecha_ingreso, hora_ingreso, hora_egreso, estado, created_at,
-                         monto_total, pago_vence_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL \'7 days\')'
+                         monto_total, pago_vence_at, inicio_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
                 );
                 $stmt->execute([
                     $nuevoId,
@@ -530,6 +560,8 @@ try {
                     'Pre-Reserva',
                     date('Y-m-d H:i:s'),
                     $montoTotal,
+                    $vence->format('Y-m-d H:i:sP'),
+                    $inicio->format('Y-m-d H:i:sP'),
                 ]);
                 $reservaPkVis = (int) $pdo->lastInsertId();
 
@@ -554,6 +586,7 @@ try {
                     'codigoPublico' => $codigoPublico,
                     'codigo_publico'=> $codigoPublico,
                     'montoTotal'    => $montoTotal,
+                    'pagoVenceAt'   => $vence->format('Y-m-d H:i:sP'),
                     'modalidad'     => 'visita',
                     'mensaje'       => 'Reserva creada correctamente',
                 ]);
@@ -575,28 +608,17 @@ try {
             }
 
             /**
-             * Cancela las reservas que matchean (campo = valor AND dni), marca el
-             * origen 'web' y encola el aviso de cancelación al usuario final.
-             * Devuelve [cantidadCancelada, idsDeNotificaciones].
+             * Cancelación del usuario final.
+             *
+             * Política (misma para las dos modalidades):
+             *   - más de 'cancelacion_horas' antes del inicio  -> devolución 100%
+             *   - dentro de ese plazo, antes del día de inicio -> devolución 50%
+             *   - el día de inicio o después                   -> cancelación bloqueada
+             *
+             * Sin pago (Pre-Reserva)  -> Cancelado (no hay nada que devolver).
+             * Con pago (Comprobar/Confirmado) -> Devolver (el cupo se libera ya;
+             *   la devolución la ejecuta el operador y la marca en el panel).
              */
-            $cancelar = static function (PDO $pdo, array $cfg, string $modalidad, string $campo, $valor, string $dni): array {
-                $tabla = $modalidad === 'visita' ? 'reservas_visitas' : 'reservas_alojamiento';
-                $sel = $pdo->prepare("SELECT id, email FROM {$tabla} WHERE {$campo} = ? AND dni = ?");
-                $sel->execute([$valor, $dni]);
-                $filas = $sel->fetchAll(PDO::FETCH_ASSOC);
-
-                $notifs = [];
-                foreach ($filas as $f) {
-                    marcarCancelada($pdo, $tabla, (int) $f['id'], 'web');
-                    // Refuerzo de la cancelación: copia al usuario final.
-                    $n = encolarNotificacion($pdo, $modalidad, (int) $f['id'], 'cancelacion_cliente', (string) $f['email'], 'cliente', null, $cfg);
-                    if ($n !== null) {
-                        $notifs[] = $n;
-                    }
-                }
-                return [count($filas), $notifs];
-            };
-
             $pdo->beginTransaction();
             try {
                 $idNumerico = ctype_digit($idRaw) ? $idRaw : null;
@@ -607,27 +629,102 @@ try {
                     ['id_reserva', $idNumerico],
                 ];
 
+                $pol     = reservaPolitica($pdo);
+                $ahora   = reservaAhora($config);
+                $rechazo = '';
+                $total   = 0;
+                $notifs  = [];
+
                 foreach ($intentos as [$campo, $valor]) {
                     if ($valor === null) {
                         continue;
                     }
                     foreach (['visita', 'alojamiento'] as $modalidad) {
-                        [$cantidad, $notifs] = $cancelar($pdo, $config, $modalidad, $campo, $valor, $dniR);
-                        if ($cantidad > 0) {
-                            $pdo->commit();
-                            enviarNotificacionesInmediatas($pdo, $config, $notifs);
-                            responder([
-                                'success' => true,
-                                'message' => $modalidad === 'alojamiento' && $campo === 'id_reserva'
-                                    ? "Cancelada {$cantidad} Reserva"
-                                    : 'Reserva cancelada correctamente',
-                            ]);
+                        $tabla = $modalidad === 'visita' ? 'reservas_visitas' : 'reservas_alojamiento';
+                        $sel = $pdo->prepare(
+                            "SELECT id, estado, email, monto_total, inicio_at, pago_vence_at
+                               FROM {$tabla} WHERE {$campo} = ? AND dni = ?"
+                        );
+                        $sel->execute([$valor, $dniR]);
+
+                        foreach ($sel->fetchAll(PDO::FETCH_ASSOC) as $f) {
+                            $estadoGuardado = (string) $f['estado'];
+                            $estado = reservaEstadoEfectivo(
+                                $estadoGuardado,
+                                $f['pago_vence_at'] !== null ? (string) $f['pago_vence_at'] : null,
+                                $f['inicio_at'] !== null ? (string) $f['inicio_at'] : null,
+                                $pol
+                            );
+
+                            if (!in_array($estado, RESERVA_ESTADOS_OCUPA, true)) {
+                                $rechazo = $rechazo !== '' ? $rechazo : ($estado === 'Vencido'
+                                    ? 'La pre-reserva venció por falta de pago y el cupo ya fue liberado.'
+                                    : 'La reserva ya está cerrada y no se puede cancelar.');
+                                continue;
+                            }
+
+                            if ($f['inicio_at'] === null || (string) $f['inicio_at'] === '') {
+                                $rechazo = 'La reserva no tiene una fecha de inicio válida.';
+                                continue;
+                            }
+                            $inicio = new DateTimeImmutable((string) $f['inicio_at']);
+                            $dev    = reservaDevolucion($ahora, $inicio, $pol);
+                            if ($dev['pct'] === null) {
+                                $rechazo = 'No se puede cancelar el día de ingreso ni después: las plazas ya están comprometidas.';
+                                continue;
+                            }
+
+                            $pagada  = $estado !== 'Pre-Reserva';
+                            $destino = $pagada ? 'Devolver' : 'Cancelado';
+                            $pct     = $pagada ? (int) $dev['pct'] : null;
+                            $monto   = $pagada ? round(((float) $f['monto_total']) * (int) $dev['pct'] / 100, 2) : null;
+                            $calcAt  = $pagada ? 'NOW()' : 'NULL';
+
+                            $upd = $pdo->prepare(
+                                "UPDATE {$tabla}
+                                    SET estado = ?,
+                                        motivo_cierre = 'cancelado_cliente',
+                                        estado_origen = 'web',
+                                        estado_modificado_at = NOW(),
+                                        cancelado_at = NOW(),
+                                        cancelado_origen = 'web',
+                                        devolucion_pct = ?,
+                                        devolucion_monto = ?,
+                                        devolucion_calculada_at = {$calcAt}
+                                  WHERE id = ? AND estado = ?"
+                            );
+                            $upd->execute([$destino, $pct, $monto, (int) $f['id'], $estadoGuardado]);
+                            if ($upd->rowCount() === 0) {
+                                $rechazo = 'La reserva cambió de estado mientras se procesaba la cancelación. Volvé a intentar.';
+                                continue;
+                            }
+
+                            $total++;
+                            $evento = $pagada ? 'devolucion' : 'cancelacion_cliente';
+                            $n = encolarNotificacion($pdo, $modalidad, (int) $f['id'], $evento, (string) $f['email'], 'cliente', null, $config);
+                            if ($n !== null) {
+                                $notifs[] = $n;
+                            }
                         }
                     }
                 }
 
-                $pdo->rollBack();
-                responder(['success' => false, 'message' => 'No se encontró una reserva con ese número y DNI']);
+                if ($total === 0) {
+                    $pdo->rollBack();
+                    responder([
+                        'success' => false,
+                        'message' => $rechazo !== '' ? $rechazo : 'No se encontró una reserva con ese número y DNI',
+                    ]);
+                }
+
+                $pdo->commit();
+                enviarNotificacionesInmediatas($pdo, $config, $notifs);
+                responder([
+                    'success' => true,
+                    'message' => $total === 1
+                        ? 'Reserva cancelada correctamente.'
+                        : "Se cancelaron {$total} reservas.",
+                ]);
             } catch (Throwable $e) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -699,12 +796,7 @@ try {
                 array_map('trim', explode(',', $rangoStr)),
                 static fn (string $f): bool => $f !== ''
             )));
-
-            foreach ($rango as $fecha) {
-                if (!esFechaISOValida($fecha)) {
-                    responder(['success' => false, 'message' => 'Rango de fechas inválido']);
-                }
-            }
+            sort($rango, SORT_STRING);
 
             if ($institucion === '' || $responsable === '' || $dni === '' || $contacto === '' || $email === '') {
                 responder(['success' => false, 'message' => 'Complete todos los campos']);
@@ -719,6 +811,21 @@ try {
                 responder(['success' => false, 'message' => 'Rango de fechas inválido']);
             }
 
+            foreach ($rango as $fecha) {
+                if (!esFechaISOValida($fecha)) {
+                    responder(['success' => false, 'message' => 'Rango de fechas inválido']);
+                }
+            }
+            if (count($rango) > 4) {
+                responder(['success' => false, 'message' => 'La estadía admite como máximo 4 días']);
+            }
+            for ($i = 1, $n = count($rango); $i < $n; $i++) {
+                $siguiente = (new DateTimeImmutable($rango[$i - 1]))->modify('+1 day')->format('Y-m-d');
+                if ($siguiente !== $rango[$i]) {
+                    responder(['success' => false, 'message' => 'Las fechas de la estadía deben ser consecutivas']);
+                }
+            }
+
             $alb = alberguePorNombre($pdo, $albergueNombre);
             if ($alb === null) {
                 responder(['success' => false, 'message' => "Albergue no encontrado: {$albergueNombre}"]);
@@ -729,11 +836,32 @@ try {
                 responder(['success' => false, 'message' => 'Capacidad inválida']);
             }
 
+            // --- Política de tiempos (idéntica a la visita diaria) ---
+            $pol    = reservaPolitica($pdo);
+            $ahora  = reservaAhora($config);
+            $inicio = reservaInicioDesdeFecha($rango[0], $config);
+            if ($inicio === null) {
+                responder(['success' => false, 'message' => 'Rango de fechas inválido']);
+            }
+            $horizonte        = reservaHorizonteHoras($pol);
+            $horasHastaInicio = ($inicio->getTimestamp() - $ahora->getTimestamp()) / 3600;
+            if ($horasHastaInicio < $horizonte) {
+                responder([
+                    'success' => false,
+                    'message' => 'La fecha de ingreso queda dentro del plazo mínimo de reserva ('
+                        . $horizonte . ' h). Para fechas más próximas, comunicate con el albergue.',
+                ]);
+            }
+
             $nuevoId = nuevoIdReserva();
             $rangoCSV = implode(',', $rango);
             $noches = count($rango);
             $montoCama = (float) ($alb['monto_cama'] ?? 5000);
             $montoTotal = $cantidad * $noches * $montoCama;
+            if ($montoTotal <= 0) {
+                responder(['success' => false, 'message' => 'El albergue no tiene una tarifa configurada']);
+            }
+            $vence = reservaVencimiento($ahora, $inicio, $pol);
 
             // Transacción de una sola validación/escritura para todo el rango.
             // Bloqueo de la fila del albergue para serializar las escrituras.
@@ -742,7 +870,7 @@ try {
             $lock->execute([$alb['id']]);
             try {
                 foreach ($rango as $fecha) {
-                    [, $ocupados] = capacidadYOcupadosAlojamiento($pdo, (int) $alb['id'], $fecha);
+                    [, $ocupados] = capacidadYOcupadosAlojamiento($pdo, (int) $alb['id'], $fecha, $pol);
                     if ($capacidadMax - $ocupados - $cantidad < 0) {
                         $pdo->rollBack();
                         responder(['success' => false, 'message' => 'Sin disponibilidad']);
@@ -754,8 +882,8 @@ try {
                 $stmt = $pdo->prepare(
                     'INSERT INTO reservas_alojamiento
                         (id_reserva, codigo_publico, albergue_id, institucion, responsable, dni, contacto, email,
-                         cantidad, rango_fechas, estado, created_at, monto_total, pago_vence_at)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW() + INTERVAL \'7 days\')'
+                         cantidad, rango_fechas, estado, created_at, monto_total, pago_vence_at, inicio_at)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
                 );
                 $stmt->execute([
                     $nuevoId,
@@ -771,6 +899,8 @@ try {
                     'Pre-Reserva',
                     date('Y-m-d H:i:s'),
                     $montoTotal,
+                    $vence->format('Y-m-d H:i:sP'),
+                    $inicio->format('Y-m-d H:i:sP'),
                 ]);
                 $reservaPk = (int) $pdo->lastInsertId();
 
@@ -802,6 +932,7 @@ try {
                     'codigoPublico'  => $codigoPublico,
                     'codigo_publico' => $codigoPublico,
                     'montoTotal'     => $montoTotal,
+                    'pagoVenceAt'    => $vence->format('Y-m-d H:i:sP'),
                     'modalidad'      => 'alojamiento',
                     'mensaje'        => 'Reserva creada correctamente',
                 ]);
@@ -939,7 +1070,37 @@ try {
 
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
-            responder(['success' => true, 'reservas' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
+
+            // Estado efectivo: una Pre-Reserva vencida se muestra como Vencido
+            // aunque el barrido todavía no la haya pasado de estado.
+            $filas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $pol   = reservaPolitica($pdo);
+            $zona  = reservaZona($config);
+            foreach ($filas as &$fila) {
+                $fila['estado_efectivo'] = reservaEstadoEfectivo(
+                    (string) $fila['estado'],
+                    $fila['pago_vence_at'] !== null ? (string) $fila['pago_vence_at'] : null,
+                    $fila['inicio_at'] !== null ? (string) $fila['inicio_at'] : null,
+                    $pol
+                );
+
+                // Plazo de validación del comprobante, ya formateado en la zona
+                // del sistema (el timestamptz llega en UTC desde PostgreSQL).
+                $fila['validacion_vence_txt'] = '';
+                $fila['validacion_vencida']   = false;
+                if (!empty($fila['validacion_vence_at'])) {
+                    try {
+                        $dt = (new DateTimeImmutable((string) $fila['validacion_vence_at']))->setTimezone($zona);
+                        $fila['validacion_vence_txt'] = $dt->format('d/m/Y H:i');
+                        $fila['validacion_vencida']   = $dt->getTimestamp() < time();
+                    } catch (Throwable $e) {
+                        // si el valor no se puede interpretar, se omite
+                    }
+                }
+            }
+            unset($fila);
+
+            responder(['success' => true, 'reservas' => $filas]);
             break;
 
         case 'adminTotales':
@@ -953,14 +1114,20 @@ try {
                 'alojamientos' => (int) $pdo->query('SELECT count(*) FROM reservas_alojamiento WHERE 1=1' . $w)->fetchColumn(),
             ];
 
-            $v7 = $pdo->prepare('SELECT count(*) FROM reservas_visitas WHERE fecha_ingreso BETWEEN :h AND :f AND estado <> \'Cancelado\'' . $w);
+            $pol   = reservaPolitica($pdo);
+            $ocupa = reservaSqlOcupa('r.', $pol);
+
+            $v7 = $pdo->prepare(
+                "SELECT count(*) FROM reservas_visitas r
+                  WHERE r.fecha_ingreso BETWEEN :h AND :f AND {$ocupa}" . $w
+            );
             $v7->execute(['h' => $hoy, 'f' => $f7]);
             $totales['visitas_proximos7'] = (int) $v7->fetchColumn();
 
             $a7 = $pdo->prepare(
-                'SELECT count(DISTINCT r.id) FROM reservas_alojamiento r
-                 JOIN reserva_alojamiento_dias d ON d.reserva_id = r.id
-                 WHERE d.fecha BETWEEN :h AND :f AND r.estado <> \'Cancelado\'' . $w
+                "SELECT count(DISTINCT r.id) FROM reservas_alojamiento r
+                  JOIN reserva_alojamiento_dias d ON d.reserva_id = r.id
+                  WHERE d.fecha BETWEEN :h AND :f AND {$ocupa}" . $w
             );
             $a7->execute(['h' => $hoy, 'f' => $f7]);
             $totales['aloj_proximos7'] = (int) $a7->fetchColumn();
@@ -997,93 +1164,209 @@ try {
         case 'adminEstado':
             requiereRol(['admin']);
             $estado    = trim(parametro('estado'));
+            $accion    = trim(parametro('accion'));
+            $motivo    = trim(parametro('motivo'));
             $modalidad = trim(parametro('modalidad'));
             $pk        = (int) parametro('pk');
 
-            if (!in_array($estado, ['Pre-Reserva', 'Confirmado', 'Cancelado'], true)) {
-                responder(['success' => false, 'message' => 'Estado inválido']);
-            }
             if (!in_array($modalidad, ['visita', 'alojamiento'], true)) {
                 responder(['success' => false, 'message' => 'Modalidad inválida']);
             }
             if ($pk <= 0) {
                 responder(['success' => false, 'message' => 'ID inválido']);
             }
+            if (strlen($motivo) > 300) {
+                responder(['success' => false, 'message' => 'El motivo no puede superar los 300 caracteres']);
+            }
+
+            // Compatibilidad: el panel viejo mandaba 'estado'. Se traduce a acción.
+            if ($accion === '') {
+                $accion = match ($estado) {
+                    'Confirmado' => 'aprobar',
+                    'Pre-Reserva' => 'rechazar',
+                    'Cancelado'  => 'anular',
+                    default      => '',
+                };
+            }
+            if (!in_array($accion, ['aprobar', 'rechazar', 'anular', 'devolver'], true)) {
+                responder(['success' => false, 'message' => 'Acción inválida']);
+            }
+            if ($accion === 'rechazar' && $motivo === '') {
+                responder(['success' => false, 'message' => 'Indicá el motivo del rechazo: se le envía al cliente']);
+            }
 
             $tabla = $modalidad === 'visita' ? 'reservas_visitas' : 'reservas_alojamiento';
 
-            $prev = $pdo->prepare("SELECT estado, email FROM {$tabla} WHERE id = ?");
+            $prev = $pdo->prepare(
+                "SELECT estado, email, inicio_at, pago_vence_at, monto_total FROM {$tabla} WHERE id = ?"
+            );
             $prev->execute([$pk]);
             $actual = $prev->fetch(PDO::FETCH_ASSOC);
             if ($actual === false) {
                 responder(['success' => false, 'message' => 'No se encontró la reserva']);
             }
+
             $estadoAnterior = (string) $actual['estado'];
             $mailCliente    = (string) ($actual['email'] ?? '');
+            $usuarioPanel   = (string) ($_SESSION['admin']['usuario'] ?? 'admin');
+            $nombrePanel    = trim((string) ($_SESSION['admin']['nombre'] ?? ''));
+            if ($nombrePanel === '') {
+                $nombrePanel = $usuarioPanel;
+            }
+            $pol            = reservaPolitica($pdo);
+            $efectivo       = reservaEstadoEfectivo(
+                $estadoAnterior,
+                $actual['pago_vence_at'] !== null ? (string) $actual['pago_vence_at'] : null,
+                $actual['inicio_at'] !== null ? (string) $actual['inicio_at'] : null,
+                $pol
+            );
 
-            if ($estadoAnterior === $estado) {
-                responder(['success' => true, 'sin_cambios' => true]);
+            if ($efectivo !== $estadoAnterior) {
+                responder([
+                    'success' => false,
+                    'message' => 'La pre-reserva ya venció por falta de pago y el cupo fue liberado.',
+                ]);
             }
 
-            // Auditoría del cambio de estado (quién y cuándo, desde el panel).
-            $usuarioPanel = (string) ($_SESSION['admin']['usuario'] ?? 'admin');
-
-            if ($estado === 'Cancelado') {
-                marcarCancelada($pdo, $tabla, $pk, 'admin');
-            } else {
-                $stmt = $pdo->prepare(
-                    "UPDATE {$tabla}
-                        SET estado = :estado,
-                            estado_modificado_por = :por,
-                            estado_modificado_at  = NOW(),
-                            estado_origen         = 'panel'
-                      WHERE id = :pk"
-                );
-                $stmt->execute(['estado' => $estado, 'por' => $usuarioPanel, 'pk' => $pk]);
+            $destino = reservaTransicion($estadoAnterior, $accion);
+            if ($destino === null) {
+                responder([
+                    'success' => false,
+                    'message' => "No se puede pasar de '{$estadoAnterior}' con la acción '{$accion}'.",
+                ]);
             }
 
-            // marcarCancelada() no registra la auditoría del panel: se completa acá.
-            if ($estado === 'Cancelado') {
-                $pdo->prepare(
-                    "UPDATE {$tabla}
-                        SET estado_modificado_por = ?, estado_modificado_at = NOW(), estado_origen = 'panel'
-                      WHERE id = ?"
-                )->execute([$usuarioPanel, $pk]);
-            }
+            $pdo->beginTransaction();
+            try {
+                $notifs  = [];
+                $evento  = null;
+                $motivoCierre = null;
+                $extra   = '';
 
-            // Avisos automáticos al usuario final:
-            //   Pre-Reserva -> Confirmado : el admin verificó el comprobante y aprueba.
-            //   *           -> Cancelado  : el admin rechaza/cancela la solicitud.
-            $notifs = [];
-            if ($mailCliente !== '') {
-                if ($estado === 'Confirmado') {
-                    $n = encolarNotificacion($pdo, $modalidad, $pk, 'confirmacion', $mailCliente, 'cliente', null, $config);
-                    if ($n !== null) {
-                        $notifs[] = $n;
+                if ($accion === 'aprobar') {
+                    $evento = 'confirmacion';
+                    $extra  = ', confirmado_at = NOW()';
+                } elseif ($accion === 'anular') {
+                    $evento = 'cancelacion';
+                    $motivoCierre = 'cancelado_admin';
+                    $extra  = ", cancelado_at = NOW(), cancelado_origen = 'admin'";
+                } elseif ($accion === 'devolver') {
+                    $motivoCierre = 'cancelado_cliente';
+                    $extra  = ', devolucion_ejecutada_at = NOW(), devolucion_ejecutada_por = '
+                        . $pdo->quote($usuarioPanel);
+                } elseif ($accion === 'rechazar') {
+                    $evento = 'rechazo';
+                    // Nuevo plazo para reintentar: 24 h o lo que quede hasta el tope.
+                    $ahora   = reservaAhora($config);
+                    $inicio  = $actual['inicio_at'] !== null ? new DateTimeImmutable((string) $actual['inicio_at']) : null;
+                    $nuevoV  = $inicio !== null
+                        ? reservaVencimiento($ahora->modify('+0 hours'), $inicio, $pol)
+                        : null;
+                    // reservaVencimiento ya aplica min(ahora+ventana, inicio-H).
+                    if ($nuevoV !== null) {
+                        $candidato = $ahora->modify('+24 hours');
+                        if ($candidato < $nuevoV) {
+                            $nuevoV = $candidato;
+                        }
                     }
-                } elseif ($estado === 'Cancelado') {
-                    $n = encolarNotificacion($pdo, $modalidad, $pk, 'cancelacion', $mailCliente, 'cliente', null, $config);
+                    if ($nuevoV === null || $nuevoV <= $ahora) {
+                        $destino      = 'Vencido';
+                        $motivoCierre = 'vencido_sin_tiempo';
+                        $extra        = ", cancelado_at = NOW(), cancelado_origen = 'admin'";
+                    } else {
+                        $extra = ", pago_vence_at = " . $pdo->quote($nuevoV->format('Y-m-d H:i:sP'))
+                               . ', comprobado_at = NULL';
+                    }
+                }
+
+                $set = "estado = ?, motivo_cierre = ?, estado_modificado_por = ?, estado_modificado_at = NOW(), estado_origen = 'panel'{$extra}";
+                $upd = $pdo->prepare(
+                    "UPDATE {$tabla} SET {$set} WHERE id = ? AND estado = ?"
+                );
+                $upd->execute([$destino, $motivoCierre, $usuarioPanel, $pk, $estadoAnterior]);
+                if ($upd->rowCount() === 0) {
+                    $pdo->rollBack();
+                    responder([
+                        'success' => false,
+                        'message' => 'La reserva cambió de estado mientras se procesaba la acción. Volvé a intentar.',
+                    ]);
+                }
+
+                // Comprobante: se marca el último pendiente según la acción.
+                $comp = $pdo->prepare(
+                    "SELECT id FROM comprobantes
+                      WHERE reserva_modalidad = ? AND reserva_pk = ? AND estado = 'pendiente'
+                      ORDER BY id DESC LIMIT 1"
+                );
+                $comp->execute([$modalidad, $pk]);
+                $compId = $comp->fetchColumn();
+
+                if ($compId !== false) {
+                    if ($accion === 'aprobar') {
+                        $pdo->prepare(
+                            "UPDATE comprobantes
+                                SET estado = 'aprobado', revisado_por = ?, revisado_at = NOW()
+                              WHERE id = ?"
+                        )->execute([$usuarioPanel, (int) $compId]);
+                        $pdo->prepare(
+                            "UPDATE {$tabla} SET comprobante_validado_id = ? WHERE id = ?"
+                        )->execute([(int) $compId, $pk]);
+                    } elseif ($accion === 'rechazar') {
+                        $pdo->prepare(
+                            "UPDATE comprobantes
+                                SET estado = 'rechazado', revisado_por = ?, revisado_at = NOW(), motivo_rechazo = ?
+                              WHERE id = ?"
+                        )->execute([$usuarioPanel, $motivo, (int) $compId]);
+                    }
+                }
+
+                if ($evento !== null && $mailCliente !== '') {
+                    $n = encolarNotificacion($pdo, $modalidad, $pk, $evento, $mailCliente, 'cliente', null, $config);
                     if ($n !== null) {
                         $notifs[] = $n;
                     }
                 }
+
+                // Aviso extra al administrador cuando se aprueba el comprobante,
+                // con el nombre de quien lo validó.
+                if ($accion === 'aprobar') {
+                    $mailAdmin = trim(configSistema($pdo, 'mail_admin'));
+                    if ($mailAdmin !== '' && filter_var($mailAdmin, FILTER_VALIDATE_EMAIL) !== false) {
+                        $n = encolarNotificacion(
+                            $pdo, $modalidad, $pk, 'validacion_admin', $mailAdmin, 'admin', null, $config,
+                            ['validado_por_nombre' => $nombrePanel]
+                        );
+                        if ($n !== null) {
+                            $notifs[] = $n;
+                        }
+                    }
+                }
+
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                throw $e;
             }
 
-            // Envío inmediato post-commit (si SMTP falla, el cron reintenta).
             enviarNotificacionesInmediatas($pdo, $config, $notifs);
 
-            $meta = $pdo->prepare("SELECT estado_modificado_por, estado_modificado_at, estado_origen FROM {$tabla} WHERE id = ?");
+            $meta = $pdo->prepare(
+                "SELECT estado, estado_modificado_por, estado_modificado_at, estado_origen FROM {$tabla} WHERE id = ?"
+            );
             $meta->execute([$pk]);
             $m = $meta->fetch(PDO::FETCH_ASSOC) ?: [];
 
             responder([
-                'success'             => true,
-                'estado'              => $estado,
-                'estado_anterior'     => $estadoAnterior,
-                'notificacion'        => $notifs === [] ? 'sin_email' : 'enviada',
-                'modificado_por'      => $m['estado_modificado_por'] ?? null,
-                'modificado_at'       => $m['estado_modificado_at'] ?? null,
-                'origen'              => $m['estado_origen'] ?? 'panel',
+                'success'         => true,
+                'accion'          => $accion,
+                'estado'          => $m['estado'] ?? $destino,
+                'estado_anterior' => $estadoAnterior,
+                'notificacion'    => $notifs === [] ? 'sin_email' : 'enviada',
+                'modificado_por'  => $m['estado_modificado_por'] ?? $usuarioPanel,
+                'modificado_at'   => $m['estado_modificado_at'] ?? null,
+                'origen'          => $m['estado_origen'] ?? 'panel',
             ]);
             break;
 
@@ -1277,10 +1560,28 @@ try {
             if ($mesesAnticipacion < 1 || $mesesAnticipacion > 24) {
                 $mesesAnticipacion = 3;
             }
+            $polPublica = reservaPolitica($pdo);
+
+            // Fecha mínima reservable: el primer día cuyo inicio (00:00) respeta
+            // el horizonte. El front la usa para deshabilitar fechas, así no
+            // depende del reloj ni del huso del navegador.
+            $ahoraPub  = reservaAhora($config);
+            $limitePub = $ahoraPub->modify('+' . reservaHorizonteHoras($polPublica) . ' hours');
+            $fechaMin  = $limitePub->setTime(0, 0, 0);
+            if ($fechaMin < $limitePub) {
+                $fechaMin = $fechaMin->modify('+1 day');
+            }
+
             responder([
-                'success'            => true,
-                'albergues'          => $salida,
-                'meses_anticipacion' => $mesesAnticipacion,
+                'success'                 => true,
+                'albergues'               => $salida,
+                'meses_anticipacion'      => $mesesAnticipacion,
+                'anticipacion_horas'      => (int) $polPublica['anticipacion_horas'],
+                'ventana_pago_horas'      => (int) $polPublica['ventana_pago_horas'],
+                'ventana_pago_min_horas'  => (int) $polPublica['ventana_pago_min_horas'],
+                'cancelacion_horas'       => (int) $polPublica['cancelacion_horas'],
+                'horizonte_horas'         => reservaHorizonteHoras($polPublica),
+                'fecha_minima_reserva'    => $fechaMin->format('Y-m-d'),
             ]);
             break;
 
@@ -1513,13 +1814,27 @@ try {
             requiereRol(['super_admin']);
             $clave = trim(parametro('clave'));
             $valor = trim(parametro('valor'));
-            $permitidas = ['meses_anticipacion', 'mail_admin'];
+            $permitidas = ['meses_anticipacion', 'mail_admin',
+                'anticipacion_horas', 'ventana_pago_horas', 'ventana_pago_min_horas',
+                'cancelacion_horas', 'devolucion_temprana_pct', 'devolucion_tardia_pct',
+                'validacion_horas'];
             if (!in_array($clave, $permitidas, true)) {
                 responder(['success' => false, 'message' => 'Clave de configuración no válida']);
             }
             if ($clave === 'meses_anticipacion') {
                 if (!ctype_digit($valor) || (int) $valor < 1 || (int) $valor > 24) {
                     responder(['success' => false, 'message' => 'Ingresá un valor entre 1 y 24']);
+                }
+            }
+            if (in_array($clave, ['anticipacion_horas', 'ventana_pago_horas', 'ventana_pago_min_horas',
+                                  'cancelacion_horas', 'validacion_horas'], true)) {
+                if (!ctype_digit($valor) || (int) $valor < 0 || (int) $valor > 720) {
+                    responder(['success' => false, 'message' => 'Ingresá una cantidad de horas entre 0 y 720']);
+                }
+            }
+            if (in_array($clave, ['devolucion_temprana_pct', 'devolucion_tardia_pct'], true)) {
+                if (!ctype_digit($valor) || (int) $valor < 0 || (int) $valor > 100) {
+                    responder(['success' => false, 'message' => 'Ingresá un porcentaje entre 0 y 100']);
                 }
             }
             if ($clave === 'mail_admin' && $valor !== '' && filter_var($valor, FILTER_VALIDATE_EMAIL) === false) {
@@ -1552,18 +1867,51 @@ try {
             // solo identifica la reserva y su modalidad.
             $reserva    = false;
             $modalidad  = '';
+            $tablaReserva = '';
             foreach (['visita' => 'reservas_visitas', 'alojamiento' => 'reservas_alojamiento'] as $mod => $tabla) {
-                $stmt = $pdo->prepare("SELECT id, email, estado FROM {$tabla} WHERE codigo_publico = ?");
+                $stmt = $pdo->prepare(
+                    "SELECT id, email, estado, inicio_at, pago_vence_at FROM {$tabla} WHERE codigo_publico = ?"
+                );
                 $stmt->execute([$codigo]);
                 $encontrada = $stmt->fetch(PDO::FETCH_ASSOC);
                 if ($encontrada !== false) {
-                    $reserva   = $encontrada;
-                    $modalidad = $mod;
+                    $reserva      = $encontrada;
+                    $modalidad    = $mod;
+                    $tablaReserva = $tabla;
                     break;
                 }
             }
             if ($reserva === false) {
                 responder(['success' => false, 'message' => 'No se encontró una reserva con ese código']);
+            }
+
+            // El comprobante solo se acepta mientras la reserva está en Pre-Reserva
+            // y dentro del plazo. El vencimiento se evalúa acá mismo (no se espera
+            // al barrido): una pre-reserva vencida ya liberó su cupo.
+            $pol    = reservaPolitica($pdo);
+            $estado = reservaEstadoEfectivo(
+                (string) $reserva['estado'],
+                $reserva['pago_vence_at'] !== null ? (string) $reserva['pago_vence_at'] : null,
+                $reserva['inicio_at'] !== null ? (string) $reserva['inicio_at'] : null,
+                $pol
+            );
+            if ($estado === 'Vencido') {
+                responder([
+                    'success' => false,
+                    'message' => 'La pre-reserva venció por falta de pago y el cupo fue liberado. Iniciá una nueva reserva.',
+                ]);
+            }
+            if ($estado === 'Comprobar') {
+                responder([
+                    'success' => false,
+                    'message' => 'Ya recibimos un comprobante para esta reserva. La administración lo está verificando.',
+                ]);
+            }
+            if ($estado !== 'Pre-Reserva') {
+                responder([
+                    'success' => false,
+                    'message' => 'La reserva no admite el envío de comprobantes en su estado actual (' . $estado . ').',
+                ]);
             }
 
             // Validar tipo real por contenido (no solo extensión).
@@ -1580,34 +1928,91 @@ try {
                 responder(['success' => false, 'message' => 'No se pudo crear la carpeta de comprobantes']);
             }
             $nombreFinal = $codigo . '_' . date('YmdHis') . '.' . $ext;
+            $rutaRelativa = 'comprobantes/' . $modalidad . '/' . $nombreFinal;
             if (!move_uploaded_file($f['tmp_name'], $dir . '/' . $nombreFinal)) {
                 responder(['success' => false, 'message' => 'No se pudo guardar el comprobante']);
             }
 
-            $pdo->prepare(
-                'INSERT INTO comprobantes (reserva_modalidad, reserva_pk, ruta, nombre_original, mime, tamano_bytes, subido_por)
-                 VALUES (?, ?, ?, ?, ?, ?, \'cliente\')'
-            )->execute([
-                $modalidad,
-                (int) $reserva['id'],
-                'comprobantes/' . $modalidad . '/' . $nombreFinal,
-                (string) $f['name'],
-                $mime,
-                (int) $f['size'],
-            ]);
+            // Transición atómica Pre-Reserva -> Comprobar. El WHERE por estado
+            // evita que dos subidas simultáneas dejen la reserva inconsistente.
+            $notifs = [];
+            $pdo->beginTransaction();
+            try {
+                // Plazo para que el operador valide: min(ahora + validacion_horas, inicio).
+                $inicioReserva   = new DateTimeImmutable((string) $reserva['inicio_at']);
+                $validacionVence = reservaVencimientoValidacion(reservaAhora($config), $inicioReserva, $pol);
 
-            // Avisar al administrador que llegó un comprobante. Como el aviso al
-            // admin está deshabilitado por defecto (notif_enviar_admin), no se
-            // encola: la verificación del comprobante se hace desde el panel.
-            $mailAdmin = avisoAdminHabilitado($pdo, $config) ? configSistema($pdo, 'mail_admin') : '';
-            if ($mailAdmin !== '') {
-                encolarNotificacion($pdo, $modalidad, (int) $reserva['id'], 'pago_recibido', $mailAdmin, 'admin');
+                $upd = $pdo->prepare(
+                    "UPDATE {$tablaReserva}
+                        SET estado = 'Comprobar',
+                            comprobado_at = NOW(),
+                            validacion_vence_at = ?,
+                            estado_origen = 'web',
+                            estado_modificado_at = NOW()
+                      WHERE id = ? AND estado = 'Pre-Reserva'"
+                );
+                $upd->execute([$validacionVence->format('Y-m-d H:i:sP'), (int) $reserva['id']]);
+                if ($upd->rowCount() === 0) {
+                    $pdo->rollBack();
+                    @unlink($dir . '/' . $nombreFinal);
+                    responder([
+                        'success' => false,
+                        'message' => 'La reserva cambió de estado mientras se subía el comprobante. Volvé a intentar.',
+                    ]);
+                }
+
+                $pdo->prepare(
+                    'INSERT INTO comprobantes
+                        (reserva_modalidad, reserva_pk, ruta, nombre_original, mime, tamano_bytes, subido_por, estado)
+                     VALUES (?, ?, ?, ?, ?, ?, \'cliente\', \'pendiente\')'
+                )->execute([
+                    $modalidad,
+                    (int) $reserva['id'],
+                    $rutaRelativa,
+                    (string) $f['name'],
+                    $mime,
+                    (int) $f['size'],
+                ]);
+
+                // 1) Acuse de recibo al usuario final.
+                $n = encolarNotificacion(
+                    $pdo, $modalidad, (int) $reserva['id'], 'comprobante_recibido',
+                    (string) $reserva['email'], 'cliente', null, $config
+                );
+                if ($n !== null) {
+                    $notifs[] = $n;
+                }
+
+                // 2) Aviso al administrador, con la fecha límite de validación.
+                //    No depende de notif_enviar_admin: este evento es del admin.
+                $mailAdmin = trim(configSistema($pdo, 'mail_admin'));
+                if ($mailAdmin !== '' && filter_var($mailAdmin, FILTER_VALIDATE_EMAIL) !== false) {
+                    $n = encolarNotificacion(
+                        $pdo, $modalidad, (int) $reserva['id'], 'pago_recibido',
+                        $mailAdmin, 'admin', null, $config
+                    );
+                    if ($n !== null) {
+                        $notifs[] = $n;
+                    }
+                }
+
+                $pdo->commit();
+            } catch (Throwable $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                @unlink($dir . '/' . $nombreFinal);
+                throw $e;
             }
 
+            // Envío inmediato post-commit (si SMTP falla, el cron reintenta).
+            enviarNotificacionesInmediatas($pdo, $config, $notifs);
+
             responder([
-                'success'  => true,
-                'codigo'   => $codigo,
-                'mensaje'  => 'Comprobante recibido. El administrador lo verificará y confirmará tu reserva.',
+                'success' => true,
+                'codigo'  => $codigo,
+                'estado'  => 'Comprobar',
+                'mensaje' => 'Comprobante recibido. La administración lo verificará y confirmará tu reserva.',
             ]);
             break;
 
@@ -1643,8 +2048,13 @@ try {
                 responder(['success' => false, 'message' => 'No autorizado']);
             }
             $resultado = procesarNotificaciones($pdo, $config);
-            $vencidos  = tareasVencimiento($pdo);
-            responder(['success' => true, 'enviados' => $resultado['enviados'], 'fallidos' => $resultado['fallidos'], 'vencimientos' => $vencidos]);
+            $barrido   = reservaBarrido($pdo, $config);
+            responder([
+                'success'      => true,
+                'enviados'     => $resultado['enviados'],
+                'fallidos'     => $resultado['fallidos'],
+                'vencimientos' => $barrido,
+            ]);
             break;
 
         case 'tareasVencimiento':
@@ -1653,7 +2063,7 @@ try {
             if ($tokEsperado !== '' && $token !== $tokEsperado) {
                 responder(['success' => false, 'message' => 'No autorizado']);
             }
-            responder(['success' => true, 'vencimientos' => tareasVencimiento($pdo)]);
+            responder(['success' => true, 'vencimientos' => reservaBarrido($pdo, $config)]);
             break;
 
         // ---------- Acción desconocida ----------

@@ -86,7 +86,8 @@
     cfgNotifMsg: f('cfgNotifMsg'),
   };
 
-  var ESTADOS = ['Pre-Reserva', 'Confirmado', 'Cancelado'];
+  // Estados del ciclo de vida (misma máquina para las dos modalidades).
+  var ESTADOS = ['Pre-Reserva', 'Comprobar', 'Confirmado', 'Cancelado', 'Vencido', 'Devolver', 'Finalizado'];
 
   var MSG_WP = 'Hola, te comparto la planilla de nómina para los albergues escolares';
   var URL_PDF = window.location.origin + '/docs/Anexo-nomina.pdf';
@@ -145,14 +146,38 @@
   }
 
   function claseEstado(estado) {
-    if (estado === 'Cancelado') { return 'cancelado'; }
-    return estado === 'Confirmado' ? 'confirmado' : 'prereserva';
+    switch (estado) {
+      case 'Cancelado':  return 'cancelado';
+      case 'Vencido':    return 'vencido';
+      case 'Devolver':   return 'devolver';
+      case 'Comprobar':  return 'comprobar';
+      case 'Confirmado': return 'confirmado';
+      case 'Finalizado': return 'finalizado';
+      default:           return 'prereserva';
+    }
   }
 
-  function opcionesEstado(actual) {
-    return ESTADOS.map(function (e) {
-      return '<option value="' + e + '"' + (e === actual ? ' selected' : '') + '>' + e + '</option>';
-    }).join('');
+  // Acciones permitidas por la máquina de estados, según el estado actual.
+  // El backend valida la transición igual: esto es solo la interfaz.
+  function accionesEstado(r) {
+    var estado = r.estado_efectivo || r.estado;
+    var base = 'data-pk="' + esc(r.pk) + '" data-modalidad="' + esc(r.modalidad) + '"';
+
+    if (estado === 'Pre-Reserva') {
+      return '<button type="button" class="acc-estado anular" ' + base + ' data-accion="anular" title="Anular la pre-reserva y liberar el cupo">Anular</button>';
+    }
+    if (estado === 'Comprobar') {
+      return '<button type="button" class="acc-estado aprobar" ' + base + ' data-accion="aprobar" title="Verificar el comprobante y confirmar">Aprobar</button>'
+        + '<button type="button" class="acc-estado rechazar" ' + base + ' data-accion="rechazar" title="Rechazar el comprobante y pedir uno nuevo">Rechazar</button>';
+    }
+    if (estado === 'Devolver') {
+      var monto = r.devolucion_monto;
+      var texto = (monto === null || monto === undefined || monto === '')
+        ? 'Marcar devolución'
+        : 'Devuelto ' + formatoMonto(monto);
+      return '<button type="button" class="acc-estado devolver" ' + base + ' data-accion="devolver" title="Registrar que la devolución ya fue transferida">' + esc(texto) + '</button>';
+    }
+    return '';
   }
 
   // '2026-10-12 14:35:10' -> '12/10 14:35' (corta) / '12/10/2026 14:35' (larga)
@@ -351,7 +376,7 @@
       }
       var listaE = ui.fEstado;
       listaE.innerHTML = '<option value="">Todos</option>';
-      j.estados.forEach(function (e) {
+      ESTADOS.forEach(function (e) {
         var o = document.createElement('option');
         o.value = e;
         o.textContent = e;
@@ -403,6 +428,17 @@
       }
       ui.sinResultados.hidden = true;
       ui.grilla.innerHTML = lista.map(function (r) {
+        var est = r.estado_efectivo || r.estado;
+        var celdaEstado = '<span class="badge-estado ' + claseEstado(est) + '">' + esc(est) + '</span>';
+        if (est !== r.estado) {
+          celdaEstado += ' <span class="modif-estado" title="El barrido todavía no la pasó a Vencido; el cupo ya está liberado">vencida</span>';
+        }
+        var avisoValidacion = '';
+        if (est === 'Comprobar' && r.validacion_vence_txt) {
+          avisoValidacion = '<div class="modif-estado' + (r.validacion_vencida ? ' vencida' : '') +
+            '" title="Plazo para aprobar o rechazar el comprobante desde el panel">validar antes del ' +
+            esc(r.validacion_vence_txt) + '</div>';
+        }
         return '<tr>' +
           '<td>' + esc(r.codigo_publico || r.id_reserva) + '</td>' +
           '<td><span class="badge ' + esc(r.modalidad) + '">' + esc(r.modalidad) + '</span></td>' +
@@ -417,8 +453,8 @@
           '<td>' + montoCelda(r) + '</td>' +
           '<td class="col-detalle">' + esc(detalle(r)) + '</td>' +
           (esLector
-            ? '<td><span class="badge ' + claseEstado(r.estado) + '">' + esc(r.estado) + '</span></td>'
-            : '<td><select class="selEstado ' + claseEstado(r.estado) + '" data-pk="' + esc(r.pk) + '" data-modalidad="' + esc(r.modalidad) + '" data-actual="' + esc(r.estado) + '">' + opcionesEstado(r.estado) + '</select>' + sublineaEstado(r) + '</td>') +
+            ? '<td>' + celdaEstado + '</td>'
+            : '<td>' + celdaEstado + accionesEstado(r) + avisoValidacion + sublineaEstado(r) + '</td>') +
           (esLector ? '' : '<td class="col-wp">' + botonWhatsApp(r.contacto, true) + '</td>') +
           (esLector ? '' : celdaObs(r, true)) +
           '</tr>';
@@ -606,11 +642,50 @@ ui.btnActualizar.addEventListener('click', function () {
 
   ui.grilla.addEventListener('click', function (ev) {
     if (esLector) { return; }
+
+    var acc = ev.target.closest ? ev.target.closest('.acc-estado') : null;
+    if (acc) {
+      ev.preventDefault();
+      aplicarAccionEstado(acc);
+      return;
+    }
+
     var btn = ev.target.closest ? ev.target.closest('.obs-edit') : null;
     if (!btn) { return; }
     ev.preventDefault();
     editarObs(btn);
   });
+
+  // Ejecuta una transición de la máquina de estados desde el panel.
+  function aplicarAccionEstado(btn) {
+    if (btn.disabled) { return; }
+    var accion = btn.dataset.accion;
+    var params = new Map();
+    params.set('accion', accion);
+    params.set('pk', btn.dataset.pk);
+    params.set('modalidad', btn.dataset.modalidad);
+
+    if (accion === 'rechazar') {
+      var motivo = window.prompt('Motivo del rechazo (se le envía al cliente):', '');
+      if (motivo === null) { return; }
+      motivo = motivo.trim();
+      if (!motivo) { alert('El motivo es obligatorio.'); return; }
+      params.set('motivo', motivo);
+    } else if (accion === 'devolver') {
+      if (!window.confirm('¿Confirmás que la devolución ya fue transferida al cliente?')) { return; }
+    } else if (accion === 'anular') {
+      if (!window.confirm('¿Anular esta pre-reserva? El cupo se libera y no se puede reactivar.')) { return; }
+    }
+
+    btn.disabled = true;
+    llamar('adminEstado', params).then(function () {
+      cargarReservas();
+      cargarTotales();
+    }).catch(function (e) {
+      btn.disabled = false;
+      alert(e.message || 'No se pudo aplicar la acción');
+    });
+  }
 
   ui.grilla.addEventListener('change', function (ev) {
     if (esLector) { return; }
@@ -636,31 +711,6 @@ ui.btnActualizar.addEventListener('click', function () {
       });
       return;
     }
-
-    if (!sel.classList.contains('selEstado')) { return; }
-    var prev = sel.dataset.actual;
-    var params = new Map();
-    params.set('pk', sel.dataset.pk);
-    params.set('modalidad', sel.dataset.modalidad);
-    params.set('estado', sel.value);
-    llamar('adminEstado', params).then(function (j) {
-      sel.dataset.actual = sel.value;
-      sel.className = 'selEstado ' + claseEstado(sel.value);
-      var celda = sel.parentNode;
-      var sub = celda ? celda.querySelector('.modif-estado') : null;
-      if (sub) {
-        var caja = document.createElement('div');
-        caja.innerHTML = sublineaEstado({
-          estado_modificado_por: j.modificado_por,
-          estado_modificado_at: j.modificado_at,
-          estado_origen: j.origen || 'panel',
-          created_at: null
-        });
-        if (caja.firstChild) { celda.replaceChild(caja.firstChild, sub); }
-      }
-    }).catch(function () {
-      sel.value = prev;
-    });
   });
   [ui.fTipo, ui.fAlbergue, ui.fEstado].forEach(function (sel) {
     sel.addEventListener('change', cargarReservas);

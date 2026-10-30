@@ -46,7 +46,9 @@ $alojamiento['rango_fechas']  = '2026-12-10,2026-12-11,2026-12-12';
 $alojamiento['estado']        = 'Confirmado';
 unset($alojamiento['fecha_ingreso'], $alojamiento['hora_ingreso'], $alojamiento['hora_egreso']);
 
-$eventos = ['creacion', 'recordatorio', 'confirmacion', 'cancelacion', 'cancelacion_cliente', 'pago_recibido', 'aviso_admin'];
+$eventos = ['creacion', 'recordatorio', 'confirmacion', 'cancelacion', 'cancelacion_cliente',
+    'pago_recibido', 'aviso_admin', 'vencimiento', 'rechazo', 'devolucion',
+    'comprobante_recibido', 'validacion_admin'];
 
 $fallos = 0;
 $revisar = static function (string $nombre, array $r, array $esperados) use ($dir, &$fallos): void {
@@ -84,11 +86,64 @@ $revisar('recordatorio', $visita, array_merge($baseVisita, ['pago.html']));
 $revisar('cancelacion_cliente', $visita, array_merge($baseVisita, ['cupo fue liberado']));
 $revisar('cancelacion', $visita, array_merge($baseVisita, ['cupo fue liberado']));
 $revisar('aviso_admin', $visita, $baseVisita);
-$revisar('pago_recibido', $visita, $baseVisita);
+
+// ---- Comprobante recibido: acuse al cliente y aviso al admin con plazo ------
+$comprobante = $visita;
+$comprobante['estado']              = 'Comprobar';
+$comprobante['comprobado_at']       = date('Y-m-d H:i:s');
+$comprobante['validacion_vence_at'] = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+$limiteLargo = date('d/m/Y H:i', strtotime('+24 hours'));
+$limiteCorto = date('d/m/Y', strtotime('+24 hours'));
+
+$revisar('pago_recibido', $comprobante, [
+    'Código de reserva', 'R-000123', 'Maestro José Fierro', 'Comprobante para validar',
+    'Fecha límite para aprobar o rechazar', $limiteLargo, 'Comprobar',
+]);
+
+$revisar('comprobante_recibido', $comprobante, [
+    'Código de reserva', 'R-000123', 'Maestro José Fierro', 'Comprobante recibido',
+    'La revisión está prevista antes del ' . $limiteCorto,
+]);
+
+// ---- Aviso de validación al administrador ----------------------------------
+$validada = $comprobante;
+$validada['estado']                 = 'Confirmado';
+$validada['validado_por_nombre']    = 'Ana Pérez';
+$validada['estado_modificado_por']  = 'aperez';
+$validada['estado_modificado_at']   = date('Y-m-d H:i:s');
+
+$revisar('validacion_admin', $validada, [
+    'Código de reserva', 'R-000123', 'Maestro José Fierro', 'Reserva validada',
+    'por Ana Pérez', 'La reserva quedó confirmada',
+]);
+
 $revisar('confirmacion', $alojamiento, [
     'Código de reserva', 'R-000124', 'Alojamiento con estadía',
     'Fechas de alojamiento', '10/12/2026 / 11/12/2026 / 12/12/2026', 'Noches',
     'Monto total', '$60.000', '>Confirmado<',
+]);
+
+// ---- Eventos nuevos de la máquina de estados -------------------------------
+$vencida = $visita;
+$vencida['estado'] = 'Vencido';
+$revisar('vencimiento', $vencida, [
+    'Código de reserva', 'R-000123', 'Maestro José Fierro', 'Vencido', 'cupo fue liberado',
+]);
+
+$rechazada = $visita;
+$rechazada['motivo_rechazo'] = 'El importe no coincide con el total';
+$revisar('rechazo', $rechazada, [
+    'Código de reserva', 'R-000123', 'Comprobante rechazado',
+    'El importe no coincide con el total', 'pago.html', 'Vence el',
+]);
+
+$devuelta = $visita;
+$devuelta['estado'] = 'Devolver';
+$devuelta['devolucion_pct'] = 100;
+$devuelta['devolucion_monto'] = 10000;
+$revisar('devolucion', $devuelta, [
+    'Código de reserva', 'R-000123', 'Devolución', '100%', '$10.000',
 ]);
 
 // El texto plano debe derivarse sin etiquetas ni entidades.
