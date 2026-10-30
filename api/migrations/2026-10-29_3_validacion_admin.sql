@@ -7,7 +7,7 @@
 -- Idempotente: puede ejecutarse más de una vez sin errores.
 --
 -- Ejecutar con:
---   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_validacion_admin.sql
+--   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_3_validacion_admin.sql
 
 BEGIN;
 

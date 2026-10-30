@@ -11,7 +11,10 @@
 -- Idempotente: puede ejecutarse más de una vez sin errores.
 --
 -- Ejecutar con:
---   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_comprobante_recibido_y_plazo_validacion.sql
+--   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_2_comprobante_recibido_y_plazo_validacion.sql
+--
+-- ORDEN: requiere 2026-10-29_1_maquina_estados_y_liberacion.sql (usa
+-- comprobado_at, inicio_at y las columnas de devolución).
 
 BEGIN;
 

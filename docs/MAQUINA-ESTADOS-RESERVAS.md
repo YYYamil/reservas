@@ -6,8 +6,8 @@ con estadía de hasta 4 días): los estados, las transiciones y los invariantes
 son los mismos; solo cambia el ancla temporal y la unidad de cupo.
 
 Implementación: `api/reservas_estado.php` (dominio), `api/index.php` (endpoints),
-`api/notificaciones.php` (plantillas) y la migración
-`api/migrations/2026-10-29_maquina_estados_y_liberacion.sql`.
+`api/notificaciones.php` (plantillas) y las migraciones
+`api/migrations/2026-10-29_1_*.sql`, `_2_*.sql` y `_3_*.sql`.
 
 ---
 
@@ -220,11 +220,14 @@ heartbeat permite detectar que el cron se cayó.
 
 ## 9. Puesta en marcha
 
-1. Aplicar la migración:
+1. Aplicar las migraciones **en orden** (el script de deploy las toma
+   alfabéticamente; por eso llevan el prefijo `_1_`, `_2_`, `_3_`):
    ```
-   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_maquina_estados_y_liberacion.sql
+   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_1_maquina_estados_y_liberacion.sql
+   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_2_comprobante_recibido_y_plazo_validacion.sql
+   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_3_validacion_admin.sql
    ```
-   Es aditiva e idempotente. Agrega columnas, backfill de `inicio_at`, CHECK de
+   Son aditivas e idempotentes. Agregan columnas, backfill de `inicio_at`, CHECK de
    estados (`NOT VALID`), columnas de comprobantes, tipos de evento y la vista
    actualizada.
 2. Configurar el cron cada 15 minutos:

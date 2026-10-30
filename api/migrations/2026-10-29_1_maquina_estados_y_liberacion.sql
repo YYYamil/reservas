@@ -21,7 +21,10 @@
 -- Idempotente: puede ejecutarse más de una vez sin errores.
 --
 -- Ejecutar con:
---   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_maquina_estados_y_liberacion.sql
+--   php api/tests/aplicar_migracion.php api/migrations/2026-10-29_1_maquina_estados_y_liberacion.sql
+--
+-- ORDEN: debe aplicarse antes que 2026-10-29_2_... (esa usa inicio_at y
+-- comprobado_at, que crea esta migración).
 
 BEGIN;
 
