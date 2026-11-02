@@ -1,0 +1,122 @@
+<!--
+  partials/venue-modal.html — ficha del albergue
+  ==========================================================================
+  Se abre con :target, sin JS. El "Ver detalle" de la tarjeta apunta a
+  #modal-<clave> y todo lo que cierra (la X y el velo) vuelve a #albergue-<clave>.
+
+  Claves que no se tocan:
+  - El id es modal-<clave> (maestro, tinku, aquilina…), con la clave tal como
+    la devuelve la API. La ficha de estadía del sitio viejo
+    (modal-alojamiento-<clave>) no se replica acá: la modalidad se elige al
+    reservar.
+
+  Va fuera de la tarjeta y al final del listado: un modal fixed dentro de
+  .card queda recortado por el overflow del contenedor.
+
+  Datos: nombre, capacidades, montos, descripción y características salen de
+  listarAlbergues. Las características se listan tal cual vienen; el ícono de
+  la API (Font Awesome) no se usa porque el sistema tiene un solo set SVG.
+
+  Sin PDF (albergue-unt): el control de Reglamento va como <button disabled>,
+  porque un enlace no se puede deshabilitar de verdad.
+
+  Límite conocido: sin JS no hay trampa de foco ni cierre con Escape. Por eso
+  el contenedor lleva tabindex="-1" (el navegador le da el foco al abrirse, así
+  se anuncia el diálogo) y el cierre es un enlace real, alcanzable con Tab.
+
+  Íconos: usa el sprite de la página (i-close, i-check, i-file, i-arrow-right).
+-->
+<div
+  class="modal"
+  id="modal-maestro"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-maestro-title"
+  tabindex="-1"
+>
+  <a class="modal__backdrop" href="#albergue-maestro" tabindex="-1" aria-hidden="true"></a>
+
+  <div class="modal__panel">
+    <header class="modal__head">
+      <h2 class="modal__title" id="modal-maestro-title">Maestro José Fierro</h2>
+      <a class="modal__close" href="#albergue-maestro">
+        <span class="visually-hidden">Cerrar la ficha</span>
+        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+      </a>
+    </header>
+
+    <div class="modal__media">
+      <img
+        src="assets/img/maestro/01.jpg"
+        alt="Albergue Maestro José Fierro"
+        loading="lazy"
+        decoding="async"
+      />
+    </div>
+
+    <div class="modal__body">
+      <dl class="modal__facts">
+        <div class="modal__fact">
+          <dt>Camas</dt>
+          <dd>92</dd>
+        </div>
+        <div class="modal__fact">
+          <dt>Lugares en visita</dt>
+          <dd>150</dd>
+        </div>
+        <div class="modal__fact">
+          <dt>Visita de un día</dt>
+          <dd>$2.000</dd>
+        </div>
+        <div class="modal__fact">
+          <dt>Cama por noche</dt>
+          <dd>$5.000</dd>
+        </div>
+      </dl>
+
+      <ul class="modal__features">
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+          Comedor con capacidad para 150 personas.
+        </li>
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+          Dormitorios compartidos en 6 habitaciones.
+        </li>
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+          Áreas recreativas iluminadas.
+        </li>
+      </ul>
+
+      <p class="card__text">
+        El Albergue Escolar Maestro José Fierro se encuentra ubicado al sureste
+        de la ciudad capital.
+      </p>
+    </div>
+
+    <footer class="modal__foot">
+      <!-- El mapa y el PDF salen del payload de listarAlbergues. -->
+      <a
+        class="link link--with-icon"
+        href="#"
+        data-placeholder="mapa-maestro"
+        data-accion="ver-mapa"
+      >
+        Ver mapa
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+      </a>
+      <a class="btn btn--ghost btn--sm" href="#" data-placeholder="reglamento-maestro">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
+        <span class="btn__label">Reglamento</span>
+      </a>
+      <a
+        class="btn btn--primary btn--sm"
+        href="reservar.html?albergue=maestro"
+        data-accion="reservar"
+      >
+        <span class="btn__label">Reservar</span>
+      </a>
+    </footer>
+  </div>
+</div>

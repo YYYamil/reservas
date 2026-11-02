@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Albergues recreativos — Reservá estadía o una visita</title>
+    <meta
+      name="description"
+      content="Reservá estadía con camas o una visita de un día en los albergues recreativos. Elegí albergue y fechas, y ves el cupo y el total antes de confirmar."
+    />
+    <link rel="stylesheet" href="assets/css/tokens.css" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/components.css" />
+    <link rel="stylesheet" href="assets/css/hero.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Ir al contenido</a>
+
+    <!-- Un solo set de íconos para la página: SVG en línea, trazo 1.75, 20 y
+         24 px. Se declara una vez y se referencia con <use>. -->
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-ticket" viewBox="0 0 24 24">
+        <path
+          d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
+        />
+        <path d="M13 5v2M13 11v2M13 17v2" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </symbol>
+      <symbol id="i-chevron-down" viewBox="0 0 24 24">
+        <path d="m6 9 6 6 6-6" />
+      </symbol>
+      <symbol id="i-bed" viewBox="0 0 24 24">
+        <path d="M2 20v-8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8" />
+        <path d="M4 10V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4" />
+        <path d="M12 4v6M2 18h20" />
+      </symbol>
+      <symbol id="i-users" viewBox="0 0 24 24">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </symbol>
+      <symbol id="i-money" viewBox="0 0 24 24">
+        <rect width="20" height="12" x="2" y="6" rx="2" />
+        <circle cx="12" cy="12" r="2" />
+        <path d="M6 12h.01M18 12h.01" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="i-file" viewBox="0 0 24 24">
+        <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+        <path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8" />
+      </symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24">
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24">
+        <path
+          d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"
+        />
+      </symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24">
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      </symbol>
+      <symbol id="i-search-x" viewBox="0 0 24 24">
+        <path d="m13.5 8.5-5 5" />
+        <path d="m8.5 8.5 5 5" />
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24">
+        <path
+          d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+        />
+        <path d="M12 9v4M12 17h.01" />
+      </symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24">
+        <path d="M5 12h14" />
+      </symbol>
+    </svg>
+
+    <!--
+      Barra tomada de partials/nav.html. Sin aria-current: todavía no hay
+      sección de esta página marcada como activa.
+    -->
+    <header class="nav">
+      <div class="container nav__bar">
+        <a class="brand" href="index.html">
+          <span class="brand__name">Albergues recreativos</span>
+        </a>
+
+        <nav class="nav__links" aria-label="Principal">
+          <a class="nav__link" href="index.html#albergues">Albergues</a>
+          <a class="nav__link" href="index.html#como-funciona">Cómo funciona</a>
+          <a class="nav__link" href="index.html#ayuda">Ayuda</a>
+        </nav>
+
+        <div class="nav__actions">
+          <a class="btn btn--ghost btn--sm nav__account" href="mi-reserva.html">
+            <svg class="icon icon--sm" aria-hidden="true">
+              <use href="#i-ticket"></use>
+            </svg>
+            <span class="btn__label">Mi reserva</span>
+          </a>
+          <a class="btn btn--primary btn--sm" href="reservar.html" data-accion="reservar">
+            <span class="btn__label">Reservar</span>
+          </a>
+
+          <details class="nav__disclosure">
+            <summary class="nav__toggle">
+              <span class="visually-hidden">Menú</span>
+              <svg class="icon nav__toggle-icon nav__toggle-icon--menu" aria-hidden="true">
+                <use href="#i-menu"></use>
+              </svg>
+              <svg class="icon nav__toggle-icon nav__toggle-icon--close" aria-hidden="true">
+                <use href="#i-close"></use>
+              </svg>
+            </summary>
+            <nav class="nav__panel" aria-label="Menú">
+              <a class="nav__panel-link" href="index.html#albergues">Albergues</a>
+              <a class="nav__panel-link" href="index.html#como-funciona">Cómo funciona</a>
+              <a class="nav__panel-link" href="index.html#ayuda">Ayuda</a>
+              <a class="nav__panel-link nav__panel-link--account" href="mi-reserva.html">Mi reserva</a>
+            </nav>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <main id="contenido" tabindex="-1">
+      <!--
+        Hero de reserva. Falta el resto de la home: línea de confianza,
+        cómo funciona, prueba y reglas/FAQ (prompt 06).
+      -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="container hero__inner">
+          <div class="hero__intro">
+            <h1 class="hero__title" id="hero-title">
+              Reservá estadía o una visita de un día
+            </h1>
+            <p class="hero__lead">
+              Elegí albergue, fechas y cuántas personas viajan. Ves el cupo y el
+              total antes de confirmar.
+            </p>
+          </div>
+
+          <a class="btn btn--primary btn--lg hero__open" href="#buscador"
+            ><span class="btn__label">Buscar disponibilidad</span></a
+          >
+
+          <!--
+            El formulario viaja por GET a reservar.html con albergue y
+            modalidad, que es lo que esa página espera en la URL. El listado de
+            albergues tiene que generarse desde listarAlbergues: hoy son los que
+            devuelve la API, con sus claves reales como value.
+          -->
+          <div class="hero__panel" id="buscador">
+            <form
+              class="hero__form"
+              action="reservar.html"
+              method="get"
+              data-modalidad="visita"
+            >
+              <div class="hero__modes">
+                <fieldset class="segmented">
+                  <legend class="visually-hidden">Modalidad de la reserva</legend>
+                  <label class="segmented__option">
+                    <input
+                      class="segmented__input visually-hidden"
+                      type="radio"
+                      name="modalidad"
+                      value="visita"
+                      checked
+                    />
+                    <span>Visita de un día</span>
+                  </label>
+                  <label class="segmented__option">
+                    <input
+                      class="segmented__input visually-hidden"
+                      type="radio"
+                      name="modalidad"
+                      value="alojamiento"
+                    />
+                    <span>Con alojamiento</span>
+                  </label>
+                </fieldset>
+              </div>
+
+              <div class="hero__fields">
+                <div class="field hero__field hero__field--albergue">
+                  <label class="field__label" for="albergue">Albergue</label>
+                  <div class="select">
+                    <select class="input select__control" id="albergue" name="albergue">
+                      <option value="">Todos los albergues</option>
+                      <option value="maestro">Maestro José Fierro</option>
+                      <option value="tinku">Tinku Huasi</option>
+                      <option value="aquilina">Aquilina Soldati</option>
+                      <option value="altoverde">Alto Verde</option>
+                      <option value="albergue-unt">Quinta Agronomica</option>
+                    </select>
+                    <svg class="icon select__chevron" aria-hidden="true">
+                      <use href="#i-chevron-down"></use>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="field hero__field hero__field--entrada">
+                  <label class="field__label" for="entrada">
+                    <span class="when-visita">Fecha de la visita</span>
+                    <span class="when-alojamiento">Entrada</span>
+                  </label>
+                  <input class="input input--date" type="date" id="entrada" name="entrada" />
+                </div>
+
+                <div class="field hero__field hero__field--salida">
+                  <label class="field__label" for="salida">Salida</label>
+                  <input class="input input--date" type="date" id="salida" name="salida" />
+                </div>
+
+                <div class="field hero__field hero__field--cantidad">
+                  <label class="field__label" for="cantidad">
+                    <span class="when-visita">Personas</span>
+                    <span class="when-alojamiento">Camas</span>
+                  </label>
+                  <input
+                    class="input input--number"
+                    type="number"
+                    id="cantidad"
+                    name="cantidad"
+                    data-campo="cantidad"
+                    value="1"
+                    min="1"
+                    step="1"
+                    inputmode="numeric"
+                  />
+                </div>
+
+                <div class="hero__action">
+                  <button class="btn btn--primary btn--lg" type="submit" data-accion="reservar">
+                    <span class="btn__label">Ver disponibilidad</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!--
+        Línea de confianza: tres condiciones reales del sistema (devolución,
+        cupo por día y confirmación con comprobante). Sin íconos y con
+        separadores de 1 px: el dato manda y no compite con la grilla.
+      -->
+      <section class="trust" aria-labelledby="confianza-titulo">
+        <h2 class="visually-hidden" id="confianza-titulo">
+          Condiciones de la reserva
+        </h2>
+        <dl class="container trust__inner">
+          <div class="trust__item">
+            <dt class="trust__label">Devolución completa</dt>
+            <dd class="trust__value">Hasta 48 h antes del ingreso.</dd>
+          </div>
+          <div class="trust__item">
+            <dt class="trust__label">Cupo por día</dt>
+            <dd class="trust__value">
+              En cada albergue, para visita y para estadía.
+            </dd>
+          </div>
+          <div class="trust__item">
+            <dt class="trust__label">Confirmación</dt>
+            <dd class="trust__value">
+              Transferís y subís el comprobante: la reserva queda confirmada.
+            </dd>
+          </div>
+        </dl>
+      </section>
+
+      <!--
+        ALBERGUES
+        Una tarjeta por albergue habilitado. Acá se replican a mano porque es
+        una maqueta estática: en integración el bloque se repite por cada item
+        de listarAlbergues. Contrato en partials/venue-card.html (una tarjeta)
+        y partials/venue-modal.html (una ficha).
+
+        La cantidad es dinámica. La grilla está probada con 3, 5 y más; el
+        conteo se actualiza con data-rol="total".
+      -->
+      <section class="results" id="albergues" aria-labelledby="albergues-titulo">
+        <div class="container">
+          <header class="section-heading">
+            <div class="section-intro">
+              <h2 id="albergues-titulo">Albergues</h2>
+              <p class="section-intro__lead">
+                Todos tienen cupo por día y dos precios: visita de un día o cama
+                por noche. La ficha abre las instalaciones, el reglamento y el
+                mapa.
+              </p>
+            </div>
+            <p class="section-heading__meta">
+              <span data-rol="total">5</span> albergues habilitados
+            </p>
+          </header>
+
+          <div class="results__grid">
+            <!-- maestro -->
+            <article class="card" id="albergue-maestro" data-albergue="maestro">
+              <div class="card__media">
+                <img
+                  src="assets/img/maestro/01.jpg"
+                  alt="Albergue Maestro José Fierro"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="card__body">
+                <h3 class="card__title">Maestro José Fierro</h3>
+                <ul class="card__meta">
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    92 camas
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    150 en visita
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
+                    $2.000 visita / $5.000 cama
+                  </li>
+                </ul>
+                <p class="card__text">
+                  El Albergue Escolar Maestro José Fierro se encuentra ubicado al
+                  sureste de la ciudad capital.
+                </p>
+                <div class="card__actions">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=maestro" data-accion="reservar">
+                    <span class="btn__label">Reservar</span>
+                  </a>
+                  <a class="btn btn--ghost btn--sm" href="#modal-maestro" data-accion="ver-detalle">
+                    <span class="btn__label">Ver detalle</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- tinku -->
+            <article class="card" id="albergue-tinku" data-albergue="tinku">
+              <div class="card__media">
+                <img
+                  src="assets/img/tinku/01.jpg"
+                  alt="Albergue Tinku Huasi"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="card__body">
+                <h3 class="card__title">Tinku Huasi</h3>
+                <ul class="card__meta">
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    49 camas
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    100 en visita
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
+                    $2.000 visita / $5.000 cama
+                  </li>
+                </ul>
+                <p class="card__text">
+                  El Albergue Escolar Tinku Huasi, se encuentra ubicado en
+                  Avenida Central y Diagonal 1 (CEF N.º 18).
+                </p>
+                <div class="card__actions">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=tinku" data-accion="reservar">
+                    <span class="btn__label">Reservar</span>
+                  </a>
+                  <a class="btn btn--ghost btn--sm" href="#modal-tinku" data-accion="ver-detalle">
+                    <span class="btn__label">Ver detalle</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- aquilina -->
+            <article class="card" id="albergue-aquilina" data-albergue="aquilina">
+              <div class="card__media">
+                <img
+                  src="assets/img/aquilina/01.jpg"
+                  alt="Albergue Aquilina Soldati"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="card__body">
+                <h3 class="card__title">Aquilina Soldati</h3>
+                <ul class="card__meta">
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    58 camas
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    100 en visita
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
+                    $2.000 visita / $5.000 cama
+                  </li>
+                </ul>
+                <p class="card__text">
+                  El Albergue Aquilina Soldati se encuentra ubicado en Las Heras
+                  4124 – San Pedro de Colalao.
+                </p>
+                <div class="card__actions">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=aquilina" data-accion="reservar">
+                    <span class="btn__label">Reservar</span>
+                  </a>
+                  <a class="btn btn--ghost btn--sm" href="#modal-aquilina" data-accion="ver-detalle">
+                    <span class="btn__label">Ver detalle</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- altoverde: descripción corta tal como está en la BD, sin retocar -->
+            <article class="card" id="albergue-altoverde" data-albergue="altoverde">
+              <div class="card__media">
+                <img
+                  src="assets/img/altoverde/01.jpg"
+                  alt="Albergue Alto Verde"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="card__body">
+                <h3 class="card__title">Alto Verde</h3>
+                <ul class="card__meta">
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    50 camas
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    100 en visita
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
+                    $2.000 visita / $5.000 cama
+                  </li>
+                </ul>
+                <p class="card__text">Nuevo albergue 2026 test desde BD pg</p>
+                <div class="card__actions">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=altoverde" data-accion="reservar">
+                    <span class="btn__label">Reservar</span>
+                  </a>
+                  <a class="btn btn--ghost btn--sm" href="#modal-altoverde" data-accion="ver-detalle">
+                    <span class="btn__label">Ver detalle</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- albergue-unt: sin PDF de reglamento -->
+            <article class="card" id="albergue-albergue-unt" data-albergue="albergue-unt">
+              <div class="card__media">
+                <img
+                  src="assets/img/albergue-unt/01.jpg"
+                  alt="Albergue Quinta Agronomica"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <div class="card__body">
+                <h3 class="card__title">Quinta Agronomica</h3>
+                <ul class="card__meta">
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    150 camas
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    250 en visita
+                  </li>
+                  <li>
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
+                    $3.000 visita / $8.000 cama
+                  </li>
+                </ul>
+                <p class="card__text">
+                  El Centro Universitario Herrera, más conocido como Quinta
+                  Agronómica, ya cuenta con un corredor seguro.
+                </p>
+                <div class="card__actions">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=albergue-unt" data-accion="reservar">
+                    <span class="btn__label">Reservar</span>
+                  </a>
+                  <a class="btn btn--ghost btn--sm" href="#modal-albergue-unt" data-accion="ver-detalle">
+                    <span class="btn__label">Ver detalle</span>
+                  </a>
+                </div>
+              </div>
+            </article>
+          </div>
+
+          <!--
+            Estado vacío: reemplaza a la grilla, nunca convive con ella. No se
+            puede decidir sin consultar la API, así que queda como plantilla
+            para que la integración la clone cuando la búsqueda no devuelva
+            items. La versión visible, con la variante de error de red, está en
+            styleguide.html y en partials/venues-empty.html.
+          -->
+          <template id="resultados-vacios">
+            <div class="empty">
+              <span class="empty__icon" aria-hidden="true">
+                <svg class="icon icon--sm"><use href="#i-search-x"></use></svg>
+              </span>
+              <h3 class="empty__title">Ningún albergue entra en esas fechas</h3>
+              <p class="empty__text">
+                Probá con otro albergue, otra fecha o menos personas. El cupo se
+                libera cuando se cancelan reservas.
+              </p>
+              <div class="empty__actions">
+                <a class="btn btn--primary btn--sm" href="index.html#albergues">
+                  <span class="btn__label">Ver todos los albergues</span>
+                </a>
+                <a class="btn btn--ghost btn--sm" href="#" data-placeholder="contacto">
+                  <span class="btn__label">Consultar disponibilidad</span>
+                </a>
+              </div>
+              <p class="empty__hint">Se puede reservar con hasta 3 meses de anticipación.</p>
+            </div>
+          </template>
+        </div>
+
+        <!--
+          FICHAS
+          Una por albergue y fuera de la grilla: un modal dentro de .card queda
+          recortado. Se abren con :target, sin JS (#modal-{clave}), y todo lo
+          que cierra vuelve a #albergue-{clave}. Datos de listarAlbergues.
+          Contrato en partials/venue-modal.html.
+        -->
+
+        <!-- maestro -->
+        <div
+          class="modal"
+          id="modal-maestro"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-maestro-title"
+          tabindex="-1"
+        >
+          <a class="modal__backdrop" href="#albergue-maestro" tabindex="-1" aria-hidden="true"></a>
+          <div class="modal__panel">
+            <header class="modal__head">
+              <h2 class="modal__title" id="modal-maestro-title">Maestro José Fierro</h2>
+              <a class="modal__close" href="#albergue-maestro">
+                <span class="visually-hidden">Cerrar la ficha</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+              </a>
+            </header>
+            <div class="modal__media">
+              <img src="assets/img/maestro/01.jpg" alt="Albergue Maestro José Fierro" loading="lazy" decoding="async" />
+            </div>
+            <div class="modal__body">
+              <dl class="modal__facts">
+                <div class="modal__fact"><dt>Camas</dt><dd>92</dd></div>
+                <div class="modal__fact"><dt>Lugares en visita</dt><dd>150</dd></div>
+                <div class="modal__fact"><dt>Visita de un día</dt><dd>$2.000</dd></div>
+                <div class="modal__fact"><dt>Cama por noche</dt><dd>$5.000</dd></div>
+              </dl>
+              <ul class="modal__features">
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Comedor con capacidad para 150 personas.
+                </li>
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Dormitorios compartidos en 6 habitaciones.
+                </li>
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Áreas recreativas iluminadas.
+                </li>
+              </ul>
+              <p class="card__text">
+                El Albergue Escolar Maestro José Fierro se encuentra ubicado al
+                sureste de la ciudad capital.
+              </p>
+            </div>
+            <footer class="modal__foot">
+              <a class="link link--with-icon" href="#" data-placeholder="mapa-maestro" data-accion="ver-mapa">
+                Ver mapa
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+              </a>
+              <a class="btn btn--ghost btn--sm" href="#" data-placeholder="reglamento-maestro">
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
+                <span class="btn__label">Reglamento</span>
+              </a>
+              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=maestro" data-accion="reservar">
+                <span class="btn__label">Reservar</span>
+              </a>
+            </footer>
+          </div>
+        </div>
+
+        <!-- tinku -->
+        <div
+          class="modal"
+          id="modal-tinku"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-tinku-title"
+          tabindex="-1"
+        >
+          <a class="modal__backdrop" href="#albergue-tinku" tabindex="-1" aria-hidden="true"></a>
+          <div class="modal__panel">
+            <header class="modal__head">
+              <h2 class="modal__title" id="modal-tinku-title">Tinku Huasi</h2>
+              <a class="modal__close" href="#albergue-tinku">
+                <span class="visually-hidden">Cerrar la ficha</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+              </a>
+            </header>
+            <div class="modal__media">
+              <img src="assets/img/tinku/01.jpg" alt="Albergue Tinku Huasi" loading="lazy" decoding="async" />
+            </div>
+            <div class="modal__body">
+              <dl class="modal__facts">
+                <div class="modal__fact"><dt>Camas</dt><dd>49</dd></div>
+                <div class="modal__fact"><dt>Lugares en visita</dt><dd>100</dd></div>
+                <div class="modal__fact"><dt>Visita de un día</dt><dd>$2.000</dd></div>
+                <div class="modal__fact"><dt>Cama por noche</dt><dd>$5.000</dd></div>
+              </dl>
+              <ul class="modal__features">
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Cocina equipada.
+                </li>
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Salón comedor equipado para 50 personas.
+                </li>
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Baños con duchas.
+                </li>
+              </ul>
+              <p class="card__text">
+                El Albergue Escolar Tinku Huasi, se encuentra ubicado en Avenida
+                Central y Diagonal 1 (CEF N.º 18).
+              </p>
+            </div>
+            <footer class="modal__foot">
+              <a class="link link--with-icon" href="#" data-placeholder="mapa-tinku" data-accion="ver-mapa">
+                Ver mapa
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+              </a>
+              <a class="btn btn--ghost btn--sm" href="#" data-placeholder="reglamento-tinku">
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
+                <span class="btn__label">Reglamento</span>
+              </a>
+              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=tinku" data-accion="reservar">
+                <span class="btn__label">Reservar</span>
+              </a>
+            </footer>
+          </div>
+        </div>
+
+        <!-- aquilina -->
+        <div
+          class="modal"
+          id="modal-aquilina"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-aquilina-title"
+          tabindex="-1"
+        >
+          <a class="modal__backdrop" href="#albergue-aquilina" tabindex="-1" aria-hidden="true"></a>
+          <div class="modal__panel">
+            <header class="modal__head">
+              <h2 class="modal__title" id="modal-aquilina-title">Aquilina Soldati</h2>
+              <a class="modal__close" href="#albergue-aquilina">
+                <span class="visually-hidden">Cerrar la ficha</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+              </a>
+            </header>
+            <div class="modal__media">
+              <img src="assets/img/aquilina/01.jpg" alt="Albergue Aquilina Soldati" loading="lazy" decoding="async" />
+            </div>
+            <div class="modal__body">
+              <dl class="modal__facts">
+                <div class="modal__fact"><dt>Camas</dt><dd>58</dd></div>
+                <div class="modal__fact"><dt>Lugares en visita</dt><dd>100</dd></div>
+                <div class="modal__fact"><dt>Visita de un día</dt><dd>$2.000</dd></div>
+                <div class="modal__fact"><dt>Cama por noche</dt><dd>$5.000</dd></div>
+              </dl>
+              <ul class="modal__features">
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Quincho con asador y horno ecológico.
+                </li>
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Zona parquizada para el esparcimiento.
+                </li>
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Cuenta con 2 vestuarios y duchas.
+                </li>
+              </ul>
+              <p class="card__text">
+                El Albergue Aquilina Soldati se encuentra ubicado en Las Heras
+                4124 – San Pedro de Colalao.
+              </p>
+            </div>
+            <footer class="modal__foot">
+              <a class="link link--with-icon" href="#" data-placeholder="mapa-aquilina" data-accion="ver-mapa">
+                Ver mapa
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+              </a>
+              <a class="btn btn--ghost btn--sm" href="#" data-placeholder="reglamento-aquilina">
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
+                <span class="btn__label">Reglamento</span>
+              </a>
+              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=aquilina" data-accion="reservar">
+                <span class="btn__label">Reservar</span>
+              </a>
+            </footer>
+          </div>
+        </div>
+
+        <!-- altoverde -->
+        <div
+          class="modal"
+          id="modal-altoverde"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-altoverde-title"
+          tabindex="-1"
+        >
+          <a class="modal__backdrop" href="#albergue-altoverde" tabindex="-1" aria-hidden="true"></a>
+          <div class="modal__panel">
+            <header class="modal__head">
+              <h2 class="modal__title" id="modal-altoverde-title">Alto Verde</h2>
+              <a class="modal__close" href="#albergue-altoverde">
+                <span class="visually-hidden">Cerrar la ficha</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+              </a>
+            </header>
+            <div class="modal__media">
+              <img src="assets/img/altoverde/01.jpg" alt="Albergue Alto Verde" loading="lazy" decoding="async" />
+            </div>
+            <div class="modal__body">
+              <dl class="modal__facts">
+                <div class="modal__fact"><dt>Camas</dt><dd>50</dd></div>
+                <div class="modal__fact"><dt>Lugares en visita</dt><dd>100</dd></div>
+                <div class="modal__fact"><dt>Visita de un día</dt><dd>$2.000</dd></div>
+                <div class="modal__fact"><dt>Cama por noche</dt><dd>$5.000</dd></div>
+              </dl>
+              <ul class="modal__features">
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Quincho
+                </li>
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Comedor
+                </li>
+              </ul>
+              <p class="card__text">Nuevo albergue 2026 test desde BD pg</p>
+            </div>
+            <footer class="modal__foot">
+              <a class="link link--with-icon" href="#" data-placeholder="mapa-altoverde" data-accion="ver-mapa">
+                Ver mapa
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+              </a>
+              <a class="btn btn--ghost btn--sm" href="#" data-placeholder="reglamento-altoverde">
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
+                <span class="btn__label">Reglamento</span>
+              </a>
+              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=altoverde" data-accion="reservar">
+                <span class="btn__label">Reservar</span>
+              </a>
+            </footer>
+          </div>
+        </div>
+
+        <!-- albergue-unt: sin PDF de reglamento, el control va deshabilitado -->
+        <div
+          class="modal"
+          id="modal-albergue-unt"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-albergue-unt-title"
+          tabindex="-1"
+        >
+          <a class="modal__backdrop" href="#albergue-albergue-unt" tabindex="-1" aria-hidden="true"></a>
+          <div class="modal__panel">
+            <header class="modal__head">
+              <h2 class="modal__title" id="modal-albergue-unt-title">Quinta Agronomica</h2>
+              <a class="modal__close" href="#albergue-albergue-unt">
+                <span class="visually-hidden">Cerrar la ficha</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+              </a>
+            </header>
+            <div class="modal__media">
+              <img
+                src="assets/img/albergue-unt/01.jpg"
+                alt="Albergue Quinta Agronomica"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div class="modal__body">
+              <dl class="modal__facts">
+                <div class="modal__fact"><dt>Camas</dt><dd>150</dd></div>
+                <div class="modal__fact"><dt>Lugares en visita</dt><dd>250</dd></div>
+                <div class="modal__fact"><dt>Visita de un día</dt><dd>$3.000</dd></div>
+                <div class="modal__fact"><dt>Cama por noche</dt><dd>$8.000</dd></div>
+              </dl>
+              <ul class="modal__features">
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Comedor
+                </li>
+              </ul>
+              <p class="card__text">
+                El Centro Universitario Herrera, más conocido como Quinta
+                Agronómica, ya cuenta con un corredor seguro.
+              </p>
+            </div>
+            <footer class="modal__foot">
+              <a class="link link--with-icon" href="#" data-placeholder="mapa-albergue-unt" data-accion="ver-mapa">
+                Ver mapa
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+              </a>
+              <button class="btn btn--ghost btn--sm" type="button" disabled>
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
+                <span class="btn__label">Reglamento</span>
+              </button>
+              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=albergue-unt" data-accion="reservar">
+                <span class="btn__label">Reservar</span>
+              </a>
+            </footer>
+          </div>
+        </div>
+      </section>
+
+      <!--
+        CÓMO FUNCIONA
+        Tres pasos, sin tarjetas: número, título y una línea. En móvil el
+        número va a la izquierda del texto (versión compacta del brief).
+      -->
+      <section class="how" id="como-funciona" aria-labelledby="como-funciona-titulo">
+        <div class="container">
+          <header class="section-heading">
+            <div class="section-intro">
+              <h2 id="como-funciona-titulo">Cómo funciona</h2>
+              <p class="section-intro__lead">
+                Elegís fechas, completás los datos del grupo y confirmás con el
+                comprobante de la transferencia.
+              </p>
+            </div>
+          </header>
+
+          <ol class="how__steps">
+            <li class="how__step">
+              <span class="how__num" aria-hidden="true">01</span>
+              <h3 class="how__title">Elegí albergue y fechas</h3>
+              <p class="how__text">
+                Visita de un día o estadía, cantidad de personas y cupo
+                disponible por día.
+              </p>
+            </li>
+            <li class="how__step">
+              <span class="how__num" aria-hidden="true">02</span>
+              <h3 class="how__title">Completá los datos del grupo</h3>
+              <p class="how__text">
+                Institución, responsable con DNI, celular y correo. En estadía,
+                también el tipo de delegación.
+              </p>
+            </li>
+            <li class="how__step">
+              <span class="how__num" aria-hidden="true">03</span>
+              <h3 class="how__title">Transferí y subí el comprobante</h3>
+              <p class="how__text">
+                Tenés 48 h para cargarlo. Con el comprobante, la reserva queda
+                confirmada.
+              </p>
+            </li>
+          </ol>
+
+          <p class="how__foot">
+            <a class="link link--with-icon" href="reservar.html">
+              Empezar una reserva
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+            </a>
+          </p>
+        </div>
+      </section>
+
+      <!--
+        AYUDA
+        Condiciones con su consecuencia a la izquierda; preguntas en acordeón
+        nativo (<details>) a la derecha. Varias pueden quedar abiertas a la vez.
+        Solo se responde lo que está en docs/datos-mock.md.
+      -->
+      <section class="rules" id="ayuda" aria-labelledby="ayuda-titulo">
+        <div class="container">
+          <header class="section-heading">
+            <div class="section-intro">
+              <h2 id="ayuda-titulo">Ayuda</h2>
+              <p class="section-intro__lead">
+                Cancelación, duración máxima y las dudas que aparecen al
+                reservar.
+              </p>
+            </div>
+          </header>
+
+          <div class="rules__grid">
+            <div class="rules__col">
+              <h3>Condiciones de la reserva</h3>
+              <dl class="terms">
+                <div class="terms__row">
+                  <dt class="terms__term">Cancelás con más de 48 h de anticipación</dt>
+                  <dd class="terms__desc">Devolución del 100 %</dd>
+                </div>
+                <div class="terms__row">
+                  <dt class="terms__term">Cancelás dentro de las 48 h previas</dt>
+                  <dd class="terms__desc">Devolución del 50 %</dd>
+                </div>
+                <div class="terms__row">
+                  <dt class="terms__term">Cancelás el día de ingreso o después</dt>
+                  <dd class="terms__desc">Sin devolución</dd>
+                </div>
+                <div class="terms__row">
+                  <dt class="terms__term">Duración máxima de la estadía</dt>
+                  <dd class="terms__desc">
+                    4 días para escuelas y 3 días para otras instituciones
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="rules__col">
+              <h3>Preguntas frecuentes</h3>
+              <div class="accordion">
+                <details class="accordion__item">
+                  <summary class="accordion__trigger">
+                    ¿Cómo queda confirmada la reserva?
+                    <svg class="icon icon--sm accordion__mark accordion__mark--closed" aria-hidden="true">
+                      <use href="#i-plus"></use>
+                    </svg>
+                    <svg class="icon icon--sm accordion__mark accordion__mark--open" aria-hidden="true">
+                      <use href="#i-minus"></use>
+                    </svg>
+                  </summary>
+                  <p class="accordion__panel">
+                    Transferís el total y subís el comprobante en la plataforma.
+                    Tenés 48 h para hacerlo; si la fecha de ingreso está cerca,
+                    el plazo baja a 6 h.
+                  </p>
+                </details>
+
+                <details class="accordion__item">
+                  <summary class="accordion__trigger">
+                    ¿Con cuánta anticipación puedo reservar?
+                    <svg class="icon icon--sm accordion__mark accordion__mark--closed" aria-hidden="true">
+                      <use href="#i-plus"></use>
+                    </svg>
+                    <svg class="icon icon--sm accordion__mark accordion__mark--open" aria-hidden="true">
+                      <use href="#i-minus"></use>
+                    </svg>
+                  </summary>
+                  <p class="accordion__panel">
+                    Hasta 3 meses antes del ingreso y como mínimo 60 h antes.
+                  </p>
+                </details>
+
+                <details class="accordion__item">
+                  <summary class="accordion__trigger">
+                    ¿Cuánta gente entra en cada albergue?
+                    <svg class="icon icon--sm accordion__mark accordion__mark--closed" aria-hidden="true">
+                      <use href="#i-plus"></use>
+                    </svg>
+                    <svg class="icon icon--sm accordion__mark accordion__mark--open" aria-hidden="true">
+                      <use href="#i-minus"></use>
+                    </svg>
+                  </summary>
+                  <p class="accordion__panel">
+                    Entre 49 y 150 camas según el albergue, y entre 100 y 250
+                    lugares para una visita de un día. El cupo de cada albergue
+                    está en su ficha.
+                  </p>
+                </details>
+
+                <details class="accordion__item">
+                  <summary class="accordion__trigger">
+                    ¿A qué hora se ingresa y a qué hora se sale?
+                    <svg class="icon icon--sm accordion__mark accordion__mark--closed" aria-hidden="true">
+                      <use href="#i-plus"></use>
+                    </svg>
+                    <svg class="icon icon--sm accordion__mark accordion__mark--open" aria-hidden="true">
+                      <use href="#i-minus"></use>
+                    </svg>
+                  </summary>
+                  <p class="accordion__panel">
+                    Ingreso a las 09:00 y salida a las 18:00.
+                  </p>
+                </details>
+
+                <details class="accordion__item">
+                  <summary class="accordion__trigger">
+                    ¿Quiénes pueden reservar?
+                    <svg class="icon icon--sm accordion__mark accordion__mark--closed" aria-hidden="true">
+                      <use href="#i-plus"></use>
+                    </svg>
+                    <svg class="icon icon--sm accordion__mark accordion__mark--open" aria-hidden="true">
+                      <use href="#i-minus"></use>
+                    </svg>
+                  </summary>
+                  <p class="accordion__panel">
+                    Escuelas y otras instituciones. El tipo de delegación define
+                    la duración máxima de la estadía.
+                  </p>
+                </details>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Pie tomado de partials/footer.html. -->
+    <footer class="footer">
+      <div class="container footer__top">
+        <div class="footer__brand">
+          <a class="brand brand--footer" href="index.html">
+            <span class="brand__name">Albergues recreativos</span>
+          </a>
+          <p class="footer__claim">
+            Estadías y visitas de un día en los albergues recreativos.
+          </p>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Reservas</h3>
+          <ul class="footer__list">
+            <li><a href="index.html#albergues">Albergues</a></li>
+            <li><a href="index.html#como-funciona">Cómo funciona</a></li>
+            <li><a href="reservar.html">Reservar</a></li>
+            <li><a href="mi-reserva.html">Mi reserva</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Condiciones</h3>
+          <ul class="footer__list">
+            <li><a href="index.html#ayuda">Cancelación y devoluciones</a></li>
+            <li><a href="index.html#ayuda">Horarios de ingreso y salida</a></li>
+            <li><a href="index.html#ayuda">Duración máxima de la estadía</a></li>
+            <li><a href="#" data-placeholder="reglamento">Reglamento</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Contacto</h3>
+          <ul class="footer__contact">
+            <li class="footer__contact-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-phone"></use></svg>
+              <a class="footer__pending" href="#" data-placeholder="telefono">Teléfono a confirmar</a>
+            </li>
+            <li class="footer__contact-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"></use></svg>
+              <a class="footer__pending" href="#" data-placeholder="correo">Correo a confirmar</a>
+            </li>
+          </ul>
+
+          <!-- Horarios: dato del sistema, no un relleno. -->
+          <dl class="footer__hours">
+            <div class="footer__hours-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+              <dt>Ingreso</dt>
+              <dd class="footer__hours-value">09:00</dd>
+            </div>
+            <div class="footer__hours-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+              <dt>Salida</dt>
+              <dd class="footer__hours-value">18:00</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="footer__legal">
+        <div class="container footer__legal-inner">
+          <p>Reservas de los albergues recreativos.</p>
+          <ul class="footer__legal-list">
+            <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
+            <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>
+            <li><a href="#" data-placeholder="accesibilidad">Accesibilidad</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

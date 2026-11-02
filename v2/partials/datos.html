@@ -1,0 +1,140 @@
+<!--
+  partials/datos.html — datos del responsable (paso 4 del wizard)
+  ==========================================================================
+  Seis datos y la aceptación del reglamento. Los ids y los data-campo son los
+  que espera el backend: {campo}-alo-{clave} y data-campo="{campo}".
+
+  - El celular viaja como prefijo + número (dos campos), pero se lee y se enfoca
+    como un solo dato: el grupo lleva role="group" y los controles tienen su
+    etiqueta oculta.
+  - El DNI va como texto con inputmode="numeric" y maxlength: no se usan las
+    flechas de un number para un documento.
+  - La aceptación es un checkbox real dentro del label, así que el texto también
+    marca la casilla; el error, si falta, va debajo (ver .field--invalid en
+    components.css).
+  - En integración el enlace del reglamento apunta al campo `pdf` del albergue
+    que devuelve listarAlbergues. Acá es un placeholder declarado.
+-->
+<form class="paso__form" action="reservar.html" method="get">
+  <div class="paso__fields">
+    <div class="field paso__field--full">
+      <label class="field__label" for="institucion-alo-maestro">Institución</label>
+      <input
+        class="input"
+        id="institucion-alo-maestro"
+        name="institucion"
+        data-campo="institucion"
+        type="text"
+        placeholder="Escuela o institución"
+        autocomplete="organization"
+        required
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="responsable-alo-maestro">Responsable del grupo</label>
+      <input
+        class="input"
+        id="responsable-alo-maestro"
+        name="responsable"
+        data-campo="responsable"
+        type="text"
+        placeholder="Nombre y apellido"
+        autocomplete="name"
+        required
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="dni-alo-maestro">DNI del responsable</label>
+      <input
+        class="input"
+        id="dni-alo-maestro"
+        name="dni"
+        data-campo="dni"
+        type="text"
+        inputmode="numeric"
+        maxlength="8"
+        placeholder="8 números"
+        aria-describedby="dni-alo-maestro-ayuda"
+        required
+      />
+      <p class="field__help" id="dni-alo-maestro-ayuda">Sin puntos ni espacios.</p>
+    </div>
+
+    <div class="field" role="group" aria-labelledby="celular-alo-maestro-label">
+      <span class="field__label" id="celular-alo-maestro-label">Celular del responsable</span>
+      <div class="field__group">
+        <label class="visually-hidden" for="prefijo-alo-maestro">Código de área</label>
+        <div class="select">
+          <select
+            class="input select__control"
+            id="prefijo-alo-maestro"
+            name="prefijo"
+            data-campo="prefijo"
+          >
+            <option value="381">381</option>
+            <option value="3865">3865</option>
+            <option value="3894">3894</option>
+          </select>
+          <svg class="icon icon--sm select__chevron" aria-hidden="true">
+            <use href="#i-chevron-down"></use>
+          </svg>
+        </div>
+        <label class="visually-hidden" for="numero-alo-maestro">Número</label>
+        <input
+          class="input"
+          id="numero-alo-maestro"
+          name="numero"
+          data-campo="numero"
+          type="tel"
+          inputmode="numeric"
+          placeholder="555 1234"
+          autocomplete="tel"
+          aria-describedby="celular-alo-maestro-ayuda"
+          required
+        />
+      </div>
+      <p class="field__help" id="celular-alo-maestro-ayuda">Sin 0 ni 15.</p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="email-alo-maestro">Correo electrónico</label>
+      <input
+        class="input"
+        id="email-alo-maestro"
+        name="email"
+        data-campo="email"
+        type="email"
+        placeholder="nombre@correo.com"
+        autocomplete="email"
+        required
+      />
+    </div>
+
+    <div class="field paso__field--full">
+      <label class="checkbox">
+        <span class="checkbox__box">
+          <input
+            class="checkbox__input"
+            id="acepta-terminos-alo-maestro"
+            name="acepta-terminos"
+            data-campo="acepta-terminos"
+            type="checkbox"
+            required
+          />
+          <svg class="icon checkbox__check" aria-hidden="true">
+            <use href="#i-check"></use>
+          </svg>
+        </span>
+        <span class="checkbox__text">
+          Leí y acepto el
+          <a class="link" href="index.html#ayuda" data-placeholder="reglamento">
+            reglamento del albergue
+          </a>
+          y las condiciones de cancelación.
+        </span>
+      </label>
+    </div>
+  </div>
+</form>

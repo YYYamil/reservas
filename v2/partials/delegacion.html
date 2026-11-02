@@ -1,0 +1,52 @@
+<!--
+  partials/delegacion.html — tipo de delegación (paso 2 del wizard)
+  ==========================================================================
+  Solo aplica a la modalidad alojamiento: define cuántos días se pueden
+  reservar (escuelas 4, otras instituciones 3). En la modalidad visita el flujo
+  saltea este contenedor.
+
+  Por qué no es un <select>: la diferencia entre las dos opciones es la
+  consecuencia (el tope de días), y eso no puede quedar escondido en un
+  desplegable. Va como grupo de radios dentro de un fieldset: las flechas del
+  teclado recorren el grupo, el navegador anuncia "1 de 2" y el valor viaja con
+  name="delegacion" sin JS.
+
+  Contrato:
+  - id="delegacion-alo-{clave}" queda en el fieldset (el valor se lee del radio
+    marcado, `[name="delegacion"]:checked`).
+  - data-campo="delegacion" va en cada radio.
+  - Los values salen del enum del backend: confirmar contra la API antes de
+    conectar (`escuelas` | `otra` en este mock).
+-->
+<fieldset class="choice-set paso__choices" id="delegacion-alo-maestro">
+  <legend class="choice-set__legend">Tipo de institución</legend>
+
+  <label class="choice">
+    <input
+      class="choice__input"
+      type="radio"
+      name="delegacion"
+      value="escuelas"
+      data-campo="delegacion"
+      checked
+    />
+    <span class="choice__body">
+      <span class="choice__title">Escuela o grupo educativo</span>
+      <span class="choice__meta">Hasta 4 días por estadía.</span>
+    </span>
+  </label>
+
+  <label class="choice">
+    <input
+      class="choice__input"
+      type="radio"
+      name="delegacion"
+      value="otra"
+      data-campo="delegacion"
+    />
+    <span class="choice__body">
+      <span class="choice__title">Otra institución o grupo</span>
+      <span class="choice__meta">Hasta 3 días por estadía.</span>
+    </span>
+  </label>
+</fieldset>

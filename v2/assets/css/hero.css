@@ -1,0 +1,152 @@
+/* ==========================================================================
+   hero.css — hero de reserva y buscador de la home
+   --------------------------------------------------------------------------
+   Título de tarea y un único panel de búsqueda. En móvil el panel se abre
+   desde el botón (#buscador), sin JS: el ancla lo muestra con :target.
+   ========================================================================== */
+
+.hero {
+  padding-block: var(--sp-12);
+}
+
+.hero__inner {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+.hero__intro {
+  display: grid;
+  gap: var(--sp-3);
+  max-width: 46rem;
+}
+
+.hero__title {
+  max-width: 22ch;
+}
+
+.hero__lead {
+  max-width: 52ch;
+  color: var(--c-text-subtle);
+  font-size: var(--fs-400);
+  line-height: var(--lh-body);
+}
+
+.hero__open {
+  justify-self: start;
+}
+
+/* --- Panel de búsqueda --- */
+.hero__panel {
+  display: none;
+  padding: var(--sp-3);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-lg);
+  scroll-margin-top: calc(var(--nav-h) + var(--sp-4));
+}
+
+.hero__panel:target {
+  display: block;
+}
+
+.hero__form {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+/* Modalidad: arriba del carril de campos, separada por una línea. */
+.hero__modes {
+  padding-bottom: var(--sp-4);
+  border-bottom: var(--bw) solid var(--c-border);
+}
+
+.hero__modes .segmented {
+  width: 100%;
+}
+
+.hero__fields {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.hero__field--salida {
+  display: none;
+}
+
+.hero__action .btn {
+  width: 100%;
+}
+
+/* El texto de una etiqueta cambia con la modalidad; se muestran las dos y el
+   selector decide cuál se lee. Sin JS y sin duplicar campos. */
+.when-alojamiento {
+  display: none;
+}
+
+.hero__form:has([value="alojamiento"]:checked) .when-alojamiento {
+  display: inline;
+}
+
+.hero__form:has([value="alojamiento"]:checked) .when-visita {
+  display: none;
+}
+
+/* En visita no hay fecha de salida: el campo desaparece del formulario. */
+.hero__form:has([value="alojamiento"]:checked) .hero__field--salida {
+  display: block;
+}
+
+@media (min-width: 480px) {
+  .hero__modes .segmented {
+    width: auto;
+  }
+
+  .hero__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero__field--albergue,
+  .hero__action {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding-block: var(--sp-16) var(--sp-24);
+  }
+
+  .hero__open {
+    display: none;
+  }
+
+  .hero__panel {
+    display: block;
+    padding: var(--sp-6);
+  }
+}
+
+/* Dos columnas: el título a la izquierda y el panel a la derecha. El panel deja
+   de ser una franja horizontal, así que los campos pasan a dos por fila y la
+   acción ocupa su ancho completo. Entre 768 y 1023 queda apilado como está. */
+@media (min-width: 1024px) {
+  .hero__inner {
+    grid-template-columns: minmax(0, 1fr) minmax(24rem, 30rem);
+    align-items: start;
+    gap: var(--sp-12);
+  }
+
+  .hero__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+
+  .hero__field--albergue,
+  .hero__action {
+    grid-column: 1 / -1;
+  }
+
+  .hero__action .btn {
+    width: 100%;
+  }
+}

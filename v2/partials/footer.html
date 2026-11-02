@@ -1,0 +1,99 @@
+<!--
+  partials/footer.html — pie canónico de v2
+  ---------------------------------------------------------------------------
+  Se copia al final de <body>, después del contenido. Requiere tokens.css,
+  base.css y components.css, en ese orden, y el sprite de íconos de la página
+  (i-phone, i-mail, i-clock).
+
+  Datos todavía sin confirmar, marcados con data-placeholder para poder
+  encontrarlos con una búsqueda antes de publicar:
+    telefono · correo · reglamento · terminos · privacidad · accesibilidad
+  Ninguno de esos datos se inventó: se muestran como "a confirmar".
+
+  Lo que sí es dato real y no debe tocarse: horarios de ingreso (09:00) y
+  salida (18:00), que están en docs/datos-mock.md.
+
+  Los enlaces de condiciones apuntan a #ayuda de la home, que es donde viven
+  la cancelación, los horarios y la duración máxima. No hay "Qué llevar": ese
+  contenido no existe todavía y no se inventa un ancla vacía.
+-->
+<footer class="footer">
+  <div class="container footer__top">
+    <div class="footer__brand">
+      <a class="brand brand--footer" href="index.html">
+        <span class="brand__name">Albergues recreativos</span>
+      </a>
+      <p class="footer__claim">
+        Estadías y visitas de un día en los albergues recreativos.
+      </p>
+    </div>
+
+    <div class="footer__col">
+      <h3 class="footer__col-title">Reservas</h3>
+      <ul class="footer__list">
+        <li><a href="index.html#albergues">Albergues</a></li>
+        <li><a href="index.html#como-funciona">Cómo funciona</a></li>
+        <li><a href="reservar.html">Reservar</a></li>
+        <li><a href="mi-reserva.html">Mi reserva</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h3 class="footer__col-title">Condiciones</h3>
+      <ul class="footer__list">
+        <li><a href="index.html#ayuda">Cancelación y devoluciones</a></li>
+        <li><a href="index.html#ayuda">Horarios de ingreso y salida</a></li>
+        <li><a href="index.html#ayuda">Duración máxima de la estadía</a></li>
+        <li><a href="#" data-placeholder="reglamento">Reglamento</a></li>
+      </ul>
+    </div>
+
+    <div class="footer__col">
+      <h3 class="footer__col-title">Contacto</h3>
+      <ul class="footer__contact">
+        <li class="footer__contact-row">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-phone"></use></svg>
+          <a class="footer__pending" href="#" data-placeholder="telefono"
+            >Teléfono a confirmar</a
+          >
+        </li>
+        <li class="footer__contact-row">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"></use></svg>
+          <a class="footer__pending" href="#" data-placeholder="correo"
+            >Correo a confirmar</a
+          >
+        </li>
+      </ul>
+
+      <dl class="footer__hours">
+        <div class="footer__hours-row">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+          <dt>Ingreso</dt>
+          <dd class="footer__hours-value">09:00</dd>
+        </div>
+        <div class="footer__hours-row">
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+          <dt>Salida</dt>
+          <dd class="footer__hours-value">18:00</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="footer__legal">
+    <div class="container footer__legal-inner">
+      <p>Reservas de los albergues recreativos.</p>
+      <ul class="footer__legal-list">
+        <li>
+          <a href="#" data-placeholder="terminos">Términos y condiciones</a>
+        </li>
+        <li>
+          <a href="#" data-placeholder="privacidad">Política de privacidad</a>
+        </li>
+        <li>
+          <a href="#" data-placeholder="accesibilidad">Accesibilidad</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</footer>

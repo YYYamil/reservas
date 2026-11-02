@@ -1,0 +1,2979 @@
+/* ==========================================================================
+   components.css — biblioteca base del sistema v2
+   --------------------------------------------------------------------------
+   Nombres semánticos y estables: btn-primary, field-error, card__media.
+   Nunca visuales (rojo, verde, cuadrado). Todos los valores salen de
+   tokens.css; este archivo no declara colores, medidas ni tiempos propios.
+
+   Índice
+   1. Botón
+   2. Campos (texto, email, select, teléfono, checkbox, fecha)
+   3. Stepper de cantidad
+   4. Chip de filtro
+   5. Badge de estado
+   6. Tarjeta y esqueleto de carga
+   7. Enlaces, encabezados de sección y separadores
+   8. Estados forzados para documentación
+   9. Navegación
+   10. Pie del sitio
+   11. Selector de modalidad
+   12. Ficha en modal
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Botón
+   Tamaños: sm 44 px · md 48 px · lg 56 px (el mínimo táctil es el chico).
+   ========================================================================== */
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--control-gap);
+  min-height: var(--control-h-md);
+  padding-inline: var(--control-px);
+  border: var(--bw) solid transparent;
+  border-radius: var(--radius-sm);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--dur-2) var(--ease-out),
+    border-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+}
+
+.btn__label {
+  display: inline-block;
+}
+
+.btn__spinner {
+  display: none;
+  width: 20px;
+  height: 20px;
+  animation: btn-spin var(--dur-spin) linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* --- Tamaños --- */
+.btn--sm {
+  min-height: var(--control-h-sm);
+  padding-inline: var(--control-px-sm);
+  gap: var(--sp-1);
+  font-size: var(--fs-200);
+}
+
+.btn--lg {
+  min-height: var(--control-h-lg);
+  padding-inline: var(--sp-6);
+  font-size: var(--fs-300);
+}
+
+/* --- Primario: una sola acción de este peso por pantalla --- */
+.btn--primary {
+  background-color: var(--c-accent);
+  border-color: var(--c-accent);
+  color: var(--c-text-inverse);
+}
+
+.btn--primary:not([disabled]):not([aria-disabled="true"]):hover {
+  background-color: var(--c-accent-hover);
+  border-color: var(--c-accent-hover);
+}
+
+.btn--primary:not([disabled]):not([aria-disabled="true"]):active {
+  background-color: var(--c-accent-pressed);
+  border-color: var(--c-accent-pressed);
+}
+
+/* --- Secundario: borde definido, sin relleno de marca --- */
+.btn--secondary {
+  background-color: var(--c-surface);
+  border-color: var(--c-border-control);
+  color: var(--c-text);
+}
+
+.btn--secondary:not([disabled]):not([aria-disabled="true"]):hover {
+  background-color: var(--c-surface-sunken);
+  border-color: var(--c-border-strong);
+}
+
+.btn--secondary:not([disabled]):not([aria-disabled="true"]):active {
+  background-color: var(--c-neutral-200);
+  border-color: var(--c-border-strong);
+}
+
+/* --- Ghost: acción terciaria, va al lado de otra acción --- */
+.btn--ghost {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--c-text-subtle);
+}
+
+.btn--ghost:not([disabled]):not([aria-disabled="true"]):hover {
+  background-color: var(--c-surface-sunken);
+  color: var(--c-text);
+}
+
+.btn--ghost:not([disabled]):not([aria-disabled="true"]):active {
+  background-color: var(--c-neutral-200);
+  color: var(--c-text);
+}
+
+/* --- Peligro: cancelaciones y acciones destructivas --- */
+.btn--danger {
+  background-color: var(--c-danger);
+  border-color: var(--c-danger);
+  color: var(--c-text-inverse);
+}
+
+.btn--danger:not([disabled]):not([aria-disabled="true"]):hover {
+  background-color: var(--c-danger-hover);
+  border-color: var(--c-danger-hover);
+}
+
+.btn--danger:not([disabled]):not([aria-disabled="true"]):active {
+  background-color: var(--c-danger-hover);
+  border-color: var(--c-danger-hover);
+}
+
+/* --- Deshabilitado --- */
+.btn:is([disabled], [aria-disabled="true"]) {
+  background-color: var(--c-disabled-surface);
+  border-color: var(--c-disabled-border);
+  color: var(--c-text-disabled);
+  cursor: not-allowed;
+}
+
+/* --- Cargando: conserva ancho y etiqueta, no cambia de peso visual --- */
+.btn.is-loading {
+  gap: var(--sp-1);
+  cursor: progress;
+  pointer-events: none;
+}
+
+.btn.is-loading .btn__spinner {
+  display: block;
+}
+
+/* --- Foco: anillo por fuera, nunca recortado por el borde --- */
+.btn:focus-visible {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn__spinner {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   2. Campos
+   Etiqueta + control + ayuda o error. El error nunca reemplaza la etiqueta.
+   ========================================================================== */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--field-gap);
+  max-width: var(--field-max);
+}
+
+.field__label {
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  color: var(--c-text);
+}
+
+.field__optional {
+  font-weight: var(--fw-regular);
+  color: var(--c-text-muted);
+}
+
+.field__help {
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+  color: var(--c-text-muted);
+}
+
+.field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  color: var(--c-danger);
+}
+
+.field__error .icon {
+  margin-top: calc(var(--sp-1) / 2);
+}
+
+.input {
+  width: 100%;
+  min-height: var(--control-h-md);
+  padding: var(--sp-2) var(--sp-3);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--c-text);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-300);
+  line-height: var(--lh-snug);
+  transition: border-color var(--dur-2) var(--ease-out),
+    background-color var(--dur-2) var(--ease-out);
+}
+
+.input::placeholder {
+  color: var(--c-text-muted);
+  opacity: 1;
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--c-border-strong);
+}
+
+.input:focus-visible {
+  border-color: var(--c-focus);
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+.input:disabled {
+  background-color: var(--c-disabled-surface);
+  border-color: var(--c-disabled-border);
+  color: var(--c-text-disabled);
+  cursor: not-allowed;
+}
+
+/* --- Error --- */
+.field--invalid .input {
+  border-color: var(--c-danger);
+  background-color: var(--c-danger-soft);
+}
+
+.field--invalid .input:focus-visible {
+  border-color: var(--c-danger);
+}
+
+/* --- Select: el chevron es SVG del mismo set, no un icono de fuente --- */
+.select {
+  position: relative;
+  display: block;
+}
+
+.select__control {
+  appearance: none;
+  padding-right: var(--sp-12);
+  cursor: pointer;
+}
+
+.select__control:disabled {
+  cursor: not-allowed;
+}
+
+.select__chevron {
+  position: absolute;
+  top: 50%;
+  right: var(--sp-3);
+  width: var(--sp-4);
+  height: var(--sp-4);
+  transform: translateY(-50%);
+  color: var(--c-text-muted);
+  pointer-events: none;
+}
+
+.select__control:disabled ~ .select__chevron {
+  color: var(--c-text-disabled);
+}
+
+/* --- Teléfono compuesto: prefijo + número, un solo grupo semántico --- */
+.field__group {
+  display: grid;
+  grid-template-columns: minmax(0, 7rem) minmax(0, 1fr);
+  gap: var(--sp-2);
+}
+
+/* --- Checkbox de aceptación --- */
+.checkbox {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  column-gap: var(--sp-3);
+  align-items: start;
+  min-height: var(--tap-min);
+  padding-block: var(--sp-2);
+  cursor: pointer;
+}
+
+.checkbox__box {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin-top: calc(var(--sp-1) / 2);
+}
+
+.checkbox__input {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  background-color: var(--c-neutral-100);
+  border: 1px solid var(--c-border-control);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.checkbox__input:hover:not(:disabled) {
+  border-color: var(--c-text-subtle);
+}
+
+.checkbox__input:checked {
+  background-color: var(--c-accent);
+  border-color: var(--c-accent);
+}
+
+.checkbox__input:focus-visible {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+.checkbox__input:disabled {
+  background-color: var(--c-disabled-surface);
+  border-color: var(--c-disabled-border);
+  cursor: not-allowed;
+}
+
+.checkbox__check {
+  position: absolute;
+  inset: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--c-text-inverse);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-1) var(--ease-out);
+}
+
+.checkbox__input:checked + .checkbox__check {
+  opacity: 1;
+}
+
+.checkbox__text {
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+  color: var(--c-text);
+}
+
+.checkbox__text a {
+  font-weight: var(--fw-bold);
+}
+
+.checkbox--disabled {
+  cursor: not-allowed;
+}
+
+.checkbox--disabled .checkbox__text {
+  color: var(--c-text-disabled);
+}
+
+/* --- Fecha: control nativo, sin dependencias ni JS --- */
+.input--date::-webkit-calendar-picker-indicator {
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+/* Chrome no marca :focus-visible en el campo de fecha nativo cuando el foco
+   entra con Tab: sin esta regla el campo quedaba sin indicador de foco. */
+.input--date:focus {
+  border-color: var(--c-focus);
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+/* --- Código de reserva ---
+   Se dicta por teléfono y se tipea: mayúsculas y números tabulares para que no
+   se confunda el 0 con la O. */
+.input--codigo {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   3. Stepper de cantidad
+   Personas en una visita o camas en un alojamiento. Los límites vienen de la
+   configuración del sistema, nunca del diseño.
+   ========================================================================== */
+.stepper__control {
+  display: inline-flex;
+  align-items: stretch;
+  align-self: flex-start;
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border-control);
+  border-radius: var(--radius-sm);
+  overflow: clip;
+}
+
+.stepper__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h-sm);
+  min-height: var(--control-h-md);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+
+.stepper__btn:hover:not(:disabled) {
+  background-color: var(--c-surface-sunken);
+}
+
+.stepper__btn:disabled {
+  background-color: var(--c-surface-sunken);
+  color: var(--c-text-disabled);
+  cursor: not-allowed;
+}
+
+/* El anillo de foco va por dentro: el grupo recorta su propio contorno. */
+.stepper__btn:focus-visible {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: calc(var(--bw-strong) * -1);
+}
+
+.stepper__value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  padding-inline: var(--sp-2);
+  border-inline: var(--bw) solid var(--c-border);
+  color: var(--c-text);
+  font-size: var(--fs-400);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.field--invalid .stepper__control {
+  border-color: var(--c-danger);
+  background-color: var(--c-danger-soft);
+}
+
+/* ==========================================================================
+   4. Chip de filtro
+   ========================================================================== */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--control-h-sm);
+  padding: var(--sp-1) var(--sp-3);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--c-text);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.chip:hover:not(:disabled) {
+  background-color: var(--c-surface-sunken);
+}
+
+.chip[aria-pressed="true"] {
+  background-color: var(--c-accent-soft);
+  border-color: var(--c-accent);
+}
+
+.chip__check {
+  display: none;
+  color: var(--c-accent-on-soft);
+}
+
+.chip[aria-pressed="true"] .chip__check {
+  display: block;
+}
+
+.chip:disabled {
+  background-color: var(--c-disabled-surface);
+  border-color: var(--c-disabled-border);
+  color: var(--c-text-disabled);
+  cursor: not-allowed;
+}
+
+.chip__count {
+  color: var(--c-text-muted);
+  font-weight: var(--fw-regular);
+  font-variant-numeric: tabular-nums;
+}
+
+.chip[aria-pressed="true"] .chip__count {
+  color: var(--c-accent-on-soft);
+}
+
+.chip:disabled .chip__count {
+  color: var(--c-text-disabled);
+}
+
+/* ==========================================================================
+   5. Badge de estado
+   No es interactivo y no se ve como botón: alto y peso distintos, sin hover.
+   ========================================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--badge-py) var(--badge-px);
+  background-color: var(--c-neutral-100);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-subtle);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.badge__dot {
+  width: var(--dot-size);
+  height: var(--dot-size);
+  flex: none;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.badge--success {
+  background-color: var(--c-success-soft);
+  color: var(--c-success);
+}
+
+.badge--warning {
+  background-color: var(--c-warning-soft);
+  color: var(--c-warning);
+}
+
+.badge--danger {
+  background-color: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+.badge--info {
+  background-color: var(--c-info-soft);
+  color: var(--c-info);
+}
+
+/* ==========================================================================
+   6. Tarjeta y esqueleto de carga
+   La foto identifica al albergue: proporción fija 3:2, recorte consistente.
+   ========================================================================== */
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+  /* Cerrar la ficha devuelve el foco a la tarjeta sin que la tape la barra. */
+  scroll-margin-top: calc(var(--nav-h) + var(--sp-4));
+  overflow: clip;
+  transition: border-color var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out);
+}
+
+/* La tarjeta responde como unidad, sin prometer un clic en todo el bloque: el
+   cuerpo no navega, las acciones son los dos botones. Con teclado, el foco en
+   cualquiera de ellos marca la tarjeta igual que el puntero. */
+@media (hover: hover) {
+  .card:hover {
+    border-color: var(--c-border-strong);
+    box-shadow: var(--shadow-1);
+  }
+}
+
+.card:focus-within {
+  border-color: var(--c-border-strong);
+  box-shadow: var(--shadow-1);
+}
+
+.card__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: var(--card-media-ratio);
+  background-color: var(--c-surface-sunken);
+  border-bottom: var(--bw) solid var(--c-border);
+  color: var(--c-neutral-500);
+}
+
+/* La foto se posiciona dentro del marco: si queda en el flujo, su proporción
+   intrínseca estira el marco y la tarjeta deja de ser 3:2 (la foto de
+   Aquilina es 4:3 y estiraba su tarjeta 30 px). */
+.card__media > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card__media-note {
+  position: absolute;
+  right: var(--sp-3);
+  bottom: var(--sp-2);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  font-variant-numeric: tabular-nums;
+}
+
+.card__flag {
+  position: absolute;
+  top: var(--sp-3);
+  left: var(--sp-3);
+}
+
+.card__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--card-gap);
+  padding: var(--card-pad);
+}
+
+.card__title {
+  font-family: var(--ff-display);
+  font-size: var(--fs-400);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+  color: var(--c-text);
+}
+
+.card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-4);
+  font-size: var(--fs-200);
+  color: var(--c-text-subtle);
+}
+
+.card__meta > li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.card__meta .icon {
+  color: var(--c-text-muted);
+}
+
+.card__text {
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+  color: var(--c-text-muted);
+}
+
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  /* En una grilla todas las tarjetas de una fila comparten alto: las acciones
+     se anclan al pie para que los bordes inferiores queden alineados aunque
+     la descripción de la API tenga distinto largo. */
+  margin-top: auto;
+  padding-top: var(--sp-1);
+}
+
+.card--unavailable .card__media {
+  color: var(--c-neutral-400);
+}
+
+/* --- Esqueleto: mismas medidas que la tarjeta, sin datos falsos --- */
+.skeleton {
+  background-color: var(--c-neutral-200);
+  border-radius: var(--skeleton-radius);
+  animation: skeleton-pulse var(--dur-pulse) var(--ease-out) infinite;
+}
+
+.skeleton--media {
+  aspect-ratio: var(--card-media-ratio);
+  border-radius: 0;
+}
+
+.skeleton--line {
+  height: var(--skeleton-line-h);
+}
+
+.skeleton--line-lg {
+  height: var(--fs-500);
+}
+
+.skeleton--w-90 {
+  width: 90%;
+}
+
+.skeleton--w-60 {
+  width: 60%;
+}
+
+.skeleton--w-40 {
+  width: 40%;
+}
+
+.skeleton--action {
+  width: 7rem;
+  height: var(--control-h-sm);
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   7. Enlaces, encabezados de sección y separadores
+   ========================================================================== */
+.link {
+  color: var(--c-accent-on-soft);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color var(--dur-2) var(--ease-out),
+    text-decoration-thickness var(--dur-2) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--c-accent);
+  text-decoration-thickness: 2px;
+}
+
+.link--with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-weight: var(--fw-bold);
+  text-decoration: none;
+}
+
+.link--with-icon:hover {
+  text-decoration: underline;
+}
+
+.section-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-6);
+  padding-top: var(--sp-4);
+  border-top: var(--rule-width) solid var(--c-border);
+}
+
+.section-heading__meta {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Título + línea de apoyo de una sección. Va dentro del .section-heading. */
+.section-intro {
+  display: grid;
+  gap: var(--sp-2);
+  max-width: 58ch;
+}
+
+.section-intro__lead {
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.divider--section {
+  margin-block: var(--section-gap);
+}
+
+/* ==========================================================================
+   8. Estados forzados para documentación
+   Se aplican con data-state en styleguide.html para dejar hover, focus y
+   activo a la vista sin depender del puntero. No se usan en las páginas del
+   sitio: ahí el estado lo da la interacción real.
+   ========================================================================== */
+.btn--primary[data-state="hover"] {
+  background-color: var(--c-accent-hover);
+  border-color: var(--c-accent-hover);
+}
+
+.btn--primary[data-state="active"] {
+  background-color: var(--c-accent-pressed);
+  border-color: var(--c-accent-pressed);
+}
+
+.btn--secondary[data-state="hover"],
+.btn--ghost[data-state="hover"] {
+  background-color: var(--c-surface-sunken);
+}
+
+.btn--secondary[data-state="hover"] {
+  border-color: var(--c-border-strong);
+}
+
+.btn--ghost[data-state="hover"] {
+  color: var(--c-text);
+}
+
+.btn--secondary[data-state="active"],
+.btn--ghost[data-state="active"] {
+  background-color: var(--c-neutral-200);
+}
+
+.btn--danger[data-state="hover"],
+.btn--danger[data-state="active"] {
+  background-color: var(--c-danger-hover);
+  border-color: var(--c-danger-hover);
+}
+
+.btn[data-state="focus"],
+.chip[data-state="focus"],
+.input[data-state="focus"] {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+.btn[data-state="focus"] {
+  outline-offset: var(--sp-1);
+}
+
+.stepper__btn[data-state="focus"] {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: calc(var(--bw-strong) * -1);
+}
+
+.chip[data-state="hover"] {
+  background-color: var(--c-surface-sunken);
+}
+
+.card[data-state="hover"] {
+  border-color: var(--c-border-strong);
+  box-shadow: var(--shadow-1);
+}
+
+.checkbox__input[data-state="focus"] {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+/* ==========================================================================
+   9. Navegación
+   --------------------------------------------------------------------------
+   Barra de ancho completo sobre el fondo de página, separada por una línea
+   de 1 px: sin sombra en reposo. En compacto los enlaces pasan a un panel
+   desplegable hecho con <details>, así que el menú funciona sin JS y se
+   opera con teclado: el resumen recibe foco, Enter y Espacio lo abren y lo
+   cierran, y el navegador anuncia el estado expandido. Escape no lo cierra.
+   ========================================================================== */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-nav);
+  background-color: var(--c-page);
+  border-bottom: var(--bw) solid var(--c-border);
+}
+
+.nav__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nav-gap);
+  min-height: var(--nav-h);
+}
+
+.brand {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--tap-min);
+  padding-block: var(--sp-1);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.brand:hover {
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.brand__name {
+  font-family: var(--ff-display);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-display);
+  line-height: 1.1;
+  letter-spacing: var(--ls-tight);
+}
+
+@media (min-width: 480px) {
+  .brand__name {
+    font-size: var(--fs-400);
+  }
+}
+
+.nav__links {
+  display: none;
+}
+
+.nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding-inline: var(--sp-3);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  text-decoration: none;
+  transition: background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+
+.nav__link:hover {
+  background-color: var(--c-surface-sunken);
+  color: var(--c-text);
+}
+
+/* Sección actual: marca en el borde inferior del propio enlace, sin pastilla
+   de color. */
+.nav__link[aria-current="page"] {
+  color: var(--c-text);
+  box-shadow: inset 0 calc(var(--bw-strong) * -1) 0 0 var(--c-accent);
+}
+
+.nav__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.nav__account {
+  display: none;
+}
+
+/* --- Menú compacto --- */
+.nav__disclosure {
+  display: block;
+}
+
+.nav__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--c-text);
+  cursor: pointer;
+  list-style: none;
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.nav__toggle::-webkit-details-marker {
+  display: none;
+}
+
+.nav__toggle:hover {
+  background-color: var(--c-surface-sunken);
+}
+
+.nav__toggle-icon--close {
+  display: none;
+}
+
+.nav__disclosure[open] .nav__toggle-icon--menu {
+  display: none;
+}
+
+.nav__disclosure[open] .nav__toggle-icon--close {
+  display: block;
+}
+
+.nav__panel {
+  position: absolute;
+  inset-inline: 0;
+  top: 100%;
+  z-index: var(--z-nav);
+  display: grid;
+  padding: var(--sp-2) var(--gutter) var(--sp-4);
+  background-color: var(--c-surface);
+  border-bottom: var(--bw) solid var(--c-border);
+  box-shadow: var(--shadow-2);
+}
+
+.nav__panel-link {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-h-md);
+  padding-inline: var(--sp-2);
+  border-top: var(--bw) solid var(--c-border);
+  color: var(--c-text);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-bold);
+  text-decoration: none;
+}
+
+.nav__panel-link:first-child {
+  border-top: 0;
+}
+
+.nav__panel-link[aria-current="page"] {
+  color: var(--c-accent-on-soft);
+}
+
+.nav__panel-link--account {
+  color: var(--c-text-subtle);
+}
+
+/* Los enlaces de la barra y el acceso a "Mi reserva" entran recién cuando hay
+   ancho para los tres bloques (marca, enlaces y acciones). Entre 768 y 1023 el
+   menú sigue siendo el desplegable: si no, la marca y los enlaces se parten en
+   dos líneas y la barra cambia de alto. */
+@media (min-width: 1024px) {
+  .nav__links {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    margin-inline: auto;
+  }
+
+  .nav__account {
+    display: inline-flex;
+  }
+
+  .nav__disclosure {
+    display: none;
+  }
+}
+
+/* --- Reserva en curso: segunda fila con el estado y la acción pendiente --- */
+.nav__session {
+  background-color: var(--c-surface-sunken);
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.nav__session-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-3);
+  padding-block: var(--sp-2);
+}
+
+.nav__session-data {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1) var(--sp-2);
+  min-width: 0;
+  font-size: var(--fs-200);
+}
+
+.nav__session-code {
+  color: var(--c-text);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.nav__session-detail {
+  display: none;
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+.nav__session-cta {
+  margin-inline-start: auto;
+}
+
+@media (min-width: 768px) {
+  .nav__session-detail {
+    display: inline;
+  }
+}
+
+/* Presentación compacta forzada: la misma que aplica el media query de 768
+   cuando la barra se revisa dentro de un marco angosto. */
+.nav--compact .nav__links,
+.nav--compact .nav__account,
+.nav--compact .nav__session-detail {
+  display: none;
+}
+
+/* El tamaño chico de la marca también es parte de la presentación compacta:
+   dentro de un marco angosto los media queries siguen al viewport, no al marco. */
+.nav--compact .brand__name {
+  font-size: var(--fs-300);
+}
+
+.nav--compact .nav__disclosure {
+  display: block;
+}
+
+/* ==========================================================================
+   10. Pie del sitio
+   --------------------------------------------------------------------------
+   Fondo de superficie hundida para cerrar la página sin un bloque oscuro
+   grande; la franja oscura queda solo para el pie legal.
+   ========================================================================== */
+.footer {
+  background-color: var(--c-surface-sunken);
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.footer__top {
+  display: grid;
+  gap: var(--footer-gap);
+  padding-block: var(--sp-12);
+}
+
+.footer__brand {
+  display: grid;
+  align-content: start;
+}
+
+.brand--footer .brand__name {
+  font-size: var(--fs-500);
+  line-height: var(--lh-tight);
+}
+
+.footer__claim {
+  max-width: 34ch;
+  margin-top: var(--sp-3);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+.footer__col-title {
+  margin-bottom: var(--sp-2);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  color: var(--c-text);
+}
+
+.footer__list {
+  display: grid;
+}
+
+.footer__list a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  text-decoration: none;
+}
+
+.footer__list a:hover {
+  color: var(--c-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer__contact {
+  display: grid;
+}
+
+.footer__contact-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--tap-min);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+}
+
+.footer__contact-row .icon {
+  color: var(--c-text-muted);
+}
+
+/* Dato todavía sin confirmar. Se distingue a simple vista para que no llegue a
+   producción como si fuera real. */
+.footer__pending {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  color: var(--c-text-muted);
+  text-decoration: underline dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.footer__pending:hover {
+  color: var(--c-text);
+}
+
+/* Horarios: dato real del sistema, no un texto de relleno. */
+.footer__hours {
+  display: grid;
+  margin-top: var(--sp-2);
+}
+
+.footer__hours-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: var(--tap-min);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+}
+
+.footer__hours-row .icon {
+  color: var(--c-text-muted);
+}
+
+.footer__hours-value {
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.footer__legal {
+  background-color: var(--c-surface-inverse);
+}
+
+.footer__legal-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-1) var(--sp-6);
+  padding-block: var(--sp-2);
+  color: var(--c-neutral-200);
+  font-size: var(--fs-200);
+}
+
+.footer__legal-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--sp-4);
+}
+
+.footer__legal a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-h-sm);
+  color: var(--c-neutral-200);
+  text-decoration: underline;
+  text-decoration-color: var(--c-neutral-500);
+  text-underline-offset: 3px;
+}
+
+.footer__legal a:hover {
+  color: var(--c-accent-200);
+  text-decoration-color: currentColor;
+}
+
+@media (min-width: 480px) {
+  .footer__top {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer__brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .footer__top {
+    grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+    padding-block: var(--sp-16);
+  }
+
+  .footer__brand {
+    grid-column: auto;
+  }
+}
+
+/* ==========================================================================
+   11. Selector de modalidad
+   --------------------------------------------------------------------------
+   Dos opciones excluyentes sobre un carril hundido. Son radios reales: el
+   teclado los recorre con las flechas y el formulario envía el valor sin JS.
+   ========================================================================== */
+.segmented {
+  display: inline-grid;
+  grid-auto-flow: column;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: var(--sp-1);
+  min-inline-size: 0;
+  background-color: var(--c-surface-sunken);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+
+.segmented__option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: var(--control-h-sm);
+  padding-inline: var(--sp-3);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+
+.segmented__option:hover {
+  color: var(--c-text);
+}
+
+.segmented__option:has(.segmented__input:checked) {
+  background-color: var(--c-surface);
+  color: var(--c-text);
+}
+
+.segmented__option:has(.segmented__input:focus-visible) {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+/* El valor del stepper también puede ser un input, cuando el número viaja
+   con el formulario (paso 1 del wizard). */
+input.stepper__value {
+  appearance: none;
+  padding: 0;
+  background-color: transparent;
+  border-block: 0;
+  text-align: center;
+}
+
+/* Como los botones del grupo, el input lleva el anillo por dentro: el
+   contenedor recorta su propio contorno (overflow: clip). */
+input.stepper__value:focus-visible {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: calc(var(--bw-strong) * -1);
+}
+
+/* Campo numérico sin flechas del navegador: el número se escribe o se ajusta
+   con las teclas de flecha, y el control conserva el alto del sistema. */
+.input--number {
+  appearance: textfield;
+}
+
+.input--number::-webkit-outer-spin-button,
+.input--number::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* ==========================================================================
+   12. Ficha en modal
+   --------------------------------------------------------------------------
+   Se abre con :target, sin JS: el enlace "Ver detalle" apunta a #modal-{clave}
+   y el botón de cerrar vuelve a la tarjeta. En móvil ocupa la pantalla; desde
+   768 es una lámina centrada.
+
+   Límite conocido: sin JS no hay trampa de foco ni cierre con Escape. Por eso
+   el modal lleva tabindex="-1" (el navegador le da el foco al abrirse, así se
+   anuncia el diálogo) y el cierre es un enlace real, alcanzable con Tab.
+   ========================================================================== */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: none;
+}
+
+.modal:target {
+  display: grid;
+}
+
+/* El contenedor recibe el foco al abrirse por hash: el anillo ahí no aporta,
+   porque lo que se anuncia es el diálogo. */
+.modal:focus {
+  outline: none;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--c-scrim);
+}
+
+.modal__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background-color: var(--c-page);
+}
+
+.modal__head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background-color: var(--c-page);
+  border-bottom: var(--bw) solid var(--c-border);
+}
+
+.modal__title {
+  font-size: var(--fs-500);
+  line-height: var(--lh-snug);
+}
+
+.modal__close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.modal__close:hover {
+  background-color: var(--c-surface-sunken);
+}
+
+.modal__media {
+  position: relative;
+  aspect-ratio: var(--card-media-ratio);
+  background-color: var(--c-surface-sunken);
+}
+
+/* Mismo motivo que en la tarjeta: el marco manda, la foto se recorta adentro. */
+.modal__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.modal__body {
+  display: grid;
+  gap: var(--sp-6);
+  padding: var(--sp-4);
+}
+
+.modal__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+  margin: 0;
+}
+
+.modal__fact {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.modal__fact dt {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+}
+
+.modal__fact dd {
+  margin: 0;
+  color: var(--c-text);
+  font-size: var(--fs-400);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+.modal__features {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.modal__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.modal__features .icon {
+  margin-top: calc(var(--sp-1) / 2);
+  color: var(--c-accent-on-soft);
+}
+
+.modal__foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  background-color: var(--c-page);
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.modal__foot .link {
+  margin-inline-end: auto;
+}
+
+.modal__foot .btn--primary {
+  flex: 1 1 auto;
+}
+
+@media (min-width: 768px) {
+  .modal {
+    place-items: center;
+    padding: var(--sp-6);
+  }
+
+  .modal__panel {
+    width: 100%;
+    max-width: 40rem;
+    max-height: 100%;
+    border: var(--bw) solid var(--c-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+  }
+
+  /* En escritorio la foto es una banda, no media pantalla: el panel tiene que
+     mostrar datos y acciones sin obligar a scrollear. */
+  .modal__media {
+    max-height: 15rem;
+  }
+
+  .modal__body {
+    padding: var(--sp-6);
+  }
+
+  .modal__foot {
+    justify-content: flex-end;
+    padding: var(--sp-4) var(--sp-6);
+  }
+
+  .modal__foot .btn--primary {
+    flex: 0 0 auto;
+  }
+}
+
+/* ==========================================================================
+   13. Grilla de resultados
+   --------------------------------------------------------------------------
+   Las tarjetas salen de listarAlbergues: la cantidad puede ser 3, 5 o más sin
+   tocar el diseño. Columnas del brief: 1 hasta 768, 2 hasta 1024, 3 después.
+   La grilla no recorta ni fija alto: la descripción de cada albergue puede
+   tener cualquier largo y la fila crece con la tarjeta más alta.
+   ========================================================================== */
+/* Sin padding arriba: el hero ya cierra con aire y acá empieza con una línea. */
+.results {
+  padding-block: 0 var(--sp-12);
+}
+
+.results__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-4);
+  margin-top: var(--sp-6);
+}
+
+.results__grid > .card {
+  height: 100%;
+}
+
+@media (min-width: 768px) {
+  .results__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-6);
+  }
+}
+
+@media (min-width: 1024px) {
+  .results__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   14. Estado vacío
+   --------------------------------------------------------------------------
+   Reemplaza a la grilla, no convive con ella. Cuatro usos del inventario:
+   sin resultados, sin cupo, error de red y página no encontrada. El primero
+   es el canónico; los otros cambian ícono, copy y variante.
+   ========================================================================== */
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: var(--sp-3);
+  padding: var(--sp-6);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+.empty__icon {
+  display: grid;
+  place-items: center;
+  width: var(--sp-12);
+  height: var(--sp-12);
+  background-color: var(--c-surface-sunken);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-muted);
+}
+
+.empty__title {
+  font-size: var(--fs-400);
+}
+
+.empty__text {
+  max-width: 48ch;
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-1);
+}
+
+.empty__hint {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+/* Error de red: no es un callejón sin salida, así que el ícono cambia de
+   color pero la acción de reintentar queda siempre a la vista. */
+.empty--error .empty__icon {
+  background-color: var(--c-danger-soft);
+  border-color: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+@media (min-width: 768px) {
+  .empty {
+    padding: var(--sp-8);
+  }
+}
+
+/* ==========================================================================
+   15. Franja de confianza
+   --------------------------------------------------------------------------
+   Tres condiciones de la reserva, sin íconos: el dato va primero y la
+   condición después. Separadores de 1 px en vez de tarjetas para que no
+   compita con la grilla de albergues que viene abajo.
+   ========================================================================== */
+.trust {
+  background-color: var(--c-surface);
+  border-block: var(--bw) solid var(--c-border);
+}
+
+.trust__inner {
+  display: grid;
+  margin: 0;
+}
+
+.trust__item {
+  display: grid;
+  /* Sin esto las filas se reparten el alto sobrante de la celda más alta y los
+     valores de las tres columnas arrancan a distinta altura. */
+  align-content: start;
+  gap: var(--sp-1);
+  padding-block: var(--sp-4);
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.trust__item:first-child {
+  border-top: 0;
+}
+
+.trust__label {
+  color: var(--c-text);
+  font-family: var(--ff-display);
+  font-size: var(--fs-400);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+}
+
+.trust__value {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+@media (min-width: 768px) {
+  .trust__inner {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trust__item {
+    /* La primera celda arranca en el borde del contenedor y la última termina
+       ahí: los separadores quedan parejos con el resto de la página. */
+    padding: var(--sp-6) var(--sp-6);
+    border-top: 0;
+    border-left: var(--bw) solid var(--c-border);
+  }
+
+  .trust__item:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .trust__item:last-child {
+    padding-right: 0;
+  }
+}
+
+/* ==========================================================================
+   16. Cómo funciona
+   --------------------------------------------------------------------------
+   Tres pasos en secuencia, sin tarjetas: número, título y una línea. En móvil
+   el número queda a la izquierda del texto; desde 768 los pasos se reparten en
+   columnas con su propio separador arriba.
+   ========================================================================== */
+.how {
+  padding-block: 0 var(--sp-12);
+}
+
+/* La línea de cierre hace que el enlace del pie quede después de toda la
+   secuencia y no pegado al primer paso. */
+.how__steps {
+  display: grid;
+  margin-top: var(--sp-6);
+  border-bottom: var(--bw) solid var(--c-border);
+}
+
+.how__step {
+  display: grid;
+  grid-template-columns: var(--sp-8) minmax(0, 1fr);
+  align-content: start;
+  column-gap: var(--sp-3);
+  padding-block: var(--sp-4);
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.how__num {
+  grid-row: 1 / span 2;
+  color: var(--c-accent-on-soft);
+  font-family: var(--ff-display);
+  font-size: var(--fs-400);
+  font-weight: var(--fw-display);
+  line-height: 1.2;
+  letter-spacing: var(--ls-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.how__title {
+  font-size: var(--fs-300);
+}
+
+.how__text {
+  margin-top: var(--sp-1);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.how__foot {
+  margin-top: var(--sp-4);
+}
+
+@media (min-width: 768px) {
+  .how__steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--sp-6);
+  }
+
+  .how__step {
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: var(--sp-4) 0;
+  }
+
+  .how__num {
+    grid-row: auto;
+    margin-bottom: var(--sp-2);
+    font-size: var(--fs-500);
+  }
+}
+
+/* ==========================================================================
+   17. Condiciones y preguntas
+   --------------------------------------------------------------------------
+   A la izquierda las reglas con su consecuencia (devolución), en una lista de
+   definiciones con hairlines. A la derecha las preguntas, en acordeón nativo:
+   <details> permite varias abiertas a la vez y se opera con teclado sin JS.
+   ========================================================================== */
+.rules {
+  padding-block: 0 var(--sp-12);
+}
+
+.rules__grid {
+  display: grid;
+  gap: var(--sp-8);
+  margin-top: var(--sp-6);
+}
+
+.rules__col {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+/* --- Condiciones --- */
+.terms {
+  display: grid;
+  margin: 0;
+}
+
+.terms__row {
+  display: grid;
+  gap: var(--sp-1);
+  padding-block: var(--sp-3);
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.terms__row:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.terms__term {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+}
+
+.terms__desc {
+  margin: 0;
+  color: var(--c-text);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+/* --- Acordeón de preguntas --- */
+.accordion {
+  display: grid;
+}
+
+.accordion__item {
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.accordion__item:first-child {
+  border-top: 0;
+}
+
+/* El resumen va en list-item, no en flex: con display flex o block, Chrome deja
+   de abrir el acordeón con Enter (sí responde a Espacio). El signo se ubica con
+   posición absoluta para conservar el mismo dibujo. */
+.accordion__trigger {
+  position: relative;
+  display: list-item;
+  min-height: var(--control-h-md);
+  padding-block: var(--sp-3);
+  padding-inline-end: calc(var(--sp-6) + var(--sp-2));
+  color: var(--c-text);
+  font-family: var(--ff-display);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-normal);
+  list-style: none;
+  cursor: pointer;
+  transition: color var(--dur-1) var(--ease-out);
+}
+
+.accordion__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.accordion__trigger:hover {
+  color: var(--c-accent-on-soft);
+}
+
+.accordion__mark {
+  position: absolute;
+  inset-block-start: calc(var(--sp-3) + var(--sp-1) / 2);
+  inset-inline-end: 0;
+  color: var(--c-text-muted);
+}
+
+.accordion__mark--open,
+.accordion__item[open] .accordion__mark--closed {
+  display: none;
+}
+
+.accordion__item[open] .accordion__mark--open {
+  display: block;
+}
+
+.accordion__panel {
+  max-width: 62ch;
+  padding-block: 0 var(--sp-4);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+@media (min-width: 1024px) {
+  .rules__grid {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: var(--sp-12);
+  }
+}
+
+/* ==========================================================================
+   18. Panel de paso
+   --------------------------------------------------------------------------
+   Superficie con borde para cada contenedor del wizard (paso-box-{n}). No
+   lleva sombra: el borde de 1 px es el separador del sistema.
+   ========================================================================== */
+.panel {
+  padding: var(--sp-4);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+@media (min-width: 768px) {
+  .panel {
+    padding: var(--sp-6);
+  }
+}
+
+/* ==========================================================================
+   19. Stepper de pasos
+   --------------------------------------------------------------------------
+   Barra de progreso de 4 segmentos: el color del segmento dice el estado
+   (actual, completado, pendiente, con error) y el rótulo lo repite en texto,
+   así el estado no depende solo del color.
+   ========================================================================== */
+.steps {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-1);
+  min-width: 0;
+  padding-top: var(--sp-3);
+  border-top: var(--bw-strong) solid var(--c-border);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+}
+
+.step__num {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: inherit;
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* El check del paso completado convive con el número: el número no se borra
+   porque es el orden, y el check agrega el estado. */
+.step__check {
+  display: none;
+  color: var(--c-success);
+}
+
+.step--done .step__check {
+  display: block;
+}
+
+.step__label {
+  color: inherit;
+  font-weight: var(--fw-bold);
+}
+
+.step__hint {
+  color: var(--c-text-muted);
+  font-weight: var(--fw-regular);
+}
+
+.step--current {
+  border-top-color: var(--c-accent);
+}
+
+.step--current .step__num,
+.step--current .step__label {
+  color: var(--c-text);
+}
+
+.step--done {
+  border-top-color: var(--c-success);
+}
+
+.step--done .step__num {
+  color: var(--c-success);
+}
+
+.step--done .step__label {
+  color: var(--c-text-subtle);
+}
+
+.step--error {
+  border-top-color: var(--c-danger);
+}
+
+.step--error .step__num,
+.step--error .step__label {
+  color: var(--c-danger);
+}
+
+/* En móvil el segmento es angosto: se lee el número y el estado, y el rótulo
+   queda solo en el paso actual. */
+@media (max-width: 767px) {
+  .step__label,
+  .step__hint {
+    display: none;
+  }
+
+  .step--current .step__label {
+    display: block;
+  }
+}
+
+/* ==========================================================================
+   20. Resumen de precio
+   --------------------------------------------------------------------------
+   Lateral en escritorio y fijo al pie en móvil (lo posiciona wizard.css).
+   Nunca suma un CTA propio: la acción vive en el paso.
+   ========================================================================== */
+.summary {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+.summary__title {
+  color: var(--c-text-muted);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.summary__list {
+  display: grid;
+  margin: 0;
+}
+
+.summary__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding-block: var(--sp-2);
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.summary__row:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.summary__row dt {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+.summary__row dd {
+  margin: 0;
+  color: var(--c-text);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: var(--bw) solid var(--c-border-strong);
+}
+
+.summary__total-label {
+  color: var(--c-text);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+}
+
+.summary__amount {
+  color: var(--c-text);
+  font-family: var(--ff-display);
+  font-size: var(--fs-500);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Estado sin fechas: el monto todavía no existe y se dice, no se deja vacío. */
+.summary__amount--pending {
+  max-width: 16ch;
+  color: var(--c-text-muted);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-normal);
+  text-align: end;
+}
+
+.summary__note {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+/* ==========================================================================
+   21. Calendario de disponibilidad
+   --------------------------------------------------------------------------
+   Celdas de 44 px de alto como mínimo (el brief prohíbe menos de 40). Cada día
+   es un <button data-fecha="YYYY-MM-DD">, así que se recorre con Tab y se
+   elige con Enter o Espacio sin JS. Los días no elegibles van con disabled y
+   el aria-label dice el motivo: el estado nunca queda solo en el color.
+
+   El rango se dibuja como una banda continua: inicio y fin con el acento
+   lleno y bordes redondeados hacia afuera, los días del medio en acento suave.
+   ========================================================================== */
+.cal {
+  display: grid;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+.cal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.cal__month {
+  color: var(--c-text);
+  font-family: var(--ff-display);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--ls-tight);
+}
+
+.cal__nav {
+  display: flex;
+  gap: var(--sp-1);
+}
+
+.cal__nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.cal__nav-btn:hover:not(:disabled) {
+  background-color: var(--c-surface-sunken);
+}
+
+.cal__nav-btn:disabled {
+  background-color: var(--c-disabled-surface);
+  border-color: var(--c-disabled-border);
+  color: var(--c-text-disabled);
+  cursor: not-allowed;
+}
+
+.cal__dow,
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--sp-1);
+}
+
+.cal__dow {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+  text-align: center;
+}
+
+/* Hueco de la primera semana: mantiene la alineación de columnas sin sumar
+   un día que no existe. */
+.cal__blank {
+  min-height: var(--tap-min);
+}
+
+/* --- Celda de día --- */
+.cal__day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: 0;
+  background-color: transparent;
+  border: var(--bw) solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--c-text);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.cal__day:hover:not(:disabled) {
+  background-color: var(--c-surface-sunken);
+  border-color: var(--c-border-strong);
+}
+
+/* Mientras el campo no tenga una regla propia, el botón no hereda el azul. */
+.cal__day:disabled {
+  cursor: not-allowed;
+}
+
+/* Hoy: se marca con peso y subrayado, sin competir con la selección. */
+.cal__day--today {
+  font-weight: var(--fw-bold);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+/* Pocas camas: punto de advertencia debajo del número. */
+.cal__day--low::after {
+  content: "";
+  position: absolute;
+  bottom: var(--sp-1);
+  left: 50%;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 50%;
+  background-color: var(--c-warning-fill);
+  transform: translateX(-50%);
+}
+
+/* Sin cupo: fondo rojo suave y texto en rojo; el día no se puede elegir. */
+.cal__day--full {
+  background-color: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+/* Pasado: gris, sin fondo, legible pero apagado. */
+.cal__day--past {
+  color: var(--c-text-disabled);
+}
+
+/* Fuera de la ventana de reserva: borde punteado, no es un día lleno. */
+.cal__day--outside {
+  border-color: var(--c-border);
+  border-style: dashed;
+  color: var(--c-text-muted);
+}
+
+/* --- Rango ---
+   Cada día es una pieza separada por el aire de la grilla, así que el rango no
+   dibuja una banda continua: entrada y salida van con el acento lleno y los días
+   del medio en acento suave. Es el mismo lenguaje de chip del resto del sistema
+   y no se rompe cuando el rango cruza de semana. */
+.cal__day--in-range {
+  background-color: var(--c-accent-soft);
+}
+
+.cal__day--range-start,
+.cal__day--range-end {
+  background-color: var(--c-accent);
+  border-color: var(--c-accent);
+  color: var(--c-neutral-50);
+  font-weight: var(--fw-bold);
+}
+
+/* --- Estados del rango mientras se elige ---
+   Tres situaciones que no son ni el rango cerrado ni el día suelto: la entrada
+   ya tomada, el intento que rompe una regla y el rango que se corta porque un
+   día del medio no tiene cupo. Los distingue el borde: sin borde es "sin cupo",
+   con borde sólido es "este intento no se puede", punteado es "corregí este día".
+   Se documentan acá porque la selección se resuelve en integración. */
+.cal__day--awaiting {
+  background-color: var(--c-accent);
+  border-color: var(--c-accent);
+  color: var(--c-neutral-50);
+  font-weight: var(--fw-bold);
+  /* Aro interior en marfil: el día está tomado, pero el rango sigue abierto. */
+  box-shadow: inset 0 0 0 var(--bw-strong) var(--c-neutral-50);
+}
+
+.cal__day--invalid {
+  background-color: var(--c-danger-soft);
+  border-color: var(--c-danger);
+  color: var(--c-danger);
+}
+
+.cal__day--invalid-edge {
+  border-color: var(--c-danger);
+  border-style: dashed;
+  font-weight: var(--fw-bold);
+}
+
+/* --- Cargando: mismos marcos, sin datos --- */
+.cal__grid--loading {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.skeleton--day {
+  min-height: var(--tap-min);
+  border-radius: var(--radius-sm);
+}
+
+/* --- Leyenda y línea de rango --- */
+.cal__range {
+  color: var(--c-text);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+/* La línea del rango cambia de tono con el estado: invitación a terminarlo,
+   aviso de cupo o error de selección. */
+.cal__range--awaiting {
+  color: var(--c-accent);
+}
+
+.cal__range--warning {
+  color: var(--c-warning);
+}
+
+.cal__range--danger {
+  color: var(--c-danger);
+}
+
+.cal__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-4);
+  padding-top: var(--sp-3);
+  border-top: var(--bw) solid var(--c-border);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+.cal__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.cal__swatch {
+  width: var(--sp-3);
+  height: var(--sp-3);
+  flex: none;
+  border: var(--bw) solid var(--c-border);
+  border-radius: 2px;
+}
+
+.cal__swatch--low {
+  border-color: transparent;
+  background-color: transparent;
+  box-shadow: inset 0 0 0 0 transparent;
+  position: relative;
+}
+
+.cal__swatch--low::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 50%;
+  background-color: var(--c-warning-fill);
+  transform: translateX(-50%);
+}
+
+.cal__swatch--full {
+  background-color: var(--c-danger-soft);
+  border-color: var(--c-danger-soft);
+}
+
+.cal__swatch--selected {
+  background-color: var(--c-accent);
+  border-color: var(--c-accent);
+}
+
+.cal__swatch--outside {
+  border-style: dashed;
+}
+
+/* --- Vista de alojamiento: camas libres por día ---
+   En una estadía el dato que decide la reserva no es "el día está libre" sino
+   cuántas camas quedan: cada celda lleva el número en un badge verde. El badge
+   reemplaza al punto de advertencia (no entran los dos) y pasa a ámbar cuando
+   quedan pocas camas. La modalidad visita va sin badges: el calendario se usa
+   sin la clase .cal--camas. */
+.cal--camas .cal__day {
+  align-content: center;
+  gap: 2px;
+  min-height: 58px;
+  padding-block: var(--sp-1);
+}
+
+.cal__beds {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--sp-4);
+  padding-inline: var(--sp-1);
+  background-color: var(--c-success-soft);
+  border: var(--bw) solid var(--c-green-200);
+  border-radius: var(--radius-sm);
+  color: var(--c-success);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.cal__day--low .cal__beds {
+  background-color: var(--c-warning-soft);
+  border-color: var(--c-warning);
+  color: var(--c-warning);
+}
+
+.cal--camas .cal__day--low::after {
+  content: none;
+}
+
+/* Sobre un día elegido el badge necesita fondo propio: el verde suave sobre el
+   acento suave se apaga. */
+.cal__day--in-range .cal__beds,
+.cal__day--range-start .cal__beds,
+.cal__day--range-end .cal__beds {
+  background-color: var(--c-neutral-50);
+}
+
+/* Hoy va con anillo interior: el subrayado cruzaba el badge. */
+.cal--camas .cal__day--today {
+  text-decoration: none;
+  box-shadow: inset 0 0 0 var(--bw-strong) var(--c-border-strong);
+}
+
+.cal--camas .skeleton--day {
+  min-height: 58px;
+}
+
+/* Swatches de la leyenda para la vista de alojamiento. */
+.cal__swatch--beds {
+  background-color: var(--c-success-soft);
+  border-color: var(--c-success);
+}
+
+.cal__swatch--beds-low {
+  background-color: var(--c-warning-soft);
+  border-color: var(--c-warning);
+}
+
+@media (min-width: 480px) {
+  .cal {
+    padding: var(--sp-4);
+  }
+}
+
+/* En el ancho mínimo el aire de la grilla se achica para que cada día llegue a
+   los 40 px de ancho que exige el brief, sin tocar los 44 de alto táctil. */
+@media (max-width: 479px) {
+  .cal {
+    gap: var(--sp-2);
+    padding: var(--sp-2);
+  }
+
+  .cal__dow,
+  .cal__grid {
+    gap: 2px;
+  }
+}
+
+/* ==========================================================================
+   22. Opción única
+   --------------------------------------------------------------------------
+   Dos o tres opciones excluyentes donde cada una tiene una consecuencia
+   distinta que hay que leer antes de elegir (el tipo de delegación define
+   cuántas noches se pueden reservar). Un select escondería esa consecuencia en
+   un desplegable, así que va como grupo de tarjetas con radios reales: las
+   flechas del teclado recorren el grupo, el formulario envía el valor sin JS y
+   el navegador anuncia "1 de 2".
+
+   El estado no depende solo del color: el punto del radio, el borde y el fondo
+   de la tarjeta cambian juntos.
+   ========================================================================== */
+.choice-set {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.choice-set__legend {
+  margin-bottom: var(--sp-2);
+  padding: 0;
+  color: var(--c-text);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.choice {
+  position: relative;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  column-gap: var(--sp-3);
+  min-height: var(--tap-min);
+  padding: var(--sp-3);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border-control);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.choice:hover {
+  background-color: var(--c-surface-sunken);
+  border-color: var(--c-border-strong);
+}
+
+.choice__input {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin: calc(var(--sp-1) / 2) 0 0;
+  background-color: var(--c-neutral-100);
+  border: var(--bw-strong) solid var(--c-border-control);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out),
+    box-shadow var(--dur-1) var(--ease-out);
+}
+
+.choice__input:hover:not(:disabled) {
+  border-color: var(--c-text-subtle);
+}
+
+/* El punto del radio se dibuja con el color de superficie: la misma regla sirve
+   en el tema claro y en el oscuro preparado, sin sumar un token. */
+.choice__input:checked {
+  background-color: var(--c-accent);
+  border-color: var(--c-accent);
+  box-shadow: inset 0 0 0 3px var(--c-surface);
+}
+
+/* El anillo de foco se dibuja en la tarjeta (abajo): en el radio de 20 px queda
+   un segundo anillo adentro y el foco se lee como un error de dibujo. */
+.choice__input:focus-visible {
+  outline: none;
+}
+
+.choice__input:disabled {
+  background-color: var(--c-disabled-surface);
+  border-color: var(--c-disabled-border);
+  cursor: not-allowed;
+}
+
+/* La tarjeta acompaña al radio: sin esto el usuario tiene que adivinar dónde
+   termina la opción que eligió. */
+.choice:has(.choice__input:checked) {
+  background-color: var(--c-accent-soft);
+  border-color: var(--c-accent);
+}
+
+.choice:has(.choice__input:focus-visible) {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+.choice:has(.choice__input:disabled) {
+  background-color: var(--c-disabled-surface);
+  border-color: var(--c-disabled-border);
+  cursor: not-allowed;
+}
+
+/* Estado forzado para documentación, igual que el resto de §8. */
+.choice[data-state="focus"] {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+.choice__body {
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.choice__title {
+  color: var(--c-text);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+/* La consecuencia de elegir esa opción. Va debajo del título, no como ayuda
+   del grupo: cambia opción por opción. */
+.choice__meta {
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.choice:has(.choice__input:disabled) .choice__title,
+.choice:has(.choice__input:disabled) .choice__meta {
+  color: var(--c-text-disabled);
+}
+
+/* ==========================================================================
+   23. Aviso
+   --------------------------------------------------------------------------
+   Resultado de una validación (hay lugar, faltan camas, no hay cupo, la fecha
+   está fuera de la ventana). Va pegado al control que valida, nunca arriba de
+   todo el paso: el aviso tiene que estar donde el usuario está mirando.
+
+   El color no es la única señal: el título dice qué pasó y el texto qué hacer.
+   ========================================================================== */
+.notice {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: start;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background-color: var(--c-info-soft);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.notice__icon {
+  margin-top: calc(var(--sp-1) / 2);
+  color: var(--c-text-muted);
+}
+
+.notice__body {
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.notice__title {
+  color: var(--c-text);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.notice__text {
+  color: var(--c-text-subtle);
+}
+
+/* Los rellenos suaves marcan el tono sin gritar: el borde queda del mismo color
+   que el fondo, como en el estado de error de .empty. */
+.notice--success {
+  background-color: var(--c-success-soft);
+  border-color: var(--c-success-soft);
+}
+
+.notice--success .notice__icon {
+  color: var(--c-success);
+}
+
+.notice--warning {
+  background-color: var(--c-warning-soft);
+  border-color: var(--c-warning-soft);
+}
+
+.notice--warning .notice__icon {
+  color: var(--c-warning);
+}
+
+.notice--danger {
+  background-color: var(--c-danger-soft);
+  border-color: var(--c-danger-soft);
+}
+
+.notice--danger .notice__icon,
+.notice--danger .notice__title {
+  color: var(--c-danger);
+}
+
+/* ==========================================================================
+   24. Sello de estado
+   --------------------------------------------------------------------------
+   Cuadrado de 48 px con el ícono del desenlace de un flujo: reserva creada,
+   cancelada, rechazada. Es la misma medida del ícono de los estados vacíos,
+   así los dos bloques se leen como parte de lo mismo. El tono va por variante;
+   el título de al lado dice qué pasó, nunca queda solo el color.
+   ========================================================================== */
+.seal {
+  display: grid;
+  place-items: center;
+  width: var(--sp-12);
+  height: var(--sp-12);
+  background-color: var(--c-info-soft);
+  border-radius: var(--radius-sm);
+  color: var(--c-info);
+}
+
+.seal--success {
+  background-color: var(--c-success-soft);
+  color: var(--c-success);
+}
+
+.seal--warning {
+  background-color: var(--c-warning-soft);
+  color: var(--c-warning);
+}
+
+.seal--danger {
+  background-color: var(--c-danger-soft);
+  color: var(--c-danger);
+}
+
+/* ==========================================================================
+   25. Carga de comprobante
+   --------------------------------------------------------------------------
+   Zona de carga con el archivo elegido y sus cinco estados: sin archivo,
+   subiendo, recibido, rechazado y error de red. El estado no queda solo en el
+   color: el badge y la nota dicen qué pasó y qué hacer después.
+
+   La zona es un <label> que envuelve al input de archivo, así el clic y el
+   teclado funcionan sin JS: el input está oculto a la vista pero sigue siendo
+   enfocable y el anillo de foco se dibuja en la zona completa.
+   ========================================================================== */
+.upload__drop {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-1);
+  min-height: calc(var(--sp-24) + var(--sp-6));
+  padding: var(--sp-6) var(--sp-4);
+  background-color: var(--c-surface-sunken);
+  border: var(--bw) dashed var(--c-border-strong);
+  border-radius: var(--radius-md);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out);
+}
+
+.upload__drop:hover {
+  background-color: var(--c-neutral-200);
+  border-color: var(--c-text-subtle);
+}
+
+.upload__drop:focus-within {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: var(--sp-1);
+}
+
+.upload__drop-icon {
+  margin-bottom: var(--sp-1);
+  color: var(--c-text-muted);
+}
+
+.upload__drop-title {
+  color: var(--c-text);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.upload__drop-hint {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+}
+
+/* --- Archivo elegido --- */
+.upload__file {
+  display: grid;
+  grid-template-columns: var(--sp-8) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+
+.upload__file-icon {
+  display: grid;
+  place-items: center;
+  width: var(--sp-8);
+  height: var(--sp-8);
+  background-color: var(--c-surface-sunken);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-muted);
+}
+
+/* El nombre lo escribe el usuario: se recorta con puntos suspensivos y nunca se
+   interpreta como HTML. */
+.upload__file-name {
+  overflow: hidden;
+  color: var(--c-text);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.upload__file-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Subiendo ---
+   <progress> nativo: se anuncia como barra de progreso y no necesita un ancho
+   escrito en el markup. */
+.upload__spin {
+  animation: btn-spin var(--dur-spin) linear infinite;
+}
+
+.upload__progress {
+  width: 100%;
+  height: 6px;
+  appearance: none;
+  overflow: clip;
+  background-color: var(--c-neutral-200);
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.upload__progress::-webkit-progress-bar {
+  background-color: var(--c-neutral-200);
+  border-radius: inherit;
+}
+
+.upload__progress::-webkit-progress-value {
+  background-color: var(--c-accent);
+  border-radius: inherit;
+}
+
+.upload__progress::-moz-progress-bar {
+  background-color: var(--c-accent);
+  border-radius: inherit;
+}
+
+/* --- Nota del estado --- */
+.upload__note {
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.upload__note--danger {
+  color: var(--c-danger);
+}
+
+/* --- Acciones del estado --- */
+.upload__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload__spin {
+    animation: none;
+  }
+}
+
+

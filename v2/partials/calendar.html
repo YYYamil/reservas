@@ -1,0 +1,276 @@
+<!--
+  partials/calendar.html — calendario de disponibilidad del wizard
+  ==========================================================================
+  Reemplaza el paso 3 (fechas). Cada día es un <button data-fecha="YYYY-MM-DD">:
+  se recorre con Tab y se elige con Enter o Espacio, sin JS. El día no
+  elegible usa disabled y el aria-label dice el motivo.
+
+  Claves del contrato:
+  - El contenedor lleva id="calendario-alo-{clave}" (acá, calendario-alo-maestro).
+  - Cada celda lleva data-fecha en formato YYYY-MM-DD, que es lo que lee el JS.
+
+  Vista de alojamiento (.cal--camas):
+  - Cada día muestra en un badge verde cuántas camas quedan libres
+    (<span class="cal__beds">). Es el dato que decide la reserva, no solo si el
+    día está libre.
+  - Con pocas camas el badge pasa a ámbar y el aria-label dice cuántas quedan.
+  - Sin cupo no lleva badge: la celda ya está en rojo y deshabilitada.
+  - El número lo escribe el JS desde el cupo del día; acá son valores de ejemplo
+    con la capacidad real de Maestro José Fierro (92 camas).
+
+  Vista de visita: el mismo partial sin la clase .cal--camas y sin los badges
+  (la visita se reserva por día, no por camas).
+
+  Estados (clases sobre el mismo par de días):
+  - default            → disponible
+  - .cal__day--low     → quedan pocas camas (badge ámbar; punto si no hay badges)
+  - .cal__day--full    → sin cupo (rojo, disabled)
+  - .cal__day--past    → fecha pasada (gris, disabled)
+  - .cal__day--outside → fuera de la ventana de 3 meses (borde punteado, disabled)
+  - .cal__day--range-start / --range-end → entrada y salida (acento lleno)
+  - .cal__day--in-range → días del medio (acento suave)
+  - .cal__day--today   → hoy, con peso y subrayado (anillo interior si hay badge)
+
+  Estados del rango mientras se elige (los aplica la integración; el mock los
+  documenta en el sistema visual, no los produce):
+  - .cal__day--awaiting   → entrada elegida y salida pendiente: se suma a
+                            --range-start y dibuja un aro interior en marfil
+  - .cal__day--invalid    → día de un intento que rompe la regla (salida antes
+                            que la entrada, o más noches que el máximo de la
+                            delegación): fondo de error con borde sólido
+  - .cal__day--invalid-edge → el día puntual a corregir, con borde punteado
+  - .cal__range--awaiting / --warning / --danger → tono de la línea del rango
+  Un día --full en el medio corta el rango: los días posteriores del intento van
+  con --invalid y el último con --invalid-edge, y el aviso dice hasta dónde entra.
+
+  Mes de ejemplo: noviembre de 2026, que es la ventana de los tests. La fecha
+  mínima de reserva (2026-11-03) se mueve todos los días: en integración la
+  calcula el backend, no está fija acá.
+
+  El botón de mes anterior arranca deshabilitado porque noviembre es el primer
+  mes de la ventana; el siguiente se habilita hasta el mes que marca el límite.
+
+  Íconos: usa el sprite de la página (i-arrow-left, i-arrow-right).
+-->
+<div
+  class="cal cal--camas"
+  id="calendario-alo-maestro"
+  aria-label="Calendario de disponibilidad de Maestro José Fierro"
+>
+  <div class="cal__head">
+    <p class="cal__month" aria-live="polite">Noviembre 2026</p>
+    <div class="cal__nav">
+      <button class="cal__nav-btn" type="button" aria-label="Mes anterior" disabled>
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+      </button>
+      <button class="cal__nav-btn" type="button" aria-label="Mes siguiente">
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="cal__dow" aria-hidden="true">
+    <span>lun</span>
+    <span>mar</span>
+    <span>mié</span>
+    <span>jue</span>
+    <span>vie</span>
+    <span>sáb</span>
+    <span>dom</span>
+  </div>
+
+  <div class="cal__grid">
+    <span class="cal__blank" aria-hidden="true"></span>
+    <span class="cal__blank" aria-hidden="true"></span>
+    <span class="cal__blank" aria-hidden="true"></span>
+    <span class="cal__blank" aria-hidden="true"></span>
+    <span class="cal__blank" aria-hidden="true"></span>
+    <span class="cal__blank" aria-hidden="true"></span>
+
+    <button class="cal__day cal__day--past" type="button" data-fecha="2026-11-01" disabled aria-label="domingo 1 de noviembre, ya pasó">1</button>
+    <button class="cal__day cal__day--past" type="button" data-fecha="2026-11-02" disabled aria-label="lunes 2 de noviembre, ya pasó">2</button>
+
+    <button class="cal__day" type="button" data-fecha="2026-11-03" aria-label="martes 3 de noviembre, 90 camas libres">
+      3
+      <span class="cal__beds">90</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-04" aria-label="miércoles 4 de noviembre, 88 camas libres">
+      4
+      <span class="cal__beds">88</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-05" aria-label="jueves 5 de noviembre, 84 camas libres">
+      5
+      <span class="cal__beds">84</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-06" aria-label="viernes 6 de noviembre, 76 camas libres">
+      6
+      <span class="cal__beds">76</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-07" aria-label="sábado 7 de noviembre, 71 camas libres">
+      7
+      <span class="cal__beds">71</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-08" aria-label="domingo 8 de noviembre, 65 camas libres">
+      8
+      <span class="cal__beds">65</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-09" aria-label="lunes 9 de noviembre, 58 camas libres">
+      9
+      <span class="cal__beds">58</span>
+    </button>
+
+    <button
+      class="cal__day cal__day--low"
+      type="button"
+      data-fecha="2026-11-10"
+      aria-label="martes 10 de noviembre, quedan 2 camas"
+    >
+      10
+      <span class="cal__beds">2</span>
+    </button>
+
+    <button
+      class="cal__day cal__day--full"
+      type="button"
+      data-fecha="2026-11-11"
+      disabled
+      aria-label="miércoles 11 de noviembre, sin cupo"
+    >
+      11
+    </button>
+
+    <button class="cal__day" type="button" data-fecha="2026-11-12" aria-label="jueves 12 de noviembre, 46 camas libres">
+      12
+      <span class="cal__beds">46</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-13" aria-label="viernes 13 de noviembre, 41 camas libres">
+      13
+      <span class="cal__beds">41</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-14" aria-label="sábado 14 de noviembre, 37 camas libres">
+      14
+      <span class="cal__beds">37</span>
+    </button>
+
+    <button
+      class="cal__day cal__day--range-start"
+      type="button"
+      data-fecha="2026-11-15"
+      aria-label="domingo 15 de noviembre, entrada elegida, 30 camas libres"
+    >
+      15
+      <span class="cal__beds">30</span>
+    </button>
+    <button
+      class="cal__day cal__day--in-range"
+      type="button"
+      data-fecha="2026-11-16"
+      aria-label="lunes 16 de noviembre, dentro del rango, 24 camas libres"
+    >
+      16
+      <span class="cal__beds">24</span>
+    </button>
+    <button
+      class="cal__day cal__day--in-range"
+      type="button"
+      data-fecha="2026-11-17"
+      aria-label="martes 17 de noviembre, dentro del rango, 18 camas libres"
+    >
+      17
+      <span class="cal__beds">18</span>
+    </button>
+    <button
+      class="cal__day cal__day--range-end"
+      type="button"
+      data-fecha="2026-11-18"
+      aria-label="miércoles 18 de noviembre, salida elegida, 12 camas libres"
+    >
+      18
+      <span class="cal__beds">12</span>
+    </button>
+
+    <button class="cal__day" type="button" data-fecha="2026-11-19" aria-label="jueves 19 de noviembre, 44 camas libres">
+      19
+      <span class="cal__beds">44</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-20" aria-label="viernes 20 de noviembre, 39 camas libres">
+      20
+      <span class="cal__beds">39</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-21" aria-label="sábado 21 de noviembre, 33 camas libres">
+      21
+      <span class="cal__beds">33</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-22" aria-label="domingo 22 de noviembre, 28 camas libres">
+      22
+      <span class="cal__beds">28</span>
+    </button>
+
+    <button
+      class="cal__day cal__day--low"
+      type="button"
+      data-fecha="2026-11-23"
+      aria-label="lunes 23 de noviembre, quedan 2 camas"
+    >
+      23
+      <span class="cal__beds">2</span>
+    </button>
+
+    <button class="cal__day" type="button" data-fecha="2026-11-24" aria-label="martes 24 de noviembre, 33 camas libres">
+      24
+      <span class="cal__beds">33</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-25" aria-label="miércoles 25 de noviembre, 39 camas libres">
+      25
+      <span class="cal__beds">39</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-26" aria-label="jueves 26 de noviembre, 45 camas libres">
+      26
+      <span class="cal__beds">45</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-27" aria-label="viernes 27 de noviembre, 52 camas libres">
+      27
+      <span class="cal__beds">52</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-28" aria-label="sábado 28 de noviembre, 60 camas libres">
+      28
+      <span class="cal__beds">60</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-29" aria-label="domingo 29 de noviembre, 68 camas libres">
+      29
+      <span class="cal__beds">68</span>
+    </button>
+    <button class="cal__day" type="button" data-fecha="2026-11-30" aria-label="lunes 30 de noviembre, 74 camas libres">
+      30
+      <span class="cal__beds">74</span>
+    </button>
+  </div>
+
+  <!-- El texto del rango no lleva id: el contrato fecha-range-display-alo-{clave}
+       vive en el resumen (partials/price-summary.html), que es lo que el JS
+       actualiza. Acá se repite el mismo dato a la vista del calendario. -->
+  <p class="cal__range">15/11 al 18/11, 3 noches</p>
+
+  <ul class="cal__legend">
+    <li class="cal__legend-item">
+      <span class="cal__swatch cal__swatch--beds" aria-hidden="true"></span>
+      Camas libres
+    </li>
+    <li class="cal__legend-item">
+      <span class="cal__swatch cal__swatch--beds-low" aria-hidden="true"></span>
+      Quedan pocas camas
+    </li>
+    <li class="cal__legend-item">
+      <span class="cal__swatch cal__swatch--full" aria-hidden="true"></span>
+      Sin cupo
+    </li>
+    <li class="cal__legend-item">
+      <span class="cal__swatch cal__swatch--selected" aria-hidden="true"></span>
+      Tu reserva
+    </li>
+    <li class="cal__legend-item">
+      <span class="cal__swatch cal__swatch--outside" aria-hidden="true"></span>
+      Fuera de la ventana
+    </li>
+  </ul>
+</div>

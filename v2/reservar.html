@@ -1,0 +1,1337 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Reservar en Maestro José Fierro — Albergues recreativos</title>
+    <meta
+      name="description"
+      content="Reserva de una estadía: cantidad de camas, tipo de delegación y fechas en el calendario de disponibilidad."
+    />
+    <link rel="stylesheet" href="assets/css/tokens.css" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/components.css" />
+    <link rel="stylesheet" href="assets/css/wizard.css" />
+  </head>
+  <body class="page-reserva">
+    <a class="skip-link" href="#contenido">Ir al contenido</a>
+
+    <!-- Un solo set de íconos para la página: SVG en línea, trazo 1.75, 20 y
+         24 px. Se declara una vez y se referencia con <use>. -->
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-ticket" viewBox="0 0 24 24">
+        <path
+          d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
+        />
+        <path d="M13 5v2M13 11v2M13 17v2" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24">
+        <path d="M19 12H5M12 19l-7-7 7-7" />
+      </symbol>
+      <symbol id="i-arrow-right" viewBox="0 0 24 24">
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </symbol>
+      <symbol id="i-minus" viewBox="0 0 24 24">
+        <path d="M5 12h14" />
+      </symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="i-chevron-down" viewBox="0 0 24 24">
+        <path d="m6 9 6 6 6-6" />
+      </symbol>
+      <symbol id="i-check-circle" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="m9 12 2 2 4-4" />
+      </symbol>
+      <symbol id="i-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 16v-4M12 8h.01" />
+      </symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24">
+        <path
+          d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+        />
+        <path d="M12 9v4M12 17h.01" />
+      </symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
+      </symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24">
+        <path
+          d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"
+        />
+      </symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24">
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      </symbol>
+    </svg>
+
+    <header class="nav">
+      <div class="container nav__bar">
+        <a class="brand" href="index.html">
+          <span class="brand__name">Albergues recreativos</span>
+        </a>
+
+        <nav class="nav__links" aria-label="Principal">
+          <a class="nav__link" href="index.html#albergues">Albergues</a>
+          <a class="nav__link" href="index.html#como-funciona">Cómo funciona</a>
+          <a class="nav__link" href="index.html#ayuda">Ayuda</a>
+        </nav>
+
+        <div class="nav__actions">
+          <a class="btn btn--ghost btn--sm nav__account" href="mi-reserva.html">
+            <svg class="icon icon--sm" aria-hidden="true">
+              <use href="#i-ticket"></use>
+            </svg>
+            <span class="btn__label">Mi reserva</span>
+          </a>
+          <a class="btn btn--primary btn--sm" href="reservar.html" data-accion="reservar">
+            <span class="btn__label">Reservar</span>
+          </a>
+
+          <details class="nav__disclosure">
+            <summary class="nav__toggle">
+              <span class="visually-hidden">Menú</span>
+              <svg class="icon nav__toggle-icon nav__toggle-icon--menu" aria-hidden="true">
+                <use href="#i-menu"></use>
+              </svg>
+              <svg class="icon nav__toggle-icon nav__toggle-icon--close" aria-hidden="true">
+                <use href="#i-close"></use>
+              </svg>
+            </summary>
+            <nav class="nav__panel" aria-label="Menú">
+              <a class="nav__panel-link" href="index.html#albergues">Albergues</a>
+              <a class="nav__panel-link" href="index.html#como-funciona">Cómo funciona</a>
+              <a class="nav__panel-link" href="index.html#ayuda">Ayuda</a>
+              <a class="nav__panel-link nav__panel-link--account" href="mi-reserva.html">Mi reserva</a>
+            </nav>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <!--
+      WIZARD DE RESERVA
+      Recibe ?albergue=<clave>&modalidad=<visita|alojamiento>. Acá el markup está
+      fijado con los datos reales de `maestro` y modalidad `alojamiento`; en
+      integración el nombre, la capacidad y los montos salen de
+      listarAlbergues, y data-modalidad lo escribe el JS desde la URL.
+
+      Contrato de la estadía con alojamiento (no renombrar):
+        step-1-{clave} · paso-box-1-{clave} · cantidad-alo-{clave}
+        btn-submit-alo-{clave} · delegacion-alo-{clave} · calendario-alo-{clave}
+        monto-total-alo-{clave} · fecha-range-display-alo-{clave}
+
+      Contrato de la reserva diaria — visita, y solo ella (no renombrar):
+        reserva-visita-{clave} · reservaFormMaestro · calendario-{clave}
+        fechaIngreso-{clave} · horaIngreso-{clave} · horaEgreso-{clave}
+        cantidad-{clave} · disponibles-{clave} · capacidad-{clave}
+        monto-unitario-{clave} · monto-total-{clave} · monto-ayuda-{clave}
+      Las horas de ingreso y egreso son exclusivas de la visita: la estadía con
+      alojamiento no elige horario y no tiene selects de hora.
+
+      Los cuatro contenedores de paso están en la página aunque se vea uno por
+      vez: es como los habilita y bloquea el JS. Para revisarlos sin script,
+      abrir reservar.html#step-2-maestro, #step-3-maestro o #step-4-maestro (lo
+      resuelve wizard.css). El último paso confirma y sale a confirmacion.html.
+    -->
+    <main id="contenido" tabindex="-1">
+      <div class="container wizard" data-modalidad="alojamiento" data-albergue="maestro">
+        <div class="wizard__head">
+          <a class="link link--with-icon wizard__back" href="index.html#albergues">
+            <svg class="icon icon--sm" aria-hidden="true">
+              <use href="#i-arrow-left"></use>
+            </svg>
+            Albergues
+          </a>
+          <h1 class="wizard__title">Reservá en Maestro José Fierro</h1>
+          <ul class="wizard__meta">
+            <li>
+              <span class="badge badge--info">
+                <span class="badge__dot"></span>
+                <span class="wizard__modalidad--alojamiento">Estadía con camas</span>
+                <span class="wizard__modalidad--visita">Visita de un día</span>
+              </span>
+            </li>
+            <li>
+              <span class="wizard__modalidad--alojamiento">92 camas en total</span>
+              <span class="wizard__modalidad--visita">150 personas en visita</span>
+            </li>
+            <li>
+              <span class="wizard__modalidad--alojamiento">$5.000 por cama y noche</span>
+              <span class="wizard__modalidad--visita">$2.000 por persona</span>
+            </li>
+          </ul>
+        </div>
+
+        <!--
+          Selector de modalidad. Cambia la forma de reservar sin JS: alojamiento
+          sigue siendo el wizard de 4 pasos y visita es una sola página. Va
+          fuera de los formularios de los pasos y es el único name="modalidad"
+          del wizard. data-modalidad="alojamiento" en .wizard sigue siendo el
+          contrato que lee la integración.
+        -->
+        <fieldset class="segmented">
+          <legend class="visually-hidden">Modalidad de la reserva</legend>
+          <label class="segmented__option">
+            <input
+              class="segmented__input visually-hidden"
+              type="radio"
+              name="modalidad"
+              value="alojamiento"
+              checked
+            />
+            <span>Con alojamiento</span>
+          </label>
+          <label class="segmented__option">
+            <input
+              class="segmented__input visually-hidden"
+              type="radio"
+              name="modalidad"
+              value="visita"
+            />
+            <span>Visita de un día</span>
+          </label>
+        </fieldset>
+
+        <!-- Barra de progreso: el estado se lee por el color del segmento y por
+             el número con su check. Los pasos completados son enlaces cuando el
+             JS los habilita para volver atrás. -->
+        <ol class="steps" aria-label="Pasos de la reserva">
+          <li class="step step--current" data-paso="1" aria-current="step">
+            <span class="step__num">
+              <svg class="icon icon--sm step__check" aria-hidden="true">
+                <use href="#i-check"></use>
+              </svg>
+              1
+            </span>
+            <span class="step__label">Tu grupo</span>
+            <span class="step__hint">Cantidad y precio</span>
+          </li>
+          <li class="step" data-paso="2">
+            <span class="step__num">
+              <svg class="icon icon--sm step__check" aria-hidden="true">
+                <use href="#i-check"></use>
+              </svg>
+              2
+            </span>
+            <span class="step__label">Delegación</span>
+            <span class="step__hint">Tipo de institución</span>
+          </li>
+          <li class="step" data-paso="3">
+            <span class="step__num">
+              <svg class="icon icon--sm step__check" aria-hidden="true">
+                <use href="#i-check"></use>
+              </svg>
+              3
+            </span>
+            <span class="step__label">Fechas</span>
+            <span class="step__hint">Día o rango</span>
+          </li>
+          <li class="step" data-paso="4">
+            <span class="step__num">
+              <svg class="icon icon--sm step__check" aria-hidden="true">
+                <use href="#i-check"></use>
+              </svg>
+              4
+            </span>
+            <span class="step__label">Datos</span>
+            <span class="step__hint">Responsable y contacto</span>
+          </li>
+        </ol>
+
+        <div class="wizard__grid">
+          <!-- ============================================================
+               PASO 1 — Tu grupo
+               ============================================================ -->
+          <section class="paso" id="step-1-maestro" data-paso="1" aria-labelledby="paso-1-titulo">
+            <div class="panel" id="paso-box-1-maestro">
+              <div class="paso__head">
+                <h2 class="paso__title" id="paso-1-titulo">Tu grupo</h2>
+                <p class="paso__lead">
+                  Elegí cuántas camas necesitás. El monto por cama y el total se
+                  actualizan en el resumen a medida que cambiás la cantidad.
+                </p>
+              </div>
+
+              <form class="paso__form" action="reservar.html" method="get">
+                <div class="paso__fields">
+                  <div class="field paso__field--cantidad">
+                    <label class="field__label" for="cantidad-alo-maestro">
+                      <span class="wizard__modalidad--alojamiento">Camas</span>
+                      <span class="wizard__modalidad--visita">Personas</span>
+                    </label>
+
+                    <!-- Los botones del stepper los cablea el JS; el campo
+                         numérico funciona igual con teclado y flechas. -->
+                    <div class="stepper__control">
+                      <button class="stepper__btn" type="button" aria-label="Restar una cama">
+                        <svg class="icon icon--sm" aria-hidden="true">
+                          <use href="#i-minus"></use>
+                        </svg>
+                      </button>
+                      <input
+                        class="stepper__value input--number"
+                        id="cantidad-alo-maestro"
+                        name="cantidad"
+                        data-campo="cantidad"
+                        type="number"
+                        value="3"
+                        min="1"
+                        max="92"
+                        step="1"
+                        inputmode="numeric"
+                      />
+                      <button class="stepper__btn" type="button" aria-label="Sumar una cama">
+                        <svg class="icon icon--sm" aria-hidden="true">
+                          <use href="#i-plus"></use>
+                        </svg>
+                      </button>
+                    </div>
+
+                    <p class="field__help">
+                      <span class="wizard__modalidad--alojamiento">$5.000 por cama y noche.</span>
+                      <span class="wizard__modalidad--visita">$2.000 por persona.</span>
+                      <span class="wizard__modalidad--alojamiento"
+                        >Hay <span data-rol="disponibles">92</span> camas en el
+                        albergue.</span
+                      >
+                      <span class="wizard__modalidad--visita"
+                        >Hay <span data-rol="disponibles-visita">150</span> lugares
+                        en visita.</span
+                      >
+                    </p>
+                  </div>
+                </div>
+              </form>
+
+              <div class="paso__actions">
+                <a class="btn btn--primary btn--lg" href="#step-2-maestro" id="btn-submit-alo-maestro">
+                  <span class="btn__label">Continuar a delegación</span>
+                </a>
+                <a class="link" href="index.html#buscador">Cambiar albergue o fechas</a>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============================================================
+               PASO 2 — Delegación
+               Solo para alojamiento: define las noches máximas. En la
+               modalidad visita el JS saltea este contenedor.
+               ============================================================ -->
+          <section class="paso" id="step-2-maestro" data-paso="2" aria-labelledby="paso-2-titulo">
+            <div class="panel" id="paso-box-2-maestro">
+              <div class="paso__head">
+                <h2 class="paso__title" id="paso-2-titulo">Delegación</h2>
+                <p class="paso__lead">
+                  El tipo de delegación define cuántos días podés reservar. El
+                  precio por cama es el mismo para las dos.
+                </p>
+              </div>
+
+              <form class="paso__form" action="reservar.html" method="get">
+                <!-- El id del contrato queda en el grupo y el valor viaja por
+                     name=delegacion. Los values son los del enum del backend:
+                     en integración se confirman contra la API. -->
+                <fieldset class="choice-set paso__choices" id="delegacion-alo-maestro">
+                  <legend class="choice-set__legend">Tipo de institución</legend>
+
+                  <label class="choice">
+                    <input
+                      class="choice__input"
+                      type="radio"
+                      name="delegacion"
+                      value="escuelas"
+                      data-campo="delegacion"
+                      checked
+                    />
+                    <span class="choice__body">
+                      <span class="choice__title">Escuela o grupo educativo</span>
+                      <span class="choice__meta">Hasta 4 días por estadía.</span>
+                    </span>
+                  </label>
+
+                  <label class="choice">
+                    <input
+                      class="choice__input"
+                      type="radio"
+                      name="delegacion"
+                      value="otra"
+                      data-campo="delegacion"
+                    />
+                    <span class="choice__body">
+                      <span class="choice__title">Otra institución o grupo</span>
+                      <span class="choice__meta">Hasta 3 días por estadía.</span>
+                    </span>
+                  </label>
+                </fieldset>
+              </form>
+
+              <div class="paso__actions">
+                <a class="btn btn--primary btn--lg" href="#step-3-maestro">
+                  <span class="btn__label">Continuar a fechas</span>
+                </a>
+                <a class="link link--with-icon" href="#step-1-maestro">
+                  <svg class="icon icon--sm" aria-hidden="true">
+                    <use href="#i-arrow-left"></use>
+                  </svg>
+                  Volver a tu grupo
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============================================================
+               PASO 3 — Fechas
+               En alojamiento se elige el rango (entrada y salida); en visita,
+               un solo día. El calendario es partials/calendar.html.
+               ============================================================ -->
+          <section class="paso" id="step-3-maestro" data-paso="3" aria-labelledby="paso-3-titulo">
+            <div class="panel" id="paso-box-3-maestro">
+              <div class="paso__head">
+                <h2 class="paso__title" id="paso-3-titulo">Fechas</h2>
+                <p class="paso__lead">
+                  <span class="wizard__modalidad--alojamiento">
+                    Elegí la entrada y la salida en el calendario. La salida no
+                    suma una noche; como escuela podés reservar hasta 4 días.
+                  </span>
+                  <span class="wizard__modalidad--visita">
+                    Elegí el día de la visita. Se puede cambiar hasta confirmar la
+                    reserva.
+                  </span>
+                </p>
+              </div>
+
+              <!-- El calendario se abre con el rango del mock ya elegido: en
+                   integración el JS pinta los días con data-fecha. Desde 1024
+                   los avisos de validación van al lado del mes. -->
+              <div class="paso__fechas">
+              <div class="cal cal--camas" id="calendario-alo-maestro" aria-label="Calendario de disponibilidad de Maestro José Fierro">
+                <div class="cal__head">
+                  <p class="cal__month" aria-live="polite">Noviembre 2026</p>
+                  <div class="cal__nav">
+                    <button class="cal__nav-btn" type="button" aria-label="Mes anterior" disabled>
+                      <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+                    </button>
+                    <button class="cal__nav-btn" type="button" aria-label="Mes siguiente">
+                      <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="cal__dow" aria-hidden="true">
+                  <span>lun</span>
+                  <span>mar</span>
+                  <span>mié</span>
+                  <span>jue</span>
+                  <span>vie</span>
+                  <span>sáb</span>
+                  <span>dom</span>
+                </div>
+
+                <div class="cal__grid">
+                  <span class="cal__blank" aria-hidden="true"></span>
+                  <span class="cal__blank" aria-hidden="true"></span>
+                  <span class="cal__blank" aria-hidden="true"></span>
+                  <span class="cal__blank" aria-hidden="true"></span>
+                  <span class="cal__blank" aria-hidden="true"></span>
+                  <span class="cal__blank" aria-hidden="true"></span>
+
+                  <button class="cal__day cal__day--past" type="button" data-fecha="2026-11-01" disabled aria-label="domingo 1 de noviembre, ya pasó">1</button>
+                  <button class="cal__day cal__day--past" type="button" data-fecha="2026-11-02" disabled aria-label="lunes 2 de noviembre, ya pasó">2</button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-03" aria-label="martes 3 de noviembre, 90 camas libres">
+                    3
+                    <span class="cal__beds">90</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-04" aria-label="miércoles 4 de noviembre, 88 camas libres">
+                    4
+                    <span class="cal__beds">88</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-05" aria-label="jueves 5 de noviembre, 84 camas libres">
+                    5
+                    <span class="cal__beds">84</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-06" aria-label="viernes 6 de noviembre, 76 camas libres">
+                    6
+                    <span class="cal__beds">76</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-07" aria-label="sábado 7 de noviembre, 71 camas libres">
+                    7
+                    <span class="cal__beds">71</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-08" aria-label="domingo 8 de noviembre, 65 camas libres">
+                    8
+                    <span class="cal__beds">65</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-09" aria-label="lunes 9 de noviembre, 58 camas libres">
+                    9
+                    <span class="cal__beds">58</span>
+                  </button>
+                  <button class="cal__day cal__day--low" type="button" data-fecha="2026-11-10" aria-label="martes 10 de noviembre, quedan 2 camas">
+                    10
+                    <span class="cal__beds">2</span>
+                  </button>
+                  <button class="cal__day cal__day--full" type="button" data-fecha="2026-11-11" disabled aria-label="miércoles 11 de noviembre, sin cupo">
+                    11
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-12" aria-label="jueves 12 de noviembre, 46 camas libres">
+                    12
+                    <span class="cal__beds">46</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-13" aria-label="viernes 13 de noviembre, 41 camas libres">
+                    13
+                    <span class="cal__beds">41</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-14" aria-label="sábado 14 de noviembre, 37 camas libres">
+                    14
+                    <span class="cal__beds">37</span>
+                  </button>
+                  <button class="cal__day cal__day--range-start" type="button" data-fecha="2026-11-15" aria-label="domingo 15 de noviembre, entrada elegida, 30 camas libres">
+                    15
+                    <span class="cal__beds">30</span>
+                  </button>
+                  <button class="cal__day cal__day--in-range" type="button" data-fecha="2026-11-16" aria-label="lunes 16 de noviembre, dentro del rango, 24 camas libres">
+                    16
+                    <span class="cal__beds">24</span>
+                  </button>
+                  <button class="cal__day cal__day--in-range" type="button" data-fecha="2026-11-17" aria-label="martes 17 de noviembre, dentro del rango, 18 camas libres">
+                    17
+                    <span class="cal__beds">18</span>
+                  </button>
+                  <button class="cal__day cal__day--range-end" type="button" data-fecha="2026-11-18" aria-label="miércoles 18 de noviembre, salida elegida, 12 camas libres">
+                    18
+                    <span class="cal__beds">12</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-19" aria-label="jueves 19 de noviembre, 44 camas libres">
+                    19
+                    <span class="cal__beds">44</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-20" aria-label="viernes 20 de noviembre, 39 camas libres">
+                    20
+                    <span class="cal__beds">39</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-21" aria-label="sábado 21 de noviembre, 33 camas libres">
+                    21
+                    <span class="cal__beds">33</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-22" aria-label="domingo 22 de noviembre, 28 camas libres">
+                    22
+                    <span class="cal__beds">28</span>
+                  </button>
+                  <button class="cal__day cal__day--low" type="button" data-fecha="2026-11-23" aria-label="lunes 23 de noviembre, quedan 2 camas">
+                    23
+                    <span class="cal__beds">2</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-24" aria-label="martes 24 de noviembre, 33 camas libres">
+                    24
+                    <span class="cal__beds">33</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-25" aria-label="miércoles 25 de noviembre, 39 camas libres">
+                    25
+                    <span class="cal__beds">39</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-26" aria-label="jueves 26 de noviembre, 45 camas libres">
+                    26
+                    <span class="cal__beds">45</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-27" aria-label="viernes 27 de noviembre, 52 camas libres">
+                    27
+                    <span class="cal__beds">52</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-28" aria-label="sábado 28 de noviembre, 60 camas libres">
+                    28
+                    <span class="cal__beds">60</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-29" aria-label="domingo 29 de noviembre, 68 camas libres">
+                    29
+                    <span class="cal__beds">68</span>
+                  </button>
+                  <button class="cal__day" type="button" data-fecha="2026-11-30" aria-label="lunes 30 de noviembre, 74 camas libres">
+                    30
+                    <span class="cal__beds">74</span>
+                  </button>
+                </div>
+
+                <p class="cal__range">15/11 al 18/11, 3 noches</p>
+
+                <ul class="cal__legend">
+                  <li class="cal__legend-item">
+                    <span class="cal__swatch cal__swatch--beds" aria-hidden="true"></span>
+                    Camas libres
+                  </li>
+                  <li class="cal__legend-item">
+                    <span class="cal__swatch cal__swatch--beds-low" aria-hidden="true"></span>
+                    Quedan pocas camas
+                  </li>
+                  <li class="cal__legend-item">
+                    <span class="cal__swatch cal__swatch--full" aria-hidden="true"></span>
+                    Sin cupo
+                  </li>
+                  <li class="cal__legend-item">
+                    <span class="cal__swatch cal__swatch--selected" aria-hidden="true"></span>
+                    Tu reserva
+                  </li>
+                  <li class="cal__legend-item">
+                    <span class="cal__swatch cal__swatch--outside" aria-hidden="true"></span>
+                    Fuera de la ventana
+                  </li>
+                </ul>
+              </div>
+
+              <div class="paso__notes">
+                <div class="notice notice--success" role="status">
+                  <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                    <use href="#i-check-circle"></use>
+                  </svg>
+                  <div class="notice__body">
+                    <p class="notice__title">Hay lugar para las 3 noches</p>
+                    <p class="notice__text">
+                      Las 3 camas están libres del 15 al 18 de noviembre y el rango
+                      no toca días sin cupo.
+                    </p>
+                  </div>
+                </div>
+
+                <div class="notice" role="status">
+                  <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                    <use href="#i-info"></use>
+                  </svg>
+                  <div class="notice__body">
+                    <p class="notice__text">
+                      El ingreso es a las 09:00 y la salida a las 18:00 del último
+                      día.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              </div>
+
+              <div class="paso__actions">
+                <a class="btn btn--primary btn--lg" href="#step-4-maestro">
+                  <span class="btn__label">Continuar a datos</span>
+                </a>
+                <a class="link link--with-icon" href="#step-2-maestro">
+                  <svg class="icon icon--sm" aria-hidden="true">
+                    <use href="#i-arrow-left"></use>
+                  </svg>
+                  Volver a delegación
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============================================================
+               PASO 4 — Datos
+               Institución, responsable, DNI, celular, correo y aceptación del
+               reglamento. Los nombres de los campos son los que espera el
+               backend: data-campo y los ids {campo}-alo-{clave}.
+               ============================================================ -->
+          <section class="paso" id="step-4-maestro" data-paso="4" aria-labelledby="paso-4-titulo">
+            <div class="panel" id="paso-box-4-maestro">
+              <div class="paso__head">
+                <h2 class="paso__title" id="paso-4-titulo">Datos</h2>
+                <p class="paso__lead">
+                  Con estos datos se arma la nota de la reserva. El DNI del
+                  responsable es lo que te piden para cancelar o cambiar la fecha.
+                </p>
+              </div>
+
+              <form class="paso__form" action="reservar.html" method="get">
+                <div class="paso__fields">
+                  <div class="field paso__field--full">
+                    <label class="field__label" for="institucion-alo-maestro">Institución</label>
+                    <input
+                      class="input"
+                      id="institucion-alo-maestro"
+                      name="institucion"
+                      data-campo="institucion"
+                      type="text"
+                      placeholder="Escuela o institución"
+                      autocomplete="organization"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="responsable-alo-maestro">
+                      Responsable del grupo
+                    </label>
+                    <input
+                      class="input"
+                      id="responsable-alo-maestro"
+                      name="responsable"
+                      data-campo="responsable"
+                      type="text"
+                      placeholder="Nombre y apellido"
+                      autocomplete="name"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="dni-alo-maestro">DNI del responsable</label>
+                    <input
+                      class="input"
+                      id="dni-alo-maestro"
+                      name="dni"
+                      data-campo="dni"
+                      type="text"
+                      inputmode="numeric"
+                      maxlength="8"
+                      placeholder="8 números"
+                      aria-describedby="dni-alo-maestro-ayuda"
+                      required
+                    />
+                    <p class="field__help" id="dni-alo-maestro-ayuda">
+                      Sin puntos ni espacios.
+                    </p>
+                  </div>
+
+                  <!-- Prefijo y número viajan como dos campos, pero se leen y se
+                       enfocan como un solo dato. -->
+                  <div class="field" role="group" aria-labelledby="celular-alo-maestro-label">
+                    <span class="field__label" id="celular-alo-maestro-label">
+                      Celular del responsable
+                    </span>
+                    <div class="field__group">
+                      <label class="visually-hidden" for="prefijo-alo-maestro">Código de área</label>
+                      <div class="select">
+                        <select
+                          class="input select__control"
+                          id="prefijo-alo-maestro"
+                          name="prefijo"
+                          data-campo="prefijo"
+                        >
+                          <option value="381">381</option>
+                          <option value="3865">3865</option>
+                          <option value="3894">3894</option>
+                        </select>
+                        <svg class="icon icon--sm select__chevron" aria-hidden="true">
+                          <use href="#i-chevron-down"></use>
+                        </svg>
+                      </div>
+                      <label class="visually-hidden" for="numero-alo-maestro">Número</label>
+                      <input
+                        class="input"
+                        id="numero-alo-maestro"
+                        name="numero"
+                        data-campo="numero"
+                        type="tel"
+                        inputmode="numeric"
+                        placeholder="555 1234"
+                        autocomplete="tel"
+                        aria-describedby="celular-alo-maestro-ayuda"
+                        required
+                      />
+                    </div>
+                    <p class="field__help" id="celular-alo-maestro-ayuda">Sin 0 ni 15.</p>
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="email-alo-maestro">Correo electrónico</label>
+                    <input
+                      class="input"
+                      id="email-alo-maestro"
+                      name="email"
+                      data-campo="email"
+                      type="email"
+                      placeholder="nombre@correo.com"
+                      autocomplete="email"
+                      required
+                    />
+                  </div>
+
+                  <div class="field paso__field--full">
+                    <label class="checkbox">
+                      <span class="checkbox__box">
+                        <input
+                          class="checkbox__input"
+                          id="acepta-terminos-alo-maestro"
+                          name="acepta-terminos"
+                          data-campo="acepta-terminos"
+                          type="checkbox"
+                          required
+                        />
+                        <svg class="icon checkbox__check" aria-hidden="true">
+                          <use href="#i-check"></use>
+                        </svg>
+                      </span>
+                      <span class="checkbox__text">
+                        Leí y acepto el
+                        <!-- Placeholder: en integración apunta al PDF del albergue
+                             (campo `pdf` de listarAlbergues). -->
+                        <a class="link" href="index.html#ayuda" data-placeholder="reglamento">
+                          reglamento del albergue
+                        </a>
+                        y las condiciones de cancelación.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </form>
+
+              <div class="paso__actions">
+                <a class="btn btn--primary btn--lg" href="confirmacion.html">
+                  <span class="btn__label">Confirmar reserva</span>
+                </a>
+                <a class="link link--with-icon" href="#step-3-maestro">
+                  <svg class="icon icon--sm" aria-hidden="true">
+                    <use href="#i-arrow-left"></use>
+                  </svg>
+                  Volver a fechas
+                </a>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============================================================
+               VISITA — una sola página
+               Sin stepper, sin horario de alojamiento y con día único: el día se
+               elige en el calendario, el horario en dos selects y el precio es por
+               persona. Los dos selects de hora y su contrato
+               (populateHourSelects) existen solo acá: la estadía no elige horas,
+               así que ningún otro bloque debe tenerlos. El bloque no lleva la clase .paso a propósito, para no
+               entrar en la máquina de :target de los pasos.
+               ============================================================ -->
+          <div class="visita" id="reserva-visita-maestro">
+            <form id="reservaFormMaestro" class="paso__form" action="reservar.html" method="get">
+              <!-- a) Tu grupo -->
+              <section class="panel" aria-labelledby="visita-grupo-titulo">
+                <div class="paso__head">
+                  <h2 class="paso__title" id="visita-grupo-titulo">Tu grupo</h2>
+                  <p class="paso__lead">
+                    Elegí cuántas personas vienen en la visita. El precio por
+                    persona y el total se actualizan en el resumen.
+                  </p>
+                </div>
+
+                <div class="paso__fields">
+                  <div class="field paso__field--cantidad">
+                    <label class="field__label" for="cantidad-maestro">Personas</label>
+                    <div class="stepper__control">
+                      <button class="stepper__btn" type="button" aria-label="Restar una persona">
+                        <svg class="icon icon--sm" aria-hidden="true">
+                          <use href="#i-minus"></use>
+                        </svg>
+                      </button>
+                      <input
+                        class="stepper__value input--number"
+                        id="cantidad-maestro"
+                        name="cantidad"
+                        data-campo="cantidad"
+                        type="number"
+                        value="3"
+                        min="1"
+                        max="150"
+                        inputmode="numeric"
+                      />
+                      <button class="stepper__btn" type="button" aria-label="Aumentar una persona">
+                        <svg class="icon icon--sm" aria-hidden="true">
+                          <use href="#i-plus"></use>
+                        </svg>
+                      </button>
+                    </div>
+                    <p class="field__help">
+                      $2.000 por persona. Capacidad de la visita: 150 personas.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <!-- b) Fecha y horario -->
+              <section class="panel" aria-labelledby="visita-fecha-titulo">
+                <div class="paso__head">
+                  <h2 class="paso__title" id="visita-fecha-titulo">Fecha y horario</h2>
+                  <p class="paso__lead">
+                    Elegí el día de la visita y el horario de ingreso y de egreso.
+                    La visita no incluye pernocte: se entra y se sale el mismo día.
+                  </p>
+                </div>
+
+                <div class="paso__fechas">
+                  <div class="cal" id="calendario-maestro" aria-label="Calendario de visitas de Maestro José Fierro">
+                    <div class="cal__head">
+                      <p class="cal__month" id="mes-actual-maestro" aria-live="polite">Noviembre 2026</p>
+                      <div class="cal__nav">
+                        <button class="cal__nav-btn" type="button" aria-label="Mes anterior" disabled>
+                          <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+                        </button>
+                        <button class="cal__nav-btn" type="button" aria-label="Mes siguiente">
+                          <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="cal__dow" aria-hidden="true">
+                      <span>lun</span><span>mar</span><span>mié</span><span>jue</span><span>vie</span><span>sáb</span><span>dom</span>
+                    </div>
+
+                    <div class="cal__grid">
+                      <span class="cal__blank" aria-hidden="true"></span>
+                      <span class="cal__blank" aria-hidden="true"></span>
+                      <span class="cal__blank" aria-hidden="true"></span>
+                      <span class="cal__blank" aria-hidden="true"></span>
+                      <span class="cal__blank" aria-hidden="true"></span>
+                      <span class="cal__blank" aria-hidden="true"></span>
+
+                      <button class="cal__day cal__day--past" type="button" data-fecha="2026-11-01" disabled aria-label="domingo 1 de noviembre, ya pasó">1</button>
+                      <button class="cal__day cal__day--past" type="button" data-fecha="2026-11-02" disabled aria-label="lunes 2 de noviembre, ya pasó">2</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-03" aria-label="martes 3 de noviembre, 140 lugares libres">3</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-04" aria-label="miércoles 4 de noviembre, 132 lugares libres">4</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-05" aria-label="jueves 5 de noviembre, 125 lugares libres">5</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-06" aria-label="viernes 6 de noviembre, 96 lugares libres">6</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-07" aria-label="sábado 7 de noviembre, 88 lugares libres">7</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-08" aria-label="domingo 8 de noviembre, 150 lugares libres">8</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-09" aria-label="lunes 9 de noviembre, 120 lugares libres">9</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-10" aria-label="martes 10 de noviembre, 64 lugares libres">10</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-11" aria-label="miércoles 11 de noviembre, 150 lugares libres">11</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-12" aria-label="jueves 12 de noviembre, 90 lugares libres">12</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-13" aria-label="viernes 13 de noviembre, 40 lugares libres">13</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-14" aria-label="sábado 14 de noviembre, 132 lugares libres">14</button>
+                      <button class="cal__day cal__day--range-start" type="button" data-fecha="2026-11-15" aria-label="domingo 15 de noviembre, 118 lugares libres, elegido">15</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-16" aria-label="lunes 16 de noviembre, 118 lugares libres">16</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-17" aria-label="martes 17 de noviembre, 86 lugares libres">17</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-18" aria-label="miércoles 18 de noviembre, 150 lugares libres">18</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-19" aria-label="jueves 19 de noviembre, 72 lugares libres">19</button>
+                      <button class="cal__day cal__day--full" type="button" data-fecha="2026-11-20" disabled aria-label="viernes 20 de noviembre, sin cupo">20</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-21" aria-label="sábado 21 de noviembre, 96 lugares libres">21</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-22" aria-label="domingo 22 de noviembre, 142 lugares libres">22</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-23" aria-label="lunes 23 de noviembre, 150 lugares libres">23</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-24" aria-label="martes 24 de noviembre, 110 lugares libres">24</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-25" aria-label="miércoles 25 de noviembre, 58 lugares libres">25</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-26" aria-label="jueves 26 de noviembre, 120 lugares libres">26</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-27" aria-label="viernes 27 de noviembre, 150 lugares libres">27</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-28" aria-label="sábado 28 de noviembre, 86 lugares libres">28</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-29" aria-label="domingo 29 de noviembre, 134 lugares libres">29</button>
+                      <button class="cal__day" type="button" data-fecha="2026-11-30" aria-label="lunes 30 de noviembre, 150 lugares libres">30</button>
+                    </div>
+
+                    <p class="cal__range">15/11, de 09:00 a 18:00</p>
+
+                    <div class="notice notice--success" role="status">
+                      <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                        <use href="#i-check"></use>
+                      </svg>
+                      <div class="notice__body">
+                        <p class="notice__text">
+                          Hay lugar para 3 personas el 15/11. Quedan 118 de 150 lugares.
+                        </p>
+                      </div>
+                    </div>
+
+                    <ul class="cal__legend">
+                      <li class="cal__legend-item">
+                        <span class="cal__swatch cal__swatch--beds" aria-hidden="true"></span>
+                        Con lugar
+                      </li>
+                      <li class="cal__legend-item">
+                        <span class="cal__swatch cal__swatch--full" aria-hidden="true"></span>
+                        Sin cupo
+                      </li>
+                      <li class="cal__legend-item">
+                        <span class="cal__swatch cal__swatch--selected" aria-hidden="true"></span>
+                        Tu visita
+                      </li>
+                      <li class="cal__legend-item">
+                        <span class="cal__swatch cal__swatch--outside" aria-hidden="true"></span>
+                        Fuera de la ventana
+                      </li>
+                    </ul>
+
+                    <p class="cal__cupo">
+                      Cupo del día: <span id="disponibles-maestro">118</span> de
+                      <span id="capacidad-maestro">150</span> lugares.
+                    </p>
+                  </div>
+
+                  <div class="paso__notes">
+                    <input
+                      type="hidden"
+                      id="fechaIngreso-maestro"
+                      name="fechaIngreso"
+                      value="2026-11-15"
+                    />
+
+                    <div class="field">
+                      <label class="field__label" for="horaIngreso-maestro">Ingreso</label>
+                      <div class="select">
+                        <!-- Solo visita: populateHourSelects() vuelve a llenarlos
+                             en integración; las opciones son el estado visual. -->
+                        <select class="input select__control" id="horaIngreso-maestro" name="horaIngreso">
+                          <option value="">Elegí la hora</option>
+                          <option value="09:00" selected>09:00</option>
+                          <option value="10:00">10:00</option>
+                          <option value="11:00">11:00</option>
+                          <option value="12:00">12:00</option>
+                          <option value="13:00">13:00</option>
+                          <option value="14:00">14:00</option>
+                          <option value="15:00">15:00</option>
+                          <option value="16:00">16:00</option>
+                          <option value="17:00">17:00</option>
+                          <option value="18:00">18:00</option>
+                        </select>
+                        <svg class="icon icon--sm select__chevron" aria-hidden="true">
+                          <use href="#i-chevron-down"></use>
+                        </svg>
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label class="field__label" for="horaEgreso-maestro">Egreso</label>
+                      <div class="select">
+                        <!-- Solo visita: populateHourSelects() vuelve a llenarlos
+                             en integración; las opciones son el estado visual. -->
+                        <select class="input select__control" id="horaEgreso-maestro" name="horaEgreso">
+                          <option value="">Elegí la hora</option>
+                          <option value="09:00">09:00</option>
+                          <option value="10:00">10:00</option>
+                          <option value="11:00">11:00</option>
+                          <option value="12:00">12:00</option>
+                          <option value="13:00">13:00</option>
+                          <option value="14:00">14:00</option>
+                          <option value="15:00">15:00</option>
+                          <option value="16:00">16:00</option>
+                          <option value="17:00">17:00</option>
+                          <option value="18:00" selected>18:00</option>
+                        </select>
+                        <svg class="icon icon--sm select__chevron" aria-hidden="true">
+                          <use href="#i-chevron-down"></use>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <!-- c) Datos -->
+              <section class="panel" aria-labelledby="visita-datos-titulo">
+                <div class="paso__head">
+                  <h2 class="paso__title" id="visita-datos-titulo">Datos</h2>
+                  <p class="paso__lead">
+                    Con estos datos se arma la nota de la visita. El DNI del
+                    responsable es lo que te piden para cancelar o cambiar la fecha.
+                  </p>
+                </div>
+
+                <div class="paso__fields">
+                  <div class="field paso__field--full">
+                    <label class="field__label" for="institucion-maestro">Institución</label>
+                    <input
+                      class="input"
+                      id="institucion-maestro"
+                      name="institucion"
+                      data-campo="institucion"
+                      type="text"
+                      placeholder="Escuela o institución"
+                      autocomplete="organization"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="responsable-maestro">Responsable del grupo</label>
+                    <input
+                      class="input"
+                      id="responsable-maestro"
+                      name="responsable"
+                      data-campo="responsable"
+                      type="text"
+                      placeholder="Nombre y apellido"
+                      autocomplete="name"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="dni-maestro">DNI del responsable</label>
+                    <input
+                      class="input"
+                      id="dni-maestro"
+                      name="dni"
+                      data-campo="dni"
+                      type="text"
+                      inputmode="numeric"
+                      maxlength="8"
+                      placeholder="8 números"
+                      required
+                    />
+                  </div>
+
+                  <div class="field">
+                    <label class="field__label" for="email-maestro">Correo electrónico</label>
+                    <input
+                      class="input"
+                      id="email-maestro"
+                      name="email"
+                      data-campo="email"
+                      type="email"
+                      placeholder="nombre@correo.com"
+                      autocomplete="email"
+                      required
+                    />
+                  </div>
+
+                  <div class="field" role="group" aria-labelledby="celular-visita-label">
+                    <span class="field__label" id="celular-visita-label">Celular del responsable</span>
+                    <div class="field__group">
+                      <label class="visually-hidden" for="prefijo-visita-maestro">Código de área</label>
+                      <div class="select">
+                        <select
+                          class="input select__control"
+                          id="prefijo-visita-maestro"
+                          name="prefijo"
+                          data-campo="prefijo"
+                        >
+                          <option value="381">381</option>
+                          <option value="3865">3865</option>
+                          <option value="3894">3894</option>
+                        </select>
+                        <svg class="icon icon--sm select__chevron" aria-hidden="true">
+                          <use href="#i-chevron-down"></use>
+                        </svg>
+                      </div>
+                      <label class="visually-hidden" for="numero-visita-maestro">Número</label>
+                      <input
+                        class="input"
+                        id="numero-visita-maestro"
+                        name="numero"
+                        data-campo="numero"
+                        type="tel"
+                        inputmode="numeric"
+                        placeholder="555 1234"
+                        autocomplete="tel"
+                        required
+                      />
+                    </div>
+                    <p class="field__help">Sin 0 ni 15.</p>
+                    <input type="hidden" id="contacto-maestro" name="contacto" data-campo="contacto" />
+                  </div>
+
+                  <div class="field paso__field--full">
+                    <label class="checkbox">
+                      <span class="checkbox__box">
+                        <input
+                          class="checkbox__input"
+                          id="acepta-terminos-maestro"
+                          name="acepta-terminos"
+                          data-campo="acepta-terminos"
+                          type="checkbox"
+                          required
+                        />
+                        <svg class="icon checkbox__check" aria-hidden="true">
+                          <use href="#i-check"></use>
+                        </svg>
+                      </span>
+                      <span class="checkbox__text">
+                        Leí y acepto el
+                        <a class="link" href="index.html#ayuda" data-placeholder="reglamento">reglamento del albergue</a>
+                        y las condiciones de cancelación.
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              </section>
+
+              <div class="paso__actions">
+                <button type="submit" class="btn btn--primary btn--lg btn-submit" id="btn-submit-maestro">
+                  <span class="btn__label">Confirmar visita</span>
+                </button>
+                <a class="link" href="index.html#buscador">Cambiar albergue o fechas</a>
+              </div>
+            </form>
+          </div>
+
+          <!--
+            Resumen de precio.
+            En escritorio acompaña el scroll en una columna propia; en móvil se
+            fija al pie con el total y una leyenda corta. No lleva CTA: la
+            acción vive en el paso.
+          -->
+          <aside class="summary wizard__summary" aria-labelledby="resumen-titulo">
+            <h2 class="summary__title" id="resumen-titulo">Resumen</h2>
+
+            <p class="wizard__summary-caption">
+              <span class="wizard__modalidad--alojamiento"
+                >Estadía, 3 camas, 15/11 al 18/11.</span
+              >
+              <span class="wizard__modalidad--visita"
+                >Visita, 3 personas, 15/11, 09:00 a 18:00.</span
+              >
+            </p>
+
+            <dl class="summary__list">
+              <div class="summary__row">
+                <dt>Albergue</dt>
+                <dd>Maestro José Fierro</dd>
+              </div>
+              <div class="summary__row">
+                <dt>Modalidad</dt>
+                <dd>
+                  <span class="wizard__modalidad--alojamiento">Estadía con camas</span>
+                  <span class="wizard__modalidad--visita">Visita de un día</span>
+                </dd>
+              </div>
+              <div class="summary__row wizard__modalidad--alojamiento">
+                <dt>Delegación</dt>
+                <dd>Escuela</dd>
+              </div>
+              <div class="summary__row">
+                <dt>
+                  <span class="wizard__modalidad--alojamiento">Camas</span>
+                  <span class="wizard__modalidad--visita">Personas</span>
+                </dt>
+                <dd>3</dd>
+              </div>
+              <div class="summary__row">
+                <dt>Unitario</dt>
+                <dd>
+                  <span
+                    class="wizard__modalidad--alojamiento"
+                    id="monto-unitario-alo-maestro"
+                    >$5.000</span
+                  >
+                  <span
+                    class="wizard__modalidad--visita"
+                    id="monto-unitario-maestro"
+                    data-rol="unitario-visita"
+                    >$2.000</span
+                  >
+                </dd>
+              </div>
+              <div class="summary__row">
+                <dt>
+                  <span class="wizard__modalidad--alojamiento">Fechas</span>
+                  <span class="wizard__modalidad--visita">Fecha</span>
+                </dt>
+                <dd>
+                  <span
+                    id="fecha-range-display-alo-maestro"
+                    class="wizard__modalidad--alojamiento"
+                    >15/11 al 18/11</span
+                  >
+                  <span class="wizard__modalidad--visita" data-rol="fecha-visita"
+                    >15/11</span
+                  >
+                </dd>
+              </div>
+              <div class="summary__row wizard__modalidad--visita">
+                <dt>Horario</dt>
+                <dd>09:00 a 18:00</dd>
+              </div>
+            </dl>
+
+            <div class="summary__total">
+              <span class="summary__total-label">Total</span>
+              <span
+                class="summary__amount wizard__modalidad--alojamiento"
+                id="monto-total-alo-maestro"
+                data-rol="total-alo"
+              >
+                $45.000
+              </span>
+              <span
+                class="summary__amount wizard__modalidad--visita"
+                id="monto-total-maestro"
+                data-rol="total-visita"
+                >$6.000</span
+              >
+            </div>
+
+            <p class="summary__note wizard__modalidad--visita" id="monto-ayuda-maestro">
+              3 personas × $2.000
+            </p>
+
+            <p class="summary__note">
+              Se paga por transferencia. Tenés 48 h para subir el comprobante; si
+              la fecha está cerca, el plazo baja a 6 h.
+            </p>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__top">
+        <div class="footer__brand">
+          <a class="brand brand--footer" href="index.html">
+            <span class="brand__name">Albergues recreativos</span>
+          </a>
+          <p class="footer__claim">
+            Estadías y visitas de un día en los albergues recreativos.
+          </p>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Reservas</h3>
+          <ul class="footer__list">
+            <li><a href="index.html#albergues">Albergues</a></li>
+            <li><a href="index.html#como-funciona">Cómo funciona</a></li>
+            <li><a href="reservar.html">Reservar</a></li>
+            <li><a href="mi-reserva.html">Mi reserva</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Condiciones</h3>
+          <ul class="footer__list">
+            <li><a href="index.html#ayuda">Cancelación y devoluciones</a></li>
+            <li><a href="index.html#ayuda">Horarios de ingreso y salida</a></li>
+            <li><a href="index.html#ayuda">Duración máxima de la estadía</a></li>
+            <li><a href="#" data-placeholder="reglamento">Reglamento</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Contacto</h3>
+          <ul class="footer__contact">
+            <li class="footer__contact-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-phone"></use></svg>
+              <a class="footer__pending" href="#" data-placeholder="telefono">Teléfono a confirmar</a>
+            </li>
+            <li class="footer__contact-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"></use></svg>
+              <a class="footer__pending" href="#" data-placeholder="correo">Correo a confirmar</a>
+            </li>
+          </ul>
+
+          <dl class="footer__hours">
+            <div class="footer__hours-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+              <dt>Ingreso</dt>
+              <dd class="footer__hours-value">09:00</dd>
+            </div>
+            <div class="footer__hours-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+              <dt>Salida</dt>
+              <dd class="footer__hours-value">18:00</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="footer__legal">
+        <div class="container footer__legal-inner">
+          <p>Reservas de los albergues recreativos.</p>
+          <ul class="footer__legal-list">
+            <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
+            <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>
+            <li><a href="#" data-placeholder="accesibilidad">Accesibilidad</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

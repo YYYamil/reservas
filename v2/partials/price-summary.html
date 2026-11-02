@@ -1,0 +1,63 @@
+<!--
+  partials/price-summary.html — resumen de precio del wizard
+  ==========================================================================
+  Acompaña al wizard en una columna propia desde 1024 y se fija al pie en
+  móvil (lo posiciona wizard.css). No lleva CTA propio: la acción vive en el
+  paso.
+
+  Estados:
+  - sin fechas  → el monto todavía no existe. Se muestra
+                  .summary__amount--pending con "Se calcula al elegir las
+                  fechas". Nunca se deja el monto vacío ni en $0.
+  - con fechas  → monto total (abajo). Es el estado de este archivo.
+  - sin cupo    → data-rol="estado" pasa a "Sin cupo" y el paso 3 bloquea el
+                  avance; el monto no se muestra.
+
+  Ganchos que actualiza el JS: data-rol="total", data-rol="unitario",
+  data-rol="disponibles" y el id fecha-range-display-alo-{clave}.
+
+  Cálculo de estadía: monto_cama × camas × noches.
+  Cálculo de visita: monto_visita × personas.
+-->
+<aside class="summary wizard__summary" aria-labelledby="resumen-titulo">
+  <h2 class="summary__title" id="resumen-titulo">Resumen</h2>
+
+  <p class="wizard__summary-caption">
+    Estadía con camas, 3 camas, 15/11 al 18/11.
+  </p>
+
+  <dl class="summary__list">
+    <div class="summary__row">
+      <dt>Albergue</dt>
+      <dd>Maestro José Fierro</dd>
+    </div>
+    <div class="summary__row">
+      <dt>Modalidad</dt>
+      <dd>Estadía con camas</dd>
+    </div>
+    <div class="summary__row">
+      <dt>Camas</dt>
+      <dd>3</dd>
+    </div>
+    <div class="summary__row">
+      <dt>Unitario</dt>
+      <dd data-rol="unitario">$5.000</dd>
+    </div>
+    <div class="summary__row">
+      <dt>Fechas</dt>
+      <dd id="fecha-range-display-alo-maestro">15/11 al 18/11</dd>
+    </div>
+  </dl>
+
+  <div class="summary__total">
+    <span class="summary__total-label">Total</span>
+    <span class="summary__amount" id="monto-total-alo-maestro" data-rol="total">
+      $45.000
+    </span>
+  </div>
+
+  <p class="summary__note">
+    Se paga por transferencia. Tenés 48 h para subir el comprobante; si la fecha
+    está cerca, el plazo baja a 6 h.
+  </p>
+</aside>

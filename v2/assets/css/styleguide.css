@@ -1,0 +1,739 @@
+/* ==========================================================================
+   styleguide.css — andamiaje del documento styleguide.html
+   --------------------------------------------------------------------------
+   No es parte de la biblioteca de producto: solo estiliza la página que
+   documenta el sistema. También consume únicamente tokens.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Cabecera del documento
+   -------------------------------------------------------------------------- */
+.sg-header {
+  padding-block: var(--sp-8);
+  border-bottom: var(--rule-width) solid var(--c-border);
+}
+
+.sg-header__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-4) var(--sp-8);
+}
+
+.sg-header__title {
+  font-family: var(--ff-display);
+  font-size: var(--fs-600);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+}
+
+@media (min-width: 768px) {
+  .sg-header__title {
+    font-size: var(--fs-700);
+  }
+}
+
+.sg-header__lead {
+  max-width: 44ch;
+  margin-top: var(--sp-2);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+}
+
+.sg-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.sg-file {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding-inline: var(--sp-3);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-subtle);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+  font-size: var(--fs-200);
+  text-decoration: none;
+}
+
+.sg-file:hover {
+  border-color: var(--c-border-strong);
+  background-color: var(--c-surface-sunken);
+  color: var(--c-text);
+}
+
+/* --------------------------------------------------------------------------
+   Estructura: índice + contenido
+   -------------------------------------------------------------------------- */
+.sg-layout {
+  display: grid;
+  gap: var(--sp-8);
+  padding-block: var(--sp-8);
+}
+
+@media (min-width: 1024px) {
+  .sg-layout {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: var(--sp-8);
+    align-items: start;
+  }
+}
+
+.sg-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  padding: var(--sp-2);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+@media (min-width: 1024px) {
+  .sg-nav {
+    position: sticky;
+    top: var(--sp-6);
+    display: block;
+  }
+}
+
+.sg-nav__label {
+  display: block;
+  padding: var(--sp-2) var(--sp-3) var(--sp-1);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+}
+
+.sg-nav__link {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-min);
+  padding-inline: var(--sp-3);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  text-decoration: none;
+}
+
+.sg-nav__link:hover {
+  background-color: var(--c-surface-sunken);
+  color: var(--c-text);
+}
+
+.sg-main {
+  display: grid;
+  gap: var(--sp-16);
+  min-width: 0;
+}
+
+.sg-section {
+  display: grid;
+  gap: var(--sp-6);
+  scroll-margin-top: var(--sp-8);
+}
+
+.sg-section__note {
+  max-width: 62ch;
+  margin-top: calc(var(--sp-2) * -1);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+.sg-section:first-child > .section-heading {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.sg-size {
+  display: grid;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.sg-block {
+  display: grid;
+  /* Las filas no se estiran cuando el bloque comparte fila con otro más alto:
+     si no, el encabezado se separa de su muestra. */
+  align-content: start;
+  gap: var(--sp-3);
+  min-width: 0;
+}
+
+.sg-block__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-1) var(--sp-4);
+}
+
+.sg-block__meta {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+/* Muestra de estado vacío: el bloque ocupa el ancho del marco para que se lea
+   como en la página. */
+.sg-empty-demo {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+/* El calendario se documenta al ancho real del panel del wizard (26rem): a
+   todo el ancho de la página las celdas quedarían de 120 px y no se leería
+   como se va a ver. */
+#calendario .cal {
+  max-width: 26rem;
+}
+
+/* Las muestras de elección, aviso y código se documentan al ancho real del paso
+   (34rem): a todo el ancho la tarjeta de opción queda desproporcionada. */
+#opciones .choice-set,
+#fechas .notice,
+#confirmacion .confirmacion__code {
+  max-width: 34rem;
+}
+
+#opciones .sg-cell > .choice-set {
+  width: 100%;
+}
+
+/* La fila del archivo se documenta angosta para que se vea el recorte del
+   nombre: a todo el ancho, un nombre largo entra sin puntos suspensivos. */
+#pago .sg-size--angosto {
+  max-width: 18rem;
+}
+
+/* La devolución se documenta al ancho del aviso que la explica. */
+#mi-reserva .devolucion {
+  width: 100%;
+  max-width: 34rem;
+}
+
+/* --------------------------------------------------------------------------
+   Muestras y matrices: rejilla de 1 px, sin tarjetas anidadas
+   -------------------------------------------------------------------------- */
+.sg-matrix {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rule-width);
+  overflow: clip;
+  background-color: var(--c-border);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+
+@media (min-width: 480px) {
+  .sg-matrix,
+  .sg-matrix--6 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sg-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-height: 6rem;
+  padding: var(--sp-3);
+  background-color: var(--c-page);
+}
+
+/* El acordeón sí ocupa el ancho de la celda: a su medida natural, la línea de
+   cada pregunta termina antes que el marco y el borde parece cortado. */
+.sg-cell > .accordion {
+  align-self: stretch;
+}
+
+.sg-cell--wide,
+.sg-cell:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.sg-label {
+  color: var(--c-text-muted);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+}
+
+.sg-grid {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+.sg-grid--cards {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .sg-matrix--6 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .sg-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sg-grid--cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .sg-grid--cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Tres columnas es el máximo del documento: con seis, el botón en estado
+   "cargando" (indicador + etiqueta) no entra en la celda y se recorta. */
+
+/* --------------------------------------------------------------------------
+   Paleta
+   -------------------------------------------------------------------------- */
+.sg-ramp {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+
+@media (min-width: 768px) {
+  .sg-ramp {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .sg-ramp--wide {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.sg-swatch {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.sg-swatch__chip {
+  height: var(--sp-16);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+
+.sg-swatch__name {
+  color: var(--c-text);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+  overflow-wrap: anywhere;
+}
+
+.sg-swatch__value {
+  color: var(--c-text-muted);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+  font-size: var(--fs-200);
+  font-variant-numeric: tabular-nums;
+}
+
+.sg-fill--neutral-50 {
+  background-color: var(--c-neutral-50);
+}
+
+.sg-fill--neutral-100 {
+  background-color: var(--c-neutral-100);
+}
+
+.sg-fill--neutral-200 {
+  background-color: var(--c-neutral-200);
+}
+
+.sg-fill--neutral-300 {
+  background-color: var(--c-neutral-300);
+}
+
+.sg-fill--neutral-400 {
+  background-color: var(--c-neutral-400);
+}
+
+.sg-fill--neutral-500 {
+  background-color: var(--c-neutral-500);
+}
+
+.sg-fill--neutral-600 {
+  background-color: var(--c-neutral-600);
+}
+
+.sg-fill--neutral-700 {
+  background-color: var(--c-neutral-700);
+}
+
+.sg-fill--neutral-900 {
+  background-color: var(--c-neutral-900);
+}
+
+.sg-fill--white {
+  background-color: var(--c-white);
+}
+
+.sg-fill--accent-100 {
+  background-color: var(--c-accent-100);
+}
+
+.sg-fill--accent-200 {
+  background-color: var(--c-accent-200);
+}
+
+.sg-fill--accent-600 {
+  background-color: var(--c-accent-600);
+}
+
+.sg-fill--accent-700 {
+  background-color: var(--c-accent-700);
+}
+
+.sg-fill--green-100 {
+  background-color: var(--c-green-100);
+}
+
+.sg-fill--green-500 {
+  background-color: var(--c-green-500);
+}
+
+.sg-fill--danger-100 {
+  background-color: var(--c-danger-100);
+}
+
+.sg-fill--danger-500 {
+  background-color: var(--c-danger-500);
+}
+
+.sg-fill--warning-100 {
+  background-color: var(--c-warning-100);
+}
+
+.sg-fill--warning-500 {
+  background-color: var(--c-warning-500);
+}
+
+/* --------------------------------------------------------------------------
+   Lista de tokens: filas con hairlines, se apila en móvil
+   -------------------------------------------------------------------------- */
+.sg-tokens {
+  overflow: clip;
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+.sg-token {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-3) var(--sp-4);
+  border-top: var(--rule-width) solid var(--c-border);
+}
+
+.sg-token:first-child {
+  border-top: 0;
+}
+
+@media (min-width: 768px) {
+  .sg-token {
+    grid-template-columns: 15rem minmax(0, 1fr) 13rem;
+    align-items: baseline;
+    gap: var(--sp-4);
+  }
+}
+
+.sg-token__name {
+  color: var(--c-text);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+  font-size: var(--fs-200);
+  overflow-wrap: anywhere;
+}
+
+.sg-token__value {
+  color: var(--c-accent-on-soft);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+  font-size: var(--fs-200);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.sg-token__use {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+/* --------------------------------------------------------------------------
+   Escala tipográfica
+   -------------------------------------------------------------------------- */
+.sg-type {
+  display: grid;
+  overflow: clip;
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+.sg-type__row {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+  border-top: var(--rule-width) solid var(--c-border);
+}
+
+.sg-type__row:first-child {
+  border-top: 0;
+}
+
+.sg-type__sample {
+  color: var(--c-text);
+  overflow-wrap: anywhere;
+}
+
+.sg-type__meta {
+  color: var(--c-text-muted);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+  font-size: var(--fs-200);
+}
+
+.sg-fs-100 {
+  font-size: var(--fs-100);
+  line-height: var(--lh-snug);
+}
+
+.sg-fs-200 {
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.sg-fs-300 {
+  font-size: var(--fs-300);
+  line-height: var(--lh-body);
+}
+
+.sg-fs-400 {
+  font-size: var(--fs-400);
+  line-height: var(--lh-snug);
+}
+
+.sg-fs-500 {
+  font-size: var(--fs-500);
+  line-height: var(--lh-snug);
+}
+
+.sg-fs-600 {
+  font-size: var(--fs-600);
+  line-height: var(--lh-tight);
+}
+
+.sg-fs-700 {
+  font-size: var(--fs-700);
+  line-height: var(--lh-tight);
+}
+
+.sg-display {
+  font-family: var(--ff-display);
+  font-weight: var(--fw-display);
+  letter-spacing: var(--ls-tight);
+}
+
+.sg-ui {
+  font-family: var(--ff-ui);
+}
+
+.sg-ui-bold {
+  font-family: var(--ff-ui);
+  font-weight: var(--fw-bold);
+}
+
+/* --------------------------------------------------------------------------
+   Espaciado, radios y sombras
+   -------------------------------------------------------------------------- */
+.sg-space {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+.sg-space__row {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) 3.5rem;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.sg-space__bar {
+  height: var(--sp-2);
+  background-color: var(--c-neutral-500);
+}
+
+.sg-space__bar--1 {
+  width: var(--sp-1);
+}
+
+.sg-space__bar--2 {
+  width: var(--sp-2);
+}
+
+.sg-space__bar--3 {
+  width: var(--sp-3);
+}
+
+.sg-space__bar--4 {
+  width: var(--sp-4);
+}
+
+.sg-space__bar--6 {
+  width: var(--sp-6);
+}
+
+.sg-space__bar--8 {
+  width: var(--sp-8);
+}
+
+.sg-space__bar--12 {
+  width: var(--sp-12);
+}
+
+.sg-space__bar--16 {
+  width: var(--sp-16);
+}
+
+.sg-space__bar--24 {
+  width: var(--sp-24);
+}
+
+.sg-surface-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+}
+
+@media (min-width: 768px) {
+  .sg-surface-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.sg-surface {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.sg-surface__box {
+  height: var(--sp-16);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+}
+
+.sg-radius--sm {
+  border-radius: var(--radius-sm);
+}
+
+.sg-radius--md {
+  border-radius: var(--radius-md);
+}
+
+.sg-radius--lg {
+  border-radius: var(--radius-lg);
+}
+
+.sg-shadow--1 {
+  box-shadow: var(--shadow-1);
+}
+
+.sg-shadow--2 {
+  box-shadow: var(--shadow-2);
+}
+
+/* --------------------------------------------------------------------------
+   Pie del documento
+   -------------------------------------------------------------------------- */
+.sg-footer {
+  padding-block: var(--sp-8);
+  border-top: var(--rule-width) solid var(--c-border);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+/* --------------------------------------------------------------------------
+   Banda a ancho completo
+   Para lo que se revisa al ancho real del sitio (barra y pie) y no dentro de
+   la grilla de índice + contenido.
+   -------------------------------------------------------------------------- */
+.sg-band {
+  display: grid;
+  gap: var(--sp-6);
+  padding-block: var(--sp-12);
+  border-top: var(--rule-width) solid var(--c-border);
+}
+
+.sg-demo {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+/* En revisión la barra no se fija al scroll. */
+.sg-demo .nav {
+  position: static;
+}
+
+/* Marco de 390 px con la altura de una pantalla de teléfono, para comparar
+   los dos estados compactos lado a lado. */
+.sg-frame {
+  width: 100%;
+  max-width: 390px;
+  min-height: calc(var(--sp-24) * 4);
+  overflow: clip;
+  background-color: var(--c-page);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-md);
+}
+
+/* Dentro del marco la barra no se fija, pero sí ancla su panel desplegable:
+   el recorte del marco hace de ventana. */
+.sg-frame .nav {
+  position: relative;
+}
+
+.sg-frames {
+  display: grid;
+  align-items: start;
+  gap: var(--sp-6);
+}
+
+/* La banda ya separa; el encabezado no necesita su propia línea. */
+.sg-band .section-heading {
+  padding-top: 0;
+  border-top: 0;
+}
+
+@media (min-width: 768px) {
+  .sg-frames {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

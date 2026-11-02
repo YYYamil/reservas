@@ -1,0 +1,56 @@
+<!--
+  partials/stepper.html — barra de pasos del wizard
+  ==========================================================================
+  Cuatro segmentos, uno por contenedor de paso (paso-box-1..4). El estado se
+  comunica por el color del segmento Y por el texto del paso actual, así que no
+  depende solo del color.
+
+  Estados:
+  - .step--current  → paso en el que está el usuario; lleva aria-current="step"
+  - .step--done     → paso completado; muestra el check junto al número y el JS
+                      lo convierte en enlace para volver
+  - (sin clase)     → pendiente
+  - .step--error    → el paso tiene un dato inválido; el rótulo lo dice
+
+  El check vive en el markup de cada paso (.step__check) y lo muestra
+  .step--done: el JS solo cambia la clase, nunca el contenido.
+
+  data-paso lleva el número del paso (1 a 4), que es lo que lee el JS actual.
+
+  En móvil los segmentos son angostos: queda el número y solo el rótulo del paso
+  actual. El resto de los rótulos está oculto con CSS, no se elimina.
+-->
+<ol class="steps" aria-label="Pasos de la reserva">
+  <li class="step step--done" data-paso="1">
+    <span class="step__num">
+      <svg class="icon icon--sm step__check" aria-hidden="true"><use href="#i-check"></use></svg>
+      1
+    </span>
+    <span class="step__label">Tu grupo</span>
+    <span class="step__hint">Cantidad y precio</span>
+  </li>
+  <li class="step step--current" data-paso="2" aria-current="step">
+    <span class="step__num">
+      <svg class="icon icon--sm step__check" aria-hidden="true"><use href="#i-check"></use></svg>
+      2
+    </span>
+    <span class="step__label">Delegación</span>
+    <span class="step__hint">Tipo de institución</span>
+  </li>
+  <li class="step" data-paso="3">
+    <span class="step__num">
+      <svg class="icon icon--sm step__check" aria-hidden="true"><use href="#i-check"></use></svg>
+      3
+    </span>
+    <span class="step__label">Fechas</span>
+    <span class="step__hint">Día o rango</span>
+  </li>
+  <li class="step" data-paso="4">
+    <span class="step__num">
+      <svg class="icon icon--sm step__check" aria-hidden="true"><use href="#i-check"></use></svg>
+      4
+    </span>
+    <span class="step__label">Datos</span>
+    <span class="step__hint">Responsable y contacto</span>
+  </li>
+</ol>

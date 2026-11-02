@@ -1,0 +1,62 @@
+<!--
+  partials/venues-empty.html — estado vacío de la grilla de albergues
+  ==========================================================================
+  Reemplaza a .results__grid, nunca convive con ella: si la consulta devuelve
+  cero items, se quita la grilla y se inserta este bloque en su lugar.
+
+  Por qué no se ve en index.html: sin consultar la API no se puede saber si hay
+  resultados. En la home viaja como <template id="resultados-vacios"> para que
+  la integración lo clone; la versión visible está en styleguide.html.
+
+  Variantes del inventario:
+  - sin resultados (canónica, abajo): la búsqueda no devolvió albergues.
+  - error de red (.empty--error, abajo): falló la consulta; se puede reintentar.
+  - sin cupo: mismo bloque, ícono de calendario y copy "No quedan camas para
+    esas fechas". El botón primario cambia de fecha, no de página.
+  - página no encontrada: fuera de este componente, es una página completa.
+
+  El ícono del bloque es decorativo: el título ya dice qué pasó, así que va
+  aria-hidden. El botón de reintentar se conecta por data-rol="estado", que es
+  donde el JS existente escribe el estado de la consulta.
+
+  Íconos: usa el sprite de la página (i-search-x, i-alert).
+-->
+
+<!-- Sin resultados -->
+<div class="empty">
+  <span class="empty__icon" aria-hidden="true">
+    <svg class="icon icon--sm"><use href="#i-search-x"></use></svg>
+  </span>
+  <h3 class="empty__title">Ningún albergue entra en esas fechas</h3>
+  <p class="empty__text">
+    Probá con otro albergue, otra fecha o menos personas. El cupo se libera
+    cuando se cancelan reservas.
+  </p>
+  <div class="empty__actions">
+    <a class="btn btn--primary btn--sm" href="index.html#albergues">
+      <span class="btn__label">Ver todos los albergues</span>
+    </a>
+    <a class="btn btn--ghost btn--sm" href="#" data-placeholder="contacto">
+      <span class="btn__label">Consultar disponibilidad</span>
+    </a>
+  </div>
+  <p class="empty__hint">Se puede reservar con hasta 3 meses de anticipación.</p>
+</div>
+
+<!-- Error de red -->
+<div class="empty empty--error" data-rol="estado">
+  <span class="empty__icon" aria-hidden="true">
+    <svg class="icon icon--sm"><use href="#i-alert"></use></svg>
+  </span>
+  <h3 class="empty__title">No pudimos cargar los albergues</h3>
+  <p class="empty__text">
+    El servidor no respondió. Revisá la conexión y volvé a intentar: no se
+    perdió ningún dato de la reserva.
+  </p>
+  <div class="empty__actions">
+    <button class="btn btn--secondary btn--sm" type="button">
+      <svg class="icon icon--sm" aria-hidden="true"><use href="#i-refresh"></use></svg>
+      <span class="btn__label">Reintentar</span>
+    </button>
+  </div>
+</div>

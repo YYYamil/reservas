@@ -1,0 +1,187 @@
+/* ==========================================================================
+   mi-reserva.css — consulta y cancelación de una reserva (mi-reserva.html)
+   --------------------------------------------------------------------------
+   Solo layout de la página: encabezado, columna del estado y columna de
+   contexto (política de cancelación y comprobante). Los componentes (panel,
+   campos, avisos, sello, resumen) están en components.css y no se redefinen
+   acá.
+   ========================================================================== */
+
+.consulta {
+  display: grid;
+  gap: var(--sp-6);
+  padding-block: var(--sp-6) var(--sp-12);
+}
+
+.consulta__head {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.consulta__title {
+  max-width: 24ch;
+}
+
+.consulta__lead {
+  max-width: 62ch;
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.consulta__grid {
+  display: grid;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+.consulta__main,
+.consulta__aside {
+  display: grid;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+/* ==========================================================================
+   Estados de la consulta
+   --------------------------------------------------------------------------
+   Cuatro desenlaces: buscar, confirmar la cancelación, cancelada y rechazada.
+   Sin JS se ve el primero; abrir #confirmar-cancelacion, #reserva-cancelada o
+   #cancelacion-rechazada muestra ese y esconde el resto. Es una ayuda de
+   revisión: en integración los habilita el JS después de cada pedido.
+   ========================================================================== */
+.estado {
+  display: none;
+  align-content: start;
+  gap: var(--sp-6);
+}
+
+.estado:first-of-type,
+.estado:target {
+  display: grid;
+}
+
+.consulta:has(.estado:target) .estado:first-of-type:not(:target) {
+  display: none;
+}
+
+.estado__head {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+/* El sello y el badge son piezas de su propio ancho, no columnas. */
+.estado__head > .seal,
+.estado__head > .badge {
+  justify-self: start;
+}
+
+.estado__title {
+  font-size: var(--fs-500);
+}
+
+.estado__lead {
+  max-width: 54ch;
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.estado__form {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+.estado__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+}
+
+/* El detalle de la reserva va dentro del panel del estado: no necesita otra
+   tarjeta adentro (tarjeta dentro de tarjeta), alcanza con las líneas. */
+.estado .summary {
+  padding: 0;
+  background-color: transparent;
+  border: 0;
+}
+
+/* --- Campos de la consulta ---
+   El código y el DNI tienen largos fijos (8 y 8), así que van en dos columnas
+   apenas hay ancho: la consulta entera entra en una línea. */
+.consulta__fields {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+/* --- Devolución ---
+   Es la consecuencia económica de cancelar, así que va en un bloque propio y
+   en tamaño de título: es lo primero que el usuario busca en esta pantalla. */
+.devolucion {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+  background-color: var(--c-surface-sunken);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+
+.devolucion__label {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+  line-height: var(--lh-snug);
+  text-transform: uppercase;
+}
+
+.devolucion__amount {
+  color: var(--c-text);
+  font-family: var(--ff-display);
+  font-size: var(--fs-600);
+  font-weight: var(--fw-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.devolucion__note {
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+/* Con la reserva ya cancelada no tiene sentido ofrecer cargar el comprobante. */
+.consulta:has(#reserva-cancelada:target) .consulta__comprobante {
+  display: none;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (min-width: 480px) {
+  .consulta__fields {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+@media (min-width: 768px) {
+  .consulta {
+    padding-block: var(--sp-8) var(--sp-16);
+  }
+}
+
+/* Desde 1024 el estado queda a la izquierda y la política acompaña el scroll. */
+@media (min-width: 1024px) {
+  .consulta__grid {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: var(--sp-8);
+  }
+
+  .consulta__aside {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--sp-4));
+  }
+}
