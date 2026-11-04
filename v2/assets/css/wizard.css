@@ -1,0 +1,451 @@
+/* ==========================================================================
+   wizard.css — página de reserva (reservar.html)
+   --------------------------------------------------------------------------
+   Solo layout de la página: encabezado, grilla de paso + resumen y el
+   comportamiento del resumen (lateral en escritorio, fijo al pie en móvil).
+   Los componentes (panel, steps, summary, stepper de cantidad) están en
+   components.css y no se redefinen acá.
+   ========================================================================== */
+
+.wizard {
+  display: grid;
+  gap: var(--sp-6);
+  padding-block: var(--sp-6) var(--sp-12);
+}
+
+/* --- Encabezado de la página --- */
+.wizard__head {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+/* Estado de carga de los datos del albergue: una línea con anillo debajo del
+   título, para que los guiones de capacidad y montos tengan explicación. */
+.wizard__cargando {
+  margin-block-start: var(--sp-1);
+}
+
+.wizard__back {
+  justify-self: start;
+  font-size: var(--fs-200);
+}
+
+.wizard__title {
+  max-width: 26ch;
+}
+
+.wizard__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+/* --- Grilla: paso a la izquierda, resumen a la derecha --- */
+.wizard__grid {
+  display: grid;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+/* --- Contenedor de paso --- */
+.paso {
+  display: grid;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+/* El panel reparte encabezado, contenido y acciones con el mismo ritmo. Sin
+   esto los bloques quedan pegados porque el panel no crea separación propia. */
+.paso > .panel {
+  display: grid;
+  gap: var(--sp-6);
+  align-content: start;
+}
+
+.paso__head {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.paso__title {
+  font-size: var(--fs-500);
+}
+
+.paso__lead {
+  max-width: 54ch;
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.paso__form {
+  display: grid;
+  gap: var(--sp-6);
+}
+
+.paso__fields {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.paso__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+}
+
+/* La cantidad no necesita todo el ancho del panel. */
+.paso__field--cantidad {
+  max-width: 22rem;
+}
+
+/* Campos que ocupan las dos columnas del formulario de datos: institución y
+   aceptación del reglamento son de una línea larga, no de media. Sin el tope de
+   30 rem del campo genérico, si no la fila completa termina antes que las de
+   abajo y el borde derecho queda escalonado. */
+.paso__field--full {
+  grid-column: 1 / -1;
+  max-width: none;
+}
+
+/* El texto de la modalidad cambia sin duplicar campos: el wizard lleva
+   data-modalidad y las dos etiquetas viven en el markup. */
+.wizard__modalidad--visita {
+  display: none;
+}
+
+.wizard[data-modalidad="visita"] .wizard__modalidad--alojamiento,
+.wizard:has([name="modalidad"][value="visita"]:checked) .wizard__modalidad--alojamiento {
+  display: none;
+}
+
+.wizard[data-modalidad="visita"] .wizard__modalidad--visita,
+.wizard:has([name="modalidad"][value="visita"]:checked) .wizard__modalidad--visita {
+  display: inline;
+}
+
+/* Una fila completa de la modalidad visita (Horario) es .summary__row y también
+   .wizard__modalidad--visita: la regla de arriba la volvía inline y apilaba sus
+   dos celdas. Se devuelve el flex del componente sin tocar la regla genérica,
+   que sigue sirviendo para los textos sueltos dentro de dt, dd y caption. */
+.wizard[data-modalidad="visita"] .summary__row.wizard__modalidad--visita,
+.wizard:has([name="modalidad"][value="visita"]:checked) .summary__row.wizard__modalidad--visita {
+  display: flex;
+}
+
+/* --- Visita: una sola página, sin stepper ni delegación ---
+   El bloque .visita no lleva .paso a propósito: si lo llevara entraría en la
+   máquina de :target de los pasos. Se muestra con el atributo, y las reglas
+   ganan por especificidad, sin borrar las de :target. La modalidad se elige en
+   la home y no tiene selector acá: las gemelas :has() quedan solo para cuando
+   el wizard se mira suelto, con un selector en el markup. */
+.visita {
+  display: none;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.wizard[data-modalidad="visita"] .steps,
+.wizard[data-modalidad="visita"] .wizard__grid > .paso,
+.wizard:has([name="modalidad"][value="visita"]:checked) .steps,
+.wizard:has([name="modalidad"][value="visita"]:checked) .wizard__grid > .paso {
+  display: none;
+}
+
+.wizard[data-modalidad="visita"] .wizard__grid > .visita,
+.wizard:has([name="modalidad"][value="visita"]:checked) .wizard__grid > .visita {
+  display: grid;
+}
+
+/* Línea de cupo de la visita: dato de apoyo, no un aviso. */
+.cal__cupo {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+}
+
+/* Los paneles de la visita llevan el mismo ritmo interno que los pasos. */
+.visita .panel {
+  display: grid;
+  gap: var(--sp-6);
+  align-content: start;
+}
+
+/* Leyenda compacta del resumen: solo cuando el detalle está oculto. */
+.wizard__summary-caption {
+  display: none;
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+}
+
+@media (min-width: 768px) {
+  .wizard {
+    padding-block: var(--sp-8) var(--sp-16);
+  }
+
+  .paso__fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .paso__actions .btn {
+    min-width: 12rem;
+  }
+}
+
+/* A partir de 1024 el resumen es una columna que acompaña el scroll. */
+@media (min-width: 1024px) {
+  .wizard__grid {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    gap: var(--sp-8);
+  }
+
+  .wizard__summary {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--sp-4));
+  }
+}
+
+/* El calendario ocupa el ancho completo del panel en el ancho mínimo: con el
+   padding del panel adentro, las siete columnas bajarían de los 40 px por día
+   que exige el brief. El paso 3 (prompt 09) es quien lo usa. */
+@media (max-width: 479px) {
+  .paso .panel .cal,
+  .visita .panel .cal {
+    margin-inline: calc(var(--sp-4) * -1);
+    padding-inline: var(--sp-2);
+    border-inline: 0;
+    border-radius: 0;
+  }
+}
+
+/* En móvil el resumen se fija al pie y muestra lo mínimo: el detalle completo
+   se lee en el paso (cantidad y unitario) y en la home (albergue y modalidad).
+   Va con position: fixed y no sticky para que quede pegado al borde aunque el
+   paso sea corto; el aire de abajo evita que tape el pie del sitio. */
+@media (max-width: 1023px) {
+  .wizard {
+    padding-bottom: calc(var(--sp-24) + var(--sp-8));
+  }
+
+  .wizard__summary {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 10;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--gutter);
+    padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
+    border-inline: 0;
+    border-bottom: 0;
+    border-radius: 0;
+    border-top-color: var(--c-border-strong);
+  }
+
+  .wizard__summary .summary__list,
+  .wizard__summary .summary__note,
+  .wizard__summary .summary__title {
+    display: none;
+  }
+
+  .wizard__summary-caption {
+    display: block;
+  }
+
+  /* El pie legal tiene que seguir legible con la barra encima: el aire oscuro
+     queda detrás de la barra y los enlaces quedan arriba. */
+  .page-reserva .footer__legal-inner {
+    padding-bottom: var(--sp-24);
+  }
+}
+
+/* ==========================================================================
+   Paso 2 — tipo de delegación
+   --------------------------------------------------------------------------
+   Dos opciones con consecuencia propia: la escuela puede reservar hasta 4
+   noches y otra institución hasta 3. El tope no es un texto de ayuda del
+   campo, es lo que distingue a una opción de la otra, así que va dentro de
+   cada tarjeta.
+   ========================================================================== */
+/* Sin tope de ancho: en el paso las dos opciones se reparten el panel, y una
+   tarjeta de 34rem dejaría media columna vacía al costado. */
+.paso__choices {
+  max-width: none;
+}
+
+/* --- Paso 3 — fechas --- */
+.paso__fechas {
+  display: grid;
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+/* Los avisos de validación viven pegados al calendario, no al pie del paso. */
+.paso__notes {
+  display: grid;
+  gap: var(--sp-2);
+  max-width: 34rem;
+}
+
+/* El calendario no necesita todo el ancho del panel: con más de 26 rem las
+   celdas pasan los 56 px y el mes deja de leerse como una grilla. Sin ancho
+   fijo: en el ancho mínimo el sangrado de components.css lo estira hasta el
+   borde del panel y las celdas quedan por encima de los 40 px. */
+.paso__fechas > .cal {
+  max-width: 26rem;
+}
+
+/* El mes y los avisos van en dos columnas recién a 1280: entre 1024 y 1279 el
+   panel se queda sin ancho y los avisos se aplastan a 100 px, que es peor que
+   apilarlos. En ese rango el calendario conserva sus 26 rem y los avisos van
+   debajo, con el ancho completo. */
+@media (min-width: 1280px) {
+  .paso__fechas {
+    grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
+    gap: var(--sp-6);
+  }
+
+  .paso__fechas > .cal {
+    width: 100%;
+    justify-self: start;
+  }
+}
+
+@media (min-width: 768px) {
+  .paso__choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-2);
+  }
+
+  .paso__choices .choice-set__legend {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ==========================================================================
+   Revisión de los pasos sin JS
+   --------------------------------------------------------------------------
+   reservar.html tiene los tres contenedores de paso cableados. Sin script se ve
+   el paso 1; abrir #step-2-maestro o #step-3-maestro muestra ese paso y esconde
+   el resto, así los tres se revisan en el navegador sin backend.
+
+   En integración manda el JS: habilita y bloquea paso-box-1..4 y mueve el
+   estado de la barra con .step--done / .step--current. Este bloque no toca
+   ninguna clase ni id del contrato, solo qué contenedor se ve.
+   ========================================================================== */
+.wizard__grid > .paso {
+  display: none;
+}
+
+.wizard__grid > .paso:first-of-type,
+.wizard__grid > .paso:target {
+  display: grid;
+}
+
+.wizard:has(.paso:target) .wizard__grid > .paso:first-of-type:not(:target) {
+  display: none;
+}
+
+/* Estado de la barra según el paso abierto. Repite las declaraciones de
+   .step--done y .step--current a propósito: sin JS no hay forma de aplicar la
+   clase, y esto es solo la revisión visual. */
+.wizard:has(#step-2-maestro:target) .step[data-paso="1"],
+.wizard:has(#step-3-maestro:target) .step[data-paso="1"],
+.wizard:has(#step-4-maestro:target) .step[data-paso="1"],
+.wizard:has(#step-3-maestro:target) .step[data-paso="2"],
+.wizard:has(#step-4-maestro:target) .step[data-paso="2"],
+.wizard:has(#step-4-maestro:target) .step[data-paso="3"] {
+  border-top-color: var(--c-success);
+}
+
+.wizard:has(#step-2-maestro:target) .step[data-paso="1"] .step__num,
+.wizard:has(#step-3-maestro:target) .step[data-paso="1"] .step__num,
+.wizard:has(#step-4-maestro:target) .step[data-paso="1"] .step__num,
+.wizard:has(#step-3-maestro:target) .step[data-paso="2"] .step__num,
+.wizard:has(#step-4-maestro:target) .step[data-paso="2"] .step__num,
+.wizard:has(#step-4-maestro:target) .step[data-paso="3"] .step__num {
+  color: var(--c-success);
+}
+
+.wizard:has(#step-2-maestro:target) .step[data-paso="1"] .step__label,
+.wizard:has(#step-3-maestro:target) .step[data-paso="1"] .step__label,
+.wizard:has(#step-4-maestro:target) .step[data-paso="1"] .step__label,
+.wizard:has(#step-3-maestro:target) .step[data-paso="2"] .step__label,
+.wizard:has(#step-4-maestro:target) .step[data-paso="2"] .step__label,
+.wizard:has(#step-4-maestro:target) .step[data-paso="3"] .step__label {
+  color: var(--c-text-subtle);
+}
+
+.wizard:has(#step-2-maestro:target) .step[data-paso="1"] .step__check,
+.wizard:has(#step-3-maestro:target) .step[data-paso="1"] .step__check,
+.wizard:has(#step-4-maestro:target) .step[data-paso="1"] .step__check,
+.wizard:has(#step-3-maestro:target) .step[data-paso="2"] .step__check,
+.wizard:has(#step-4-maestro:target) .step[data-paso="2"] .step__check,
+.wizard:has(#step-4-maestro:target) .step[data-paso="3"] .step__check {
+  display: block;
+}
+
+.wizard:has(#step-2-maestro:target) .step[data-paso="2"],
+.wizard:has(#step-3-maestro:target) .step[data-paso="3"],
+.wizard:has(#step-4-maestro:target) .step[data-paso="4"] {
+  border-top-color: var(--c-accent);
+}
+
+.wizard:has(#step-2-maestro:target) .step[data-paso="2"] .step__num,
+.wizard:has(#step-2-maestro:target) .step[data-paso="2"] .step__label,
+.wizard:has(#step-3-maestro:target) .step[data-paso="3"] .step__num,
+.wizard:has(#step-3-maestro:target) .step[data-paso="3"] .step__label,
+.wizard:has(#step-4-maestro:target) .step[data-paso="4"] .step__num,
+.wizard:has(#step-4-maestro:target) .step[data-paso="4"] .step__label {
+  color: var(--c-text);
+}
+
+/* En móvil el rótulo se muestra solo en el paso actual. Sin JS el rótulo
+   visible viene del markup (paso 1), así que el hash lo mueve al paso abierto. */
+@media (max-width: 767px) {
+  .wizard:has(.paso:target) .step__label {
+    display: none;
+  }
+
+  .wizard:has(#step-2-maestro:target) .step[data-paso="2"] .step__label,
+  .wizard:has(#step-3-maestro:target) .step[data-paso="3"] .step__label,
+  .wizard:has(#step-4-maestro:target) .step[data-paso="4"] .step__label {
+    display: block;
+  }
+}
+
+/* --- Confirmación en la misma página ---
+   Reemplaza a la grilla del wizard cuando la API confirma la reserva. Mantiene
+   el ritmo del .panel y deja el sello y los datos en una columna legible. */
+.confirmacion {
+  display: grid;
+  gap: var(--sp-6);
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+.confirmacion .paso__head {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: start;
+}
+
+.confirmacion .summary__list {
+  padding: var(--sp-4);
+  background-color: var(--c-surface-sunken);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+
+.confirmacion .paso__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+}

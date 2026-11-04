@@ -1,0 +1,208 @@
+<!--
+  partials/venue-modal.html — ficha del albergue
+  ==========================================================================
+  Se abre con :target, sin JS. El "Ver detalle" de la tarjeta apunta a
+  #modal-<clave> y todo lo que cierra (la X y el velo) vuelve a #albergue-<clave>.
+
+  Claves que no se tocan:
+  - El id es modal-<clave> (maestro, tinku, aquilina…), con la clave tal como
+    la devuelve la API. La ficha de estadía del sitio viejo
+    (modal-alojamiento-<clave>) no se replica acá: las dos modalidades se
+    ofrecen en el pie (.modal__foot-ctas), una por CTA.
+
+  Va fuera de la tarjeta y al final del listado: un modal fixed dentro de
+  .card queda recortado por el overflow del contenedor.
+
+  Datos: nombre, capacidades, montos, descripción y características salen de
+  listarAlbergues. Las características se listan tal cual vienen; el ícono de
+  la API (Font Awesome) no se usa porque el sistema tiene un solo set SVG.
+
+  Sin PDF (albergue-unt): el control de Reglamento va como <button disabled>,
+  porque un enlace no se puede deshabilitar de verdad.
+
+  Límite conocido: sin JS no hay trampa de foco ni cierre con Escape. Por eso
+  el contenedor lleva tabindex="-1" (el navegador le da el foco al abrirse, así
+  se anuncia el diálogo) y el cierre es un enlace real, alcanzable con Tab.
+
+  Íconos: usa el sprite de la página (i-close, i-check, i-file, i-arrow-right).
+-->
+<div
+  class="modal"
+  id="modal-maestro"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-maestro-title"
+  tabindex="-1"
+>
+  <a class="modal__backdrop" href="#albergue-maestro" tabindex="-1" aria-hidden="true"></a>
+
+  <div class="modal__panel">
+    <header class="modal__head">
+      <h2 class="modal__title" id="modal-maestro-title">Maestro José Fierro</h2>
+      <a class="modal__close" href="#albergue-maestro">
+        <span class="visually-hidden">Cerrar la ficha</span>
+        <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+      </a>
+    </header>
+
+    <!-- Galería: la portada es imagenes[0] y la tira repite el resto del array,
+         una <li> por foto. La cantidad la decide la base, así que acá no hay
+         cuatro posiciones fijas: si el albergue tiene una sola foto, la tira se
+         renderiza vacía y .modal__tira:empty la oculta. El alt se arma con el
+         nombre y la posición; no se describe el contenido de cada foto. -->
+    <div class="modal__galeria">
+      <div class="modal__media">
+        <a class="modal__media-link" href="#foto-maestro-1">
+          <img
+            src="assets/img/maestro/01.jpg"
+            alt="Maestro José Fierro, foto 1"
+            loading="lazy"
+            decoding="async"
+          />
+        </a>
+      </div>
+      <ul class="modal__tira" aria-label="Más fotos de Maestro José Fierro">
+        <li>
+          <a href="#foto-maestro-2">
+            <img
+              src="assets/img/maestro/02.jpg"
+              alt="Maestro José Fierro, foto 2"
+              loading="lazy"
+              decoding="async"
+            />
+          </a>
+        </li>
+        <li>
+          <a href="#foto-maestro-3">
+            <img
+              src="assets/img/maestro/03.jpeg"
+              alt="Maestro José Fierro, foto 3"
+              loading="lazy"
+              decoding="async"
+            />
+          </a>
+        </li>
+        <li>
+          <a href="#foto-maestro-4">
+            <img
+              src="assets/img/maestro/04.jpeg"
+              alt="Maestro José Fierro, foto 4"
+              loading="lazy"
+              decoding="async"
+            />
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="modal__body">
+      <!-- Una fila por modalidad: modalidad, capacidad y precio en la misma
+           frase, igual que en la tarjeta. La capacidad y el precio llevan
+           data-rol porque los escribe listarAlbergues (assets/js/index.js); la
+           modalidad y la unidad son texto fijo. Antes eran cuatro celdas
+           —camas y lugares arriba, los dos precios abajo— y los precios
+           quedaban alineados entre sí, lejos de su capacidad. -->
+      <dl class="modal__facts">
+        <div class="modal__fact spec" data-modalidad="estadia">
+          <dt class="spec-mode">
+            <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+            Estadía
+          </dt>
+          <dd>
+            <span class="spec-cap" data-rol="capacidad">92 camas</span>
+            <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama y noche</span></span>
+          </dd>
+        </div>
+        <div class="modal__fact spec" data-modalidad="visita">
+          <dt class="spec-mode">
+            <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+            Visita de un día
+          </dt>
+          <dd>
+            <span class="spec-cap" data-rol="capacidad">150 lugares</span>
+            <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
+          </dd>
+        </div>
+      </dl>
+
+      <ul class="modal__features">
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+          Comedor con capacidad para 150 personas.
+        </li>
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+          Dormitorios compartidos en 6 habitaciones.
+        </li>
+        <li>
+          <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+          Áreas recreativas iluminadas.
+        </li>
+      </ul>
+
+      <p class="card__text">
+        El Albergue Escolar Maestro José Fierro se encuentra ubicado al sureste
+        de la ciudad capital.
+      </p>
+    </div>
+
+    <footer class="modal__foot">
+      <!-- El mapa y el PDF salen del payload de listarAlbergues. -->
+      <a
+        class="link link--with-icon"
+        href="#"
+        data-placeholder="mapa-maestro"
+        data-accion="ver-mapa"
+      >
+        Ver mapa
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+      </a>
+      <a class="btn btn--ghost btn--sm" href="#" data-placeholder="reglamento-maestro">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
+        <span class="btn__label">Reglamento</span>
+      </a>
+
+      <!-- La ficha es el único lugar donde se ven los dos precios juntos, así
+           que acá la modalidad se elige y no se hereda del buscador: una
+           entrada por modalidad, con su nombre y sin ambigüedad. La visita va
+           en primario porque es la que trae marcada el buscador; una sola
+           acción de peso alto por superficie. -->
+      <div class="modal__foot-ctas">
+        <a
+          class="btn btn--primary btn--sm"
+          href="reservar.html?albergue=maestro&modalidad=visita"
+          data-accion="reservar"
+        >
+          <span class="btn__label">Reservar visita</span>
+        </a>
+        <a
+          class="btn btn--secondary btn--sm"
+          href="reservar.html?albergue=maestro&modalidad=alojamiento"
+          data-accion="reservar"
+        >
+          <span class="btn__label">Reservar estadía</span>
+        </a>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Visor de la foto, dentro de la ficha y fuera del panel.
+       Se abre con el hash de cada foto (#foto-<clave>-<n>) y la ficha no se
+       cierra, porque .modal también se muestra cuando el :target está adentro.
+       Todas las fotos van apiladas: se muestra la que coincide con el hash y
+       las demás, al estar ocultas y ser lazy, no se descargan hasta pedirlas.
+       Cerrar (la X y el velo) vuelve a #modal-<clave>. -->
+  <div class="visor" role="dialog" aria-label="Foto ampliada">
+    <a class="visor__backdrop" href="#modal-maestro" tabindex="-1" aria-hidden="true"></a>
+    <figure class="visor__marco">
+      <img id="foto-maestro-1" src="assets/img/maestro/01.jpg" alt="Maestro José Fierro, foto 1" loading="lazy" decoding="async" />
+      <img id="foto-maestro-2" src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" />
+      <img id="foto-maestro-3" src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" />
+      <img id="foto-maestro-4" src="assets/img/maestro/04.jpeg" alt="Maestro José Fierro, foto 4" loading="lazy" decoding="async" />
+    </figure>
+    <a class="visor__close" href="#modal-maestro">
+      <span class="visually-hidden">Cerrar la foto</span>
+      <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+    </a>
+  </div>
+</div>

@@ -128,6 +128,20 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+/* "2026-11-28 00:00:00-03:00" -> "28/11/2026 00:00".
+   Devuelve '' si no hay dato o no se puede interpretar: el llamador cae
+   en el texto genérico del plazo. */
+function fechaHoraLegible(valor) {
+  if (!valor) return '';
+  const f = new Date(valor);
+  if (Number.isNaN(f.getTime())) return '';
+  const dd = String(f.getDate()).padStart(2, '0');
+  const mm = String(f.getMonth() + 1).padStart(2, '0');
+  const hh = String(f.getHours()).padStart(2, '0');
+  const mi = String(f.getMinutes()).padStart(2, '0');
+  return `${dd}/${mm}/${f.getFullYear()} ${hh}:${mi}`;
+}
+
 function iconoClass(icono) {
   const s = String(icono || '').trim();
   if (s === '') return '';
@@ -874,7 +888,7 @@ async function submitForm(albergue) {
     const resultado = await enviarReservaAGoogleSheets(formData);
 
     if (resultado && resultado.success) {
-      mostrarConfirmacion(albergue, formData, resultado.idReserva, resultado.codigoPublico, resultado.montoTotal);
+      mostrarConfirmacion(albergue, formData, resultado.idReserva, resultado.codigoPublico, resultado.montoTotal, resultado.pagoVenceAt);
       setBtnSuccess(btn);
 
       setTimeout(() => {
@@ -911,7 +925,7 @@ function getFormData(albergue) {
   };
 }
 
-function mostrarConfirmacion(albergue, formData, idReserva, codigoPublico, montoTotal) {
+function mostrarConfirmacion(albergue, formData, idReserva, codigoPublico, montoTotal, pagoVenceAt) {
   const nombre = toFullName(albergue);
   const codigo = codigoPublico || String(idReserva);
   const montoTxt = (montoTotal !== undefined && montoTotal !== null && montoTotal !== '')
@@ -921,6 +935,12 @@ function mostrarConfirmacion(albergue, formData, idReserva, codigoPublico, monto
   const detalleMonto = montoTxt
     ? `${formData.cantidad} ${String(formData.cantidad) === '1' ? 'persona' : 'personas'} × ${formatoMoneda(unitarioVisita)}`
     : '';
+  // El plazo de pago lo calcula el servidor contra el día de ingreso
+  // (ventana_pago_horas antes del inicio). Sin fecha, se explica la regla.
+  const venceTxt = fechaHoraLegible(pagoVenceAt);
+  const plazoTxt = venceTxt
+    ? `Tenés hasta el ${venceTxt} para abonar y subir el comprobante (48 h antes del día de ingreso).`
+    : 'Tenés hasta 48 h antes del día de ingreso para abonar y subir el comprobante.';
   const html = `
     <p><strong>Código de reserva:</strong> <span style="color:var(--azul);font-weight:700">${esc(codigo)}</span></p>
     <p><strong>Albergue:</strong> ${esc(nombre)}</p>
@@ -934,7 +954,7 @@ function mostrarConfirmacion(albergue, formData, idReserva, codigoPublico, monto
     <p><strong>Fecha de ingreso:</strong> ${esc(formData.fechaIngreso)}</p>
     <p><strong>Hora de ingreso:</strong> ${esc(formData.horaIngreso)}</p>
     <p><strong>Hora de egreso:</strong> ${esc(formData.horaEgreso)}</p>
-    <div class="confirmacion-alerta"><strong>Tenés 7 días para abonar y subir el comprobante.</strong><br>
+    <div class="confirmacion-alerta"><strong>${esc(plazoTxt)}</strong><br>
       Podés subirlo desde <a href="pago.html">Pago y comprobante</a> con tu código de reserva.<br>
       Ante dudas, llamar al: <span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
   `;
@@ -1817,7 +1837,7 @@ async function submitFormAlo(albergue) {
       setBtnSuccess(btn);
       // El cupo cambió: el badge del calendario tiene que reflejarlo.
       invalidarLibresMesAlo(albergue);
-      mostrarConfirmacionAlo?.(albergue, formData, resultado.idReserva, resultado.codigoPublico, resultado.montoTotal);
+      mostrarConfirmacionAlo?.(albergue, formData, resultado.idReserva, resultado.codigoPublico, resultado.montoTotal, resultado.pagoVenceAt);
 
       setTimeout(() => {
         resetFormAlo?.(albergue);
@@ -1875,7 +1895,7 @@ function getFormDataAlo(albergue) {
   };
 }
 
-function mostrarConfirmacionAlo(albergue, formData, idReserva, codigoPublico, montoTotal) {
+function mostrarConfirmacionAlo(albergue, formData, idReserva, codigoPublico, montoTotal, pagoVenceAt) {
   const nombre = toFullName(albergue);
   const codigo = codigoPublico || String(idReserva);
   const montoTxt = (montoTotal !== undefined && montoTotal !== null && montoTotal !== '')
@@ -1886,6 +1906,11 @@ function mostrarConfirmacionAlo(albergue, formData, idReserva, codigoPublico, mo
   const detalleMonto = montoTxt
     ? `${formData.cantidad} ${String(formData.cantidad) === '1' ? 'cama' : 'camas'} × ${noches} ${noches === 1 ? 'noche' : 'noches'} × ${formatoMoneda(unitarioCama)}`
     : '';
+  // Mismo plazo que en la visita: el servidor lo ata al día de ingreso.
+  const venceTxt = fechaHoraLegible(pagoVenceAt);
+  const plazoTxt = venceTxt
+    ? `Tenés hasta el ${venceTxt} para abonar y subir el comprobante (48 h antes del día de ingreso).`
+    : 'Tenés hasta 48 h antes del día de ingreso para abonar y subir el comprobante.';
   const html = `
     <p><strong>Código de reserva:</strong> <span style="color:var(--azul);font-weight:700">${esc(codigo)}</span></p>
     <p><strong>Albergue:</strong> ${esc(nombre)}</p>
@@ -1897,7 +1922,7 @@ function mostrarConfirmacionAlo(albergue, formData, idReserva, codigoPublico, mo
     <p><strong>Cantidad de camas:</strong> ${esc(String(formData.cantidad))}</p>
     <p><strong>Fechas reservadas:</strong> ${esc(formData.range.map(r => r).join(', '))}</p>
     ${montoTxt ? `<p><strong>Monto a abonar:</strong> <span style="color:#b30000;font-weight:600">${esc(montoTxt)}</span><br><small>${esc(detalleMonto)}</small></p>` : ''}
-    <div class="confirmacion-alerta"><strong>Tenés 7 días para abonar y subir el comprobante.</strong><br>
+    <div class="confirmacion-alerta"><strong>${esc(plazoTxt)}</strong><br>
       Podés subirlo desde <a href="pago.html">Pago y comprobante</a> con tu código de reserva.<br>
       Ante dudas, llamar al: <span style="color:#b30000;font-weight:600">(0381)452-6408</span></div>
   `;

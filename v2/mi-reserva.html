@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mi reserva — Albergues recreativos</title>
+    <meta
+      name="description"
+      content="Consultá una reserva con el código y el DNI del responsable y cancelala, con el monto de devolución que corresponde."
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/img/brand/favicon-32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="assets/img/brand/icon-192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/img/brand/apple-touch-icon-180.png"
+    />
+    <link rel="stylesheet" href="assets/css/tokens.css" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/components.css" />
+    <link rel="stylesheet" href="assets/css/mi-reserva.css" />
+  </head>
+  <body class="page-mi-reserva">
+    <a class="skip-link" href="#contenido">Ir al contenido</a>
+
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-ticket" viewBox="0 0 24 24">
+        <path
+          d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
+        />
+        <path d="M13 5v2M13 11v2M13 17v2" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </symbol>
+      <symbol id="i-arrow-left" viewBox="0 0 24 24">
+        <path d="M19 12H5M12 19l-7-7 7-7" />
+      </symbol>
+      <symbol id="i-search" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="i-check-circle" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="m9 12 2 2 4-4" />
+      </symbol>
+      <symbol id="i-x-circle" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="m15 9-6 6M9 9l6 6" />
+      </symbol>
+      <symbol id="i-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 16v-4M12 8h.01" />
+      </symbol>
+      <symbol id="i-loading" viewBox="0 0 24 24">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+      </symbol>
+      <symbol id="i-alert-triangle" viewBox="0 0 24 24">
+        <path
+          d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+        />
+        <path d="M12 9v4M12 17h.01" />
+      </symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <path d="M17 8l-5-5-5 5" />
+        <path d="M12 3v12" />
+      </symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
+      </symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24">
+        <path
+          d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"
+        />
+      </symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24">
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      </symbol>
+    </svg>
+
+    <header class="nav">
+      <div class="container nav__bar">
+        <a class="brand" href="index.html">
+          <img
+            class="brand__mark"
+            src="assets/img/brand/unt-sello.png"
+            alt=""
+            width="96"
+            height="118"
+            decoding="async"
+          />
+          <span class="brand__name">Albergues recreativos</span>
+        </a>
+
+        <nav class="nav__links" aria-label="Principal">
+          <a class="nav__link" href="index.html#albergues">Albergues</a>
+          <a class="nav__link" href="index.html#como-funciona">Cómo funciona</a>
+          <a class="nav__link" href="index.html#ayuda">Ayuda</a>
+        </nav>
+
+        <div class="nav__actions">
+          <a class="btn btn--ghost btn--sm nav__account" href="mi-reserva.html" aria-current="page">
+            <svg class="icon icon--sm" aria-hidden="true">
+              <use href="#i-ticket"></use>
+            </svg>
+            <span class="btn__label">Mi reserva</span>
+          </a>
+          <a class="btn btn--primary btn--sm" href="index.html#buscador" data-accion="reservar">
+            <span class="btn__label">Reservar</span>
+          </a>
+
+          <details class="nav__disclosure">
+            <summary class="nav__toggle">
+              <span class="visually-hidden">Menú</span>
+              <svg class="icon nav__toggle-icon nav__toggle-icon--menu" aria-hidden="true">
+                <use href="#i-menu"></use>
+              </svg>
+              <svg class="icon nav__toggle-icon nav__toggle-icon--close" aria-hidden="true">
+                <use href="#i-close"></use>
+              </svg>
+            </summary>
+            <nav class="nav__panel" aria-label="Menú">
+              <a class="nav__panel-link" href="index.html#albergues">Albergues</a>
+              <a class="nav__panel-link" href="index.html#como-funciona">Cómo funciona</a>
+              <a class="nav__panel-link" href="index.html#ayuda">Ayuda</a>
+              <a class="nav__panel-link nav__panel-link--account" href="mi-reserva.html" aria-current="page">
+                Mi reserva
+              </a>
+            </nav>
+          </details>
+        </div>
+      </div>
+    </header>
+
+    <!--
+      MI RESERVA
+      Alcance real del backend: solo cancelación. No hay endpoint público para
+      consultar el estado de una reserva, así que la página no muestra estado,
+      ni historial, ni fechas de pago: solo el resultado de cancelar.
+
+      Contrato (no renombrar): data-accion="consultar" en el botón que valida
+      código + DNI, data-accion="cancelar" en el que confirma la cancelación y
+      data-accion="pagar" en el acceso de comprobante. Los campos van con
+      name="codigo" y data-campo="dni" (el DNI es el mismo dato del paso 4).
+
+      Los cuatro desenlaces están en la página aunque se vea uno por vez: sin
+      script se revisan con #confirmar-cancelacion, #reserva-cancelada y
+      #cancelacion-rechazada (lo resuelve mi-reserva.css). En integración los
+      habilita el JS después de cada pedido.
+    -->
+    <main id="contenido" tabindex="-1">
+      <div class="container consulta">
+        <div class="consulta__head">
+          <a class="link link--with-icon" href="index.html">
+            <svg class="icon icon--sm" aria-hidden="true">
+              <use href="#i-arrow-left"></use>
+            </svg>
+            Inicio
+          </a>
+          <h1 class="consulta__title">Mi reserva</h1>
+          <p class="consulta__lead">
+            Buscá la reserva con el código y el DNI del responsable. Desde acá
+            solo se puede cancelar: para cambiar las fechas hay que cancelar y
+            reservar de nuevo.
+          </p>
+        </div>
+
+        <div class="consulta__grid">
+          <div class="consulta__main">
+
+            <!-- ========================================================
+                 ESTADO 1 — Buscar
+                 ======================================================== -->
+            <section class="panel estado" id="buscar-reserva" aria-labelledby="buscar-titulo">
+              <div class="estado__head">
+                <h2 class="estado__title" id="buscar-titulo">Buscar la reserva</h2>
+                <p class="estado__lead">
+                  Hacen falta los dos datos: el código solo no alcanza.
+                </p>
+              </div>
+
+              <form class="estado__form" id="cancelForm" action="mi-reserva.html" method="get" novalidate>
+                <div class="consulta__fields">
+                  <div class="field">
+                    <div class="field__head">
+                      <label class="field__label" for="cancel-id">Código de reserva</label>
+                      <span class="field__count" aria-hidden="true"></span>
+                    </div>
+                    <input
+                      class="input input--codigo"
+                      id="cancel-id"
+                      name="codigo"
+                      data-campo="codigo"
+                      type="text"
+                      placeholder="R-000000"
+                      data-regla="codigo"
+                      data-contador="8"
+                      minlength="6"
+                      maxlength="8"
+                      autocomplete="off"
+                      spellcheck="false"
+                      aria-describedby="cancel-id-ayuda"
+                      required
+                    />
+                    <p class="field__help" id="cancel-id-ayuda">
+                      Lo viste al terminar la reserva.
+                    </p>
+                  </div>
+
+                  <div class="field">
+                    <div class="field__head">
+                      <label class="field__label" for="cancel-dni">DNI del responsable</label>
+                      <span class="field__count" aria-hidden="true"></span>
+                    </div>
+                    <input
+                      class="input"
+                      id="cancel-dni"
+                      name="dni"
+                      data-campo="dni"
+                      type="text"
+                      inputmode="numeric"
+                      data-regla="dni"
+                      data-contador="8"
+                      pattern="\d{7,8}"
+                      minlength="7"
+                      maxlength="8"
+                      placeholder="7 u 8 números"
+                      autocomplete="off"
+                      aria-describedby="cancel-dni-ayuda"
+                      required
+                    />
+                    <p class="field__help" id="cancel-dni-ayuda">
+                      El del responsable de la reserva, sin puntos.
+                    </p>
+                  </div>
+                </div>
+              </form>
+
+              <div class="notice notice--danger" id="consulta-alerta" role="alert" hidden>
+                <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                  <use href="#i-alert-triangle"></use>
+                </svg>
+                <div class="notice__body">
+                  <p class="notice__text" id="consulta-alerta-texto"></p>
+                </div>
+              </div>
+
+              <div class="estado__actions">
+                <button class="btn btn--primary btn--lg" type="submit" form="cancelForm" data-accion="consultar">
+                  <svg class="icon icon--sm" aria-hidden="true">
+                    <use href="#i-search"></use>
+                  </svg>
+                  <span class="btn__label">Buscar reserva</span>
+                </button>
+              </div>
+            </section>
+
+            <!-- ========================================================
+                 ESTADO 2 — Confirmar la cancelación
+                 ======================================================== -->
+            <section
+              class="panel estado"
+              id="confirmar-cancelacion"
+              aria-labelledby="confirmar-titulo"
+            >
+              <div class="estado__head">
+                <h2 class="estado__title" id="confirmar-titulo">Cancelar la reserva</h2>
+                <p class="estado__lead" id="confirmar-texto">
+                  Al confirmar, la reserva queda cancelada y las camas vuelven a
+                  estar disponibles para otro grupo.
+                </p>
+              </div>
+
+              <div class="notice notice--warning" role="status">
+                <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                  <use href="#i-alert-triangle"></use>
+                </svg>
+                <div class="notice__body">
+                  <p class="notice__title">Cancelar no se puede deshacer</p>
+                  <p class="notice__text">
+                    El código deja de servir para cargar el comprobante y las
+                    camas vuelven a estar disponibles para otro grupo.
+                  </p>
+                </div>
+              </div>
+
+              <div class="estado__actions">
+                <button class="btn btn--danger btn--lg" type="button" id="btn-cancelar-enviar" data-accion="cancelar">
+                  <svg class="icon btn__spinner" aria-hidden="true">
+                    <use href="#i-loading"></use>
+                  </svg>
+                  <span class="btn__label">Cancelar la reserva</span>
+                </button>
+                <a class="btn btn--secondary" href="#buscar-reserva" id="btn-volver-buscar">Volver a buscar</a>
+              </div>
+            </section>
+
+            <!-- ========================================================
+                 ESTADO 3 — Cancelada
+                 ======================================================== -->
+            <section class="panel estado" id="reserva-cancelada" aria-labelledby="cancelada-titulo">
+              <div class="estado__head">
+                <span class="seal" aria-hidden="true">
+                  <svg class="icon icon--lg"><use href="#i-x-circle"></use></svg>
+                </span>
+
+                <h2 class="estado__title" id="cancelada-titulo">Reserva cancelada</h2>
+                <p class="estado__lead" id="cancelada-texto">
+                  La reserva quedó cancelada y el cupo volvió a estar disponible.
+                </p>
+
+                <span class="badge badge--danger">
+                  <span class="badge__dot"></span>
+                  Cancelada
+                </span>
+              </div>
+
+              <div class="notice" role="status">
+                <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                  <use href="#i-info"></use>
+                </svg>
+                <div class="notice__body">
+                  <p class="notice__text" id="cancelada-aviso">
+                    Si la reserva tenía pago acreditado y la cancelación entra en
+                    la política de devolución, la administración procesa el reintegro.
+                  </p>
+                </div>
+              </div>
+
+              <div class="estado__actions">
+                <a class="btn btn--primary btn--lg" href="index.html#buscador">
+                  <span class="btn__label">Reservar otro turno</span>
+                </a>
+                <a class="btn btn--secondary" href="index.html#albergues">Volver a los albergues</a>
+              </div>
+            </section>
+
+            <!-- ========================================================
+                 ESTADO 4 — No se puede cancelar
+                 ======================================================== -->
+            <section
+              class="panel estado"
+              id="cancelacion-rechazada"
+              aria-labelledby="rechazada-titulo"
+            >
+              <div class="estado__head">
+                <span class="seal seal--danger" aria-hidden="true">
+                  <svg class="icon icon--lg"><use href="#i-alert-triangle"></use></svg>
+                </span>
+
+                <h2 class="estado__title" id="rechazada-titulo">No se puede cancelar</h2>
+                <p class="estado__lead" id="rechazada-texto">
+                  La reserva no se puede cancelar desde acá. Revisá el código y el
+                  DNI, o los plazos de la política de cancelación.
+                </p>
+              </div>
+
+              <div class="estado__actions">
+                <a class="btn btn--secondary" href="mi-reserva.html">Probar con otro código</a>
+                <a class="link" href="index.html">Volver al inicio</a>
+              </div>
+            </section>
+
+          </div>
+
+          <!-- ==========================================================
+               Contexto: política y comprobante
+               ========================================================== -->
+          <aside class="consulta__aside" aria-labelledby="politica-titulo">
+            <div class="summary">
+              <h2 class="summary__title" id="politica-titulo">Política de cancelación</h2>
+              <dl class="terms">
+                <div class="terms__row">
+                  <dt class="terms__term">Más de 48 h antes del ingreso</dt>
+                  <dd class="terms__desc">Devolución del 100 %</dd>
+                </div>
+                <div class="terms__row">
+                  <dt class="terms__term">Dentro de las 48 h previas</dt>
+                  <dd class="terms__desc">Devolución del 50 %</dd>
+                </div>
+                <div class="terms__row">
+                  <dt class="terms__term">El día del ingreso o después</dt>
+                  <dd class="terms__desc">No se puede cancelar</dd>
+                </div>
+              </dl>
+            </div>
+
+            <div class="summary consulta__comprobante">
+              <h2 class="summary__title">Comprobante de pago</h2>
+              <p class="summary__note">
+                Si todavía no subiste el comprobante, la reserva sigue en
+                pre-reserva hasta que se acredite el pago.
+              </p>
+              <a class="btn btn--secondary" href="pago.html" id="comprobante-link" data-accion="pagar">
+                <svg class="icon icon--sm" aria-hidden="true">
+                  <use href="#i-upload"></use>
+                </svg>
+                <span class="btn__label">Cargar comprobante</span>
+              </a>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__top">
+        <div class="footer__brand">
+          <a class="brand brand--footer" href="index.html">
+            <span class="brand__name">Albergues recreativos</span>
+          </a>
+          <p class="footer__claim">
+            Estadías y visitas de un día en los albergues recreativos.
+          </p>
+          <p class="footer__entidad">
+            <img
+              class="footer__entidad-logo"
+              src="assets/img/brand/unt-logo.png"
+              alt="Universidad Nacional de Tucumán"
+              width="400"
+              height="203"
+              loading="lazy"
+              decoding="async"
+            />
+          </p>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Reservas</h3>
+          <ul class="footer__list">
+            <li><a href="index.html#albergues">Albergues</a></li>
+            <li><a href="index.html#como-funciona">Cómo funciona</a></li>
+            <li><a href="index.html#buscador">Reservar</a></li>
+            <li><a href="mi-reserva.html">Mi reserva</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Condiciones</h3>
+          <ul class="footer__list">
+            <li><a href="index.html#ayuda">Cancelación y devoluciones</a></li>
+            <li><a href="index.html#ayuda">Horarios de ingreso y salida</a></li>
+            <li><a href="index.html#ayuda">Duración máxima de la estadía</a></li>
+            <li><a href="#" data-placeholder="reglamento">Reglamento</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Contacto</h3>
+          <ul class="footer__contact">
+            <li class="footer__contact-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-phone"></use></svg>
+              <a class="footer__pending" href="#" data-placeholder="telefono">Teléfono a confirmar</a>
+            </li>
+            <li class="footer__contact-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"></use></svg>
+              <a class="footer__pending" href="#" data-placeholder="correo">Correo a confirmar</a>
+            </li>
+          </ul>
+
+          <dl class="footer__hours">
+            <div class="footer__hours-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+              <dt>Ingreso</dt>
+              <dd class="footer__hours-value">09:00</dd>
+            </div>
+            <div class="footer__hours-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+              <dt>Salida</dt>
+              <dd class="footer__hours-value">18:00</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="footer__legal">
+        <div class="container footer__legal-inner">
+          <p>
+            <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+            Reservas de los albergues recreativos.
+          </p>
+          <ul class="footer__legal-list">
+            <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
+            <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>
+            <li><a href="#" data-placeholder="accesibilidad">Accesibilidad</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/validacion.js"></script>
+    <script src="assets/js/mi-reserva.js"></script>
+  </body>
+</html>

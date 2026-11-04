@@ -1,0 +1,195 @@
+/* ==========================================================================
+   confirmacion.css — pantalla de éxito de la reserva (confirmacion.html)
+   --------------------------------------------------------------------------
+   Solo layout de la página: encabezado del estado, el bloque del código, el
+   plazo de pago y la columna de detalle. Los componentes (badge, aviso, resumen,
+   botones) están en components.css y no se redefinen acá.
+   ========================================================================== */
+
+.confirmacion {
+  display: grid;
+  gap: var(--sp-6);
+  padding-block: var(--sp-6) var(--sp-12);
+}
+
+.confirmacion__grid {
+  display: grid;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+/* ==========================================================================
+   Columna del estado
+   ========================================================================== */
+.confirmacion__panel {
+  display: grid;
+  gap: var(--sp-6);
+  padding: var(--sp-4);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  /* La línea de 2 px cierra el flujo: el mismo peso que usa el paso actual en
+     la barra de progreso, ahora en verde de confirmación. */
+  border-top: var(--bw-strong) solid var(--c-success);
+  border-radius: var(--radius-md);
+}
+
+.confirmacion__head {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+/* El sello (.seal, en components.css) y el badge son piezas de su propio ancho,
+   no columnas. */
+.confirmacion__head > .seal,
+.confirmacion__head > .badge {
+  justify-self: start;
+}
+
+.confirmacion__title {
+  max-width: 24ch;
+}
+
+.confirmacion__lead {
+  max-width: 52ch;
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+/* --- Código de reserva ---
+   Es el dato que el usuario tiene que poder dictar por teléfono o copiar a mano:
+   por eso va en un bloque propio, en tamaño de título y con números tabulares.
+   El borde punteado lo separa del resto sin competir con el botón principal. */
+.confirmacion__code {
+  display: grid;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+  background-color: var(--c-surface-sunken);
+  border: var(--bw) dashed var(--c-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.confirmacion__code-label {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+  line-height: var(--lh-snug);
+  text-transform: uppercase;
+}
+
+.confirmacion__code-value {
+  margin-top: var(--sp-1);
+  color: var(--c-text);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-600);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.confirmacion__code-note {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.confirmacion__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+}
+
+.confirmacion__actions .btn--primary {
+  flex: 1 1 auto;
+}
+
+/* ==========================================================================
+   Columna de detalle
+   ========================================================================== */
+.confirmacion__aside {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+/* --- Qué sigue ---
+   Tres pasos con número serif, el mismo lenguaje de la sección "Cómo funciona"
+   de la home, en lista vertical porque vive en la columna angosta. */
+.next {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.next__item {
+  display: grid;
+  grid-template-columns: var(--sp-6) minmax(0, 1fr);
+  column-gap: var(--sp-2);
+  padding-block: var(--sp-3);
+  border-top: var(--bw) solid var(--c-border);
+}
+
+.next__item:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.next__num {
+  color: var(--c-accent-on-soft);
+  font-family: var(--ff-display);
+  font-size: var(--fs-300);
+  font-weight: var(--fw-display);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.next__title {
+  color: var(--c-text);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+}
+
+.next__text {
+  margin-top: var(--sp-1);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (min-width: 480px) {
+  .confirmacion__panel {
+    padding: var(--sp-6);
+  }
+}
+
+@media (min-width: 768px) {
+  .confirmacion {
+    padding-block: var(--sp-8) var(--sp-16);
+  }
+
+  .confirmacion__actions .btn--primary {
+    flex: 0 0 auto;
+    min-width: 14rem;
+  }
+}
+
+/* Desde 1024 la página repite la estructura del wizard: el estado a la
+   izquierda y el detalle en una columna que acompaña el scroll. */
+@media (min-width: 1024px) {
+  .confirmacion__grid {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    gap: var(--sp-8);
+  }
+
+  .confirmacion__aside {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--sp-4));
+  }
+}

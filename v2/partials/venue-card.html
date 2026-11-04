@@ -1,0 +1,89 @@
+<!--
+  partials/venue-card.html — tarjeta de albergue (una de la grilla)
+  ==========================================================================
+  Una tarjeta por albergue habilitado. Los datos salen de listarAlbergues; acá
+  hay un ejemplo con datos reales de la API para fijar la estructura.
+
+  Claves que no se tocan:
+  - id="albergue-<clave>" es el ancla de retorno de la ficha; la usan los
+    enlaces de cierre del modal. Ejemplo: id="albergue-maestro".
+  - data-albergue = clave tal como la devuelve la API (maestro, tinku,
+    aquilina, altoverde, albergue-unt o nuevas). No renombrar.
+  - El "Ver detalle" apunta a #modal-<clave>, que es la ficha de
+    partials/venue-modal.html.
+
+  Decisiones de la tarjeta:
+  - Dos acciones: Reservar (peso alto) y Ver detalle (secundaria). El
+    reglamento vive en la ficha, no se repite en cada tarjeta.
+  - Reservar no decide la modalidad: la hereda del buscador de la home, junto
+    con la cantidad. El enlace lleva data-cta-hereda y index.js reescribe el
+    href (y el texto del botón) cuando se cambia el segmentado. Sin script
+    queda modalidad=visita, que es la que trae marcada el buscador.
+  - Una fila de meta por modalidad: Estadía (camas y precio por cama y noche) y
+    Visita (lugares y precio por persona). Camas y visita no son dos métricas
+    paralelas, son dos modalidades: con las capacidades arriba y los dos precios
+    juntos abajo se leían cruzados, porque el precio de la visita quedaba en la
+    columna de las camas. Cada fila lleva su capacidad y su precio adentro, así
+    el precio nunca se asocia a la modalidad de al lado.
+  - La descripción se muestra tal cual la entrega la API, sin recortar: el
+    layout aguanta cualquier largo (ver altoverde, que trae un texto de prueba).
+
+  Estados (documentados en styleguide.html):
+  - hover: borde más marcado y sombra de nivel 1.
+  - sin disponibilidad: agregar card--unavailable, el badge en .card__flag y
+    deshabilitar el CTA de reserva.
+  - cargando: mismos marcos con .skeleton en lugar de datos.
+
+  Íconos: usa el sprite de la página (i-bed, i-users, i-money). Requiere que
+  index.html tenga los <symbol> correspondientes.
+-->
+<article class="card" id="albergue-maestro" data-albergue="maestro">
+  <div class="card__media">
+    <!-- En integración el src sale de imagenes[0] de listarAlbergues; acá
+         apunta a la copia local de esa foto. -->
+    <img
+      src="assets/img/maestro/01.jpg"
+      alt="Albergue Maestro José Fierro"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+
+  <div class="card__body">
+    <h3 class="card__title">Maestro José Fierro</h3>
+
+    <ul class="spec-list">
+      <li class="spec" data-modalidad="estadia">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+        <span class="spec-mode">Estadía</span>
+        <span class="spec-cap" data-rol="capacidad">92 camas</span>
+        <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
+      </li>
+      <li class="spec" data-modalidad="visita">
+        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+        <span class="spec-mode">Visita</span>
+        <span class="spec-cap" data-rol="capacidad">150 lugares</span>
+        <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
+      </li>
+    </ul>
+
+    <p class="card__text">
+      El Albergue Escolar Maestro José Fierro se encuentra ubicado al sureste de
+      la ciudad capital.
+    </p>
+
+    <div class="card__actions">
+      <a
+        class="btn btn--primary btn--sm"
+        href="reservar.html?albergue=maestro&modalidad=visita"
+        data-accion="reservar"
+        data-cta-hereda
+      >
+        <span class="btn__label">Reservar</span>
+      </a>
+      <a class="btn btn--ghost btn--sm" href="#modal-maestro" data-accion="ver-detalle">
+        <span class="btn__label">Ver detalle</span>
+      </a>
+    </div>
+  </div>
+</article>

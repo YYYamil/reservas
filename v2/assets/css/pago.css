@@ -1,0 +1,158 @@
+/* ==========================================================================
+   pago.css — carga del comprobante (pago.html)
+   --------------------------------------------------------------------------
+   Solo layout de la página: encabezado, tarjeta de la carga, estados de la
+   subida y columna de contexto. La zona de carga y el archivo elegido son el
+   componente .upload de components.css.
+   ========================================================================== */
+
+.pago {
+  display: grid;
+  gap: var(--sp-6);
+  padding-block: var(--sp-6) var(--sp-12);
+}
+
+.pago__head {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.pago__title {
+  max-width: 24ch;
+}
+
+.pago__lead {
+  max-width: 62ch;
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.pago__grid {
+  display: grid;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+.pago__main,
+.pago__aside {
+  display: grid;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+/* --- Tarjeta de la carga --- */
+.pago__card {
+  display: grid;
+  gap: var(--sp-6);
+  align-content: start;
+}
+
+/* Contexto de la reserva que se está pagando: albergue, importe y vencimiento. */
+.pago__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1) var(--sp-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  font-variant-numeric: tabular-nums;
+}
+
+.pago__identidad {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.pago__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
+}
+
+/* ==========================================================================
+   Estados de la subida
+   --------------------------------------------------------------------------
+   Cinco desenlaces: sin archivo (por defecto), subiendo, recibido, rechazado y
+   error de red. Sin JS se revisan con #subiendo, #recibido, #rechazado y
+   #error-red; en integración los habilita el JS según la respuesta del servidor.
+   ========================================================================== */
+.subida {
+  display: none;
+  gap: var(--sp-4);
+}
+
+.subida:first-of-type,
+.subida:target {
+  display: grid;
+}
+
+.pago:has(.subida:target) .subida:first-of-type:not(:target) {
+  display: none;
+}
+
+/* Con el comprobante ya recibido no hace falta volver a identificarse. */
+.pago:has(#recibido:target) .pago__identidad {
+  display: none;
+}
+
+/* --- Estados con JS -------------------------------------------------------
+   Cuando pago.js toma el control agrega .pago__card--js al form y maneja
+   data-estado. Estas reglas tienen más especificidad que las de :target, así
+   que el estado del envío manda sobre el hash de la URL. */
+.pago__card--js[data-estado] .subida {
+  display: none;
+}
+
+.pago__card--js[data-estado="sin-archivo"] #sin-archivo,
+.pago__card--js[data-estado="subiendo"] #subiendo,
+.pago__card--js[data-estado="recibido"] #recibido,
+.pago__card--js[data-estado="rechazado"] #rechazado,
+.pago__card--js[data-estado="error-red"] #error-red {
+  display: grid;
+}
+
+/* Mientras se envía y después de recibirlo, el código ya no se edita. */
+.pago__card--js[data-estado="subiendo"] .pago__identidad,
+.pago__card--js[data-estado="recibido"] .pago__identidad {
+  display: none;
+}
+
+/* Feedback de arrastre sobre la zona de carga. */
+.upload__drop--over {
+  border-color: var(--c-accent);
+  background-color: var(--c-accent-soft);
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+@media (min-width: 480px) {
+  /* Después de sacar el DNI queda un solo campo en la tarjeta, así que no hay
+     dos columnas: el código toma el ancho de un código de reserva y no el de la
+     tarjeta entera. */
+  .pago__identidad .field {
+    max-width: 20rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .pago {
+    padding-block: var(--sp-8) var(--sp-16);
+  }
+}
+
+@media (min-width: 1024px) {
+  .pago__grid {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: var(--sp-8);
+  }
+
+  .pago__aside {
+    position: sticky;
+    top: calc(var(--nav-h) + var(--sp-4));
+  }
+}

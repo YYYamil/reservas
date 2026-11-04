@@ -1,0 +1,301 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,600&display=swap");
+
+/* ==========================================================================
+   tokens.css — Sistema visual v2 · Albergues recreativos
+   --------------------------------------------------------------------------
+   Única fuente de valores del sistema. base.css, components.css y las páginas
+   no definen colores, tamaños, radios, sombras ni tiempos propios: todo sale
+   de este archivo. Cambiar un valor acá cambia el sistema entero.
+
+   Orden: tipografía → primitivos de color → semánticos → escala tipográfica →
+   espaciado → radios → bordes → sombras → movimiento → layout → tokens de
+   componente.
+
+   Contraste: todas las combinaciones de texto documentadas acá fueron
+   verificadas contra WCAG 2.1 AA (4.5:1). Los valores quedan anotados al lado
+   de cada token semántico.
+   ========================================================================== */
+
+:root {
+  /* ------------------------------------------------------------------------
+     1. Tipografía
+     Familia de UI: Manrope. Títulos: Source Serif 4.
+     Pesos: 400 (UI), 700 (UI y etiquetas), 600 (títulos). Tres en total.
+     ------------------------------------------------------------------------ */
+  --ff-ui: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --ff-display: "Source Serif 4", "Iowan Old Style", Georgia,
+    "Times New Roman", serif;
+
+  --fw-regular: 400;
+  --fw-display: 600;
+  --fw-bold: 700;
+
+  /* ------------------------------------------------------------------------
+     2. Color primitivo — neutrales cálidos (9 pasos)
+     Base marfil/arena, texto carbón. Ningún paso se usa directo en componentes:
+     los componentes consumen la capa semántica.
+     ------------------------------------------------------------------------ */
+  --c-neutral-50: #fcf9f2; /* marfil — fondo de página */
+  --c-neutral-100: #f6f0e5; /* arena clara — superficie hundida */
+  --c-neutral-200: #e9e1d3; /* arena — relleno de esqueleto y deshabilitado */
+  --c-neutral-300: #d6cbb8; /* borde decorativo, separadores */
+  --c-neutral-400: #b7ab97; /* borde en hover */
+  --c-neutral-500: #8e8474; /* borde de campo (3.5:1 sobre marfil) */
+  --c-neutral-600: #6b6355; /* texto secundario (5.6:1) */
+  --c-neutral-700: #4c463d; /* texto fuerte secundario (8.9:1) */
+  --c-neutral-900: #2c2622; /* carbón — texto principal (14.2:1) */
+  --c-white: #ffffff; /* superficie elevada */
+
+  /* Terracota — acento principal. Ajustado desde #B4552D: ese valor quedaba
+     en 4.4:1 sobre arena y no alcanzaba AA. */
+  --c-accent-100: #f7e7dc; /* fondo de selección y chip activo */
+  --c-accent-200: #efd2c0; /* borde suave de selección */
+  --c-accent-500: #c26136; /* gráfico decorativo (3.9:1, no usar en texto) */
+  --c-accent-600: #a84c27; /* acciones y enlaces (5.4:1 / blanco encima 5.6:1) */
+  --c-accent-700: #8f4020; /* hover y texto de enlace (7.0:1) */
+  --c-accent-800: #7a3319; /* presionado (7.9:1) */
+
+  /* Verde profundo — acento secundario y éxito */
+  --c-green-100: #e1eadf;
+  --c-green-200: #c7d8c8;
+  --c-green-500: #2b5b3e; /* 7.5:1 sobre marfil / marfil encima 7.5:1 */
+  --c-green-700: #1f4530; /* hover */
+
+  /* Semánticos */
+  --c-danger-100: #f5dfd8;
+  --c-danger-500: #8f3a2b; /* 7.1:1 sobre marfil */
+  --c-danger-700: #7a3024; /* hover */
+
+  --c-warning-100: #f6e9d2;
+  --c-warning-500: #8a5f1f; /* relleno sólido, texto marfil 5.4:1 */
+  --c-warning-700: #7e5219; /* texto y borde (6.4:1 sobre marfil) */
+
+  /* ------------------------------------------------------------------------
+     3. Color semántico
+     Esta es la capa que usan los componentes. Un tema oscuro futuro solo
+     reasigna este bloque; los primitivos y los componentes no se tocan.
+     ------------------------------------------------------------------------ */
+  --c-page: var(--c-neutral-50);
+  --c-surface: var(--c-white);
+  --c-surface-sunken: var(--c-neutral-100);
+  --c-surface-inverse: var(--c-neutral-900);
+
+  --c-text: var(--c-neutral-900);
+  --c-text-muted: var(--c-neutral-600);
+  --c-text-subtle: var(--c-neutral-700);
+  --c-text-inverse: var(--c-neutral-50);
+  --c-text-disabled: var(--c-neutral-600); /* 4.9:1 sobre superficie deshabilitada */
+
+  --c-border: var(--c-neutral-300);
+  --c-border-strong: var(--c-neutral-500);
+  --c-border-control: var(--c-neutral-500);
+
+  --c-disabled-surface: var(--c-neutral-200);
+  --c-disabled-border: var(--c-neutral-300);
+
+  --c-accent: var(--c-accent-600);
+  --c-accent-hover: var(--c-accent-700);
+  --c-accent-pressed: var(--c-accent-800);
+  --c-accent-soft: var(--c-accent-100);
+  --c-accent-on-soft: var(--c-accent-hover);
+
+  --c-success: var(--c-green-500);
+  --c-success-hover: var(--c-green-700);
+  --c-success-soft: var(--c-green-100);
+
+  --c-warning: var(--c-warning-700);
+  --c-warning-fill: var(--c-warning-500);
+  --c-warning-soft: var(--c-warning-100);
+
+  --c-danger: var(--c-danger-500);
+  --c-danger-hover: var(--c-danger-700);
+  --c-danger-soft: var(--c-danger-100);
+
+  /* Info no introduce un quinto matiz: usa carbón sobre arena. Evita que el
+     sistema tenga dos verdes indistinguibles. */
+  --c-info: var(--c-neutral-700);
+  --c-info-soft: var(--c-neutral-100);
+
+  /* El foco y la selección se derivan del acento, no de su primitivo: cambiar
+     --c-accent mueve también botones, enlaces, chips, anillo de foco y
+     selección de texto en un solo paso. */
+  --c-focus: var(--c-accent);
+  --c-focus-on-dark: var(--c-neutral-50);
+  --c-selection-bg: var(--c-accent-soft);
+  --c-selection-text: var(--c-neutral-900);
+
+  /* ------------------------------------------------------------------------
+     4. Escala tipográfica — 12 / 14 / 16 / 18 / 24 / 32 / 48
+     ------------------------------------------------------------------------ */
+  --fs-100: 0.75rem; /* 12 — reservado: no se usa en texto operativo */
+  --fs-200: 0.875rem; /* 14 — mínimo operativo en toda la interfaz */
+  --fs-300: 1rem; /* 16 — texto base */
+  --fs-400: 1.125rem; /* 18 — valor de control, subtítulo */
+  --fs-500: 1.5rem; /* 24 */
+  --fs-600: 2rem; /* 32 */
+  --fs-700: 3rem; /* 48 */
+
+  --lh-tight: 1.12; /* títulos grandes */
+  --lh-snug: 1.32; /* títulos chicos, etiquetas de varias líneas */
+  --lh-body: 1.55; /* párrafos y campos */
+
+  --ls-tight: -0.015em; /* títulos serif */
+  --ls-normal: 0;
+  --ls-wide: 0.08em; /* solo etiquetas en mayúscula */
+
+  /* ------------------------------------------------------------------------
+     5. Espaciado — escala 4/8. No hay valores fuera de esta lista.
+     ------------------------------------------------------------------------ */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+  --sp-24: 96px;
+
+  /* ------------------------------------------------------------------------
+     6. Radios — tres valores, una familia por tipo de elemento
+     8 → controles, chips y badges · 12 → tarjetas · 20 → paneles y hojas
+     ------------------------------------------------------------------------ */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+
+  /* ------------------------------------------------------------------------
+     7. Bordes
+     Regla del sistema: el borde de 1 px es el separador por defecto.
+     La sombra no reemplaza al borde; solo aparece en hover y en elevación.
+     ------------------------------------------------------------------------ */
+  --bw: 1px;
+  --bw-strong: 2px;
+
+  /* ------------------------------------------------------------------------
+     8. Sombras — dos niveles
+     ------------------------------------------------------------------------ */
+  --shadow-1: 0 1px 2px rgba(44, 38, 34, 0.06);
+  --shadow-2: 0 8px 24px rgba(44, 38, 34, 0.1);
+
+  /* ------------------------------------------------------------------------
+     9. Movimiento — 150 a 200 ms, ease-out
+     ------------------------------------------------------------------------ */
+  --dur-1: 150ms;
+  --dur-2: 180ms;
+  --dur-3: 200ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-spin: 900ms;
+  --dur-pulse: 1600ms;
+
+  /* Impresión y scroll. No son transiciones de estado, son las animaciones con
+     las que el landing se compone: por eso quedan fuera de la escala de 200 ms,
+     que sigue siendo el tope para todo lo que responde al puntero o al foco. */
+  --dur-print: 420ms;
+  --dur-wipe: 560ms;
+  --stagger: 55ms;
+  --ease-out-soft: cubic-bezier(0.16, 0.84, 0.32, 1);
+
+  /* ------------------------------------------------------------------------
+     10. Layout
+     Breakpoints del brief: 360 / 480 / 768 / 1024 / 1280.
+     No se pueden expresar como variables dentro de @media; quedan acá como
+     referencia y se escriben literales en las consultas de medios.
+     ------------------------------------------------------------------------ */
+  --container-max: 1200px;
+  --container-narrow: 720px;
+  --gutter: var(--sp-4);
+  --tap-min: 44px;
+  --z-nav: 20;
+  --z-modal: 30;
+
+  /* Velo de fondo de overlays: carbón con transparencia. */
+  --c-scrim: rgba(44, 38, 34, 0.55);
+
+  /* ------------------------------------------------------------------------
+     11. Tokens de componente
+     Los componentes no escriben medidas: consumen estos alias.
+     ------------------------------------------------------------------------ */
+  --control-h-sm: 44px; /* el mínimo táctil también es el tamaño chico */
+  --control-h-md: 48px;
+  --control-h-lg: 56px;
+  --control-px: var(--sp-4);
+  --control-px-sm: var(--sp-3);
+  --control-gap: var(--sp-2);
+
+  --field-gap: var(--sp-2);
+  --field-max: 30rem;
+
+  --card-pad: var(--sp-4);
+  --card-gap: var(--sp-3);
+  --card-media-ratio: 3 / 2;
+
+  --nav-h: 64px;
+  --nav-gap: var(--sp-3);
+  --footer-gap: var(--sp-8);
+  /* Sello institucional de la barra. A 40 px el escudo se lee como sello y el
+     bloque de marca sigue entrando en los 64 px de la barra; en compacto baja a
+     34 para dejar sitio a "Reservar" y al menú. */
+  --brand-mark-h: 40px;
+  --brand-mark-h-sm: 34px;
+  /* Firma institucional del pie. El archivo mide el doble (400 px de ancho),
+     así que a 200 px entra sin pérdida en pantallas de 2x. */
+  --footer-logo-w: 200px;
+
+  --badge-px: var(--sp-3);
+  --badge-py: var(--sp-1);
+  --dot-size: 6px;
+
+  --section-gap: var(--sp-12);
+  --rule-width: var(--bw);
+
+  --skeleton-line-h: 14px;
+  --skeleton-radius: var(--radius-sm);
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: var(--sp-6);
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --gutter: var(--sp-8);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Movimiento reducido
+   Las transiciones usan --dur-*, así que bajar los tokens a 0 las apaga sin
+   usar !important. Las animaciones que dependen de --dur-spin/--dur-pulse se
+   desactivan en components.css con la misma lógica.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-1: 0ms;
+    --dur-2: 0ms;
+    --dur-3: 0ms;
+    --dur-pulse: 0ms;
+    /* Las animaciones de impresión y scroll se apagan en motion.css con
+       @media (prefers-reduced-motion: no-preference); estos tokens quedan en
+       cero por si alguna se escribe por fuera de ese bloque. */
+    --dur-print: 0ms;
+    --dur-wipe: 0ms;
+    --stagger: 0ms;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Tema oscuro — preparado, no implementado
+   Cuando se pida, se reasigna únicamente el bloque 3 (color semántico):
+
+     :root[data-theme="dark"] {
+       --c-page: var(--c-neutral-900);
+       --c-surface: #35302a;
+       ...
+     }
+
+   Ningún componente consume primitivos, así que el cambio no toca markup.
+   -------------------------------------------------------------------------- */

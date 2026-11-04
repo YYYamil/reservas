@@ -1256,13 +1256,13 @@ try {
                         . $pdo->quote($usuarioPanel);
                 } elseif ($accion === 'rechazar') {
                     $evento = 'rechazo';
-                    // Nuevo plazo para reintentar: 24 h o lo que quede hasta el tope.
+                    // Nuevo plazo para reintentar: 24 h o lo que quede hasta el
+                    // tope (ventana_pago_horas antes del ingreso).
                     $ahora   = reservaAhora($config);
                     $inicio  = $actual['inicio_at'] !== null ? new DateTimeImmutable((string) $actual['inicio_at']) : null;
                     $nuevoV  = $inicio !== null
                         ? reservaVencimiento($ahora->modify('+0 hours'), $inicio, $pol)
                         : null;
-                    // reservaVencimiento ya aplica min(ahora+ventana, inicio-H).
                     if ($nuevoV !== null) {
                         $candidato = $ahora->modify('+24 hours');
                         if ($candidato < $nuevoV) {
@@ -1830,6 +1830,17 @@ try {
                                   'cancelacion_horas', 'validacion_horas'], true)) {
                 if (!ctype_digit($valor) || (int) $valor < 0 || (int) $valor > 720) {
                     responder(['success' => false, 'message' => 'Ingresá una cantidad de horas entre 0 y 720']);
+                }
+            }
+            // El plazo de pago se cuenta hacia atrás desde el ingreso: si la
+            // ventana supera anticipacion_horas, una reserva recién creada
+            // nacería vencida (el horizonte de creación es anticipacion +
+            // ventana_min). Se rechaza acá; además reservaPolitica acota.
+            if ($clave === 'ventana_pago_horas') {
+                $polActual = reservaPolitica($pdo);
+                if ((int) $valor > (int) $polActual['anticipacion_horas']) {
+                    responder(['success' => false, 'message' => 'La ventana de pago no puede superar anticipacion_horas ('
+                        . (int) $polActual['anticipacion_horas'] . ' h): el plazo se cuenta hacia atrás desde el ingreso.']);
                 }
             }
             if (in_array($clave, ['devolucion_temprana_pct', 'devolucion_tardia_pct'], true)) {

@@ -12,12 +12,15 @@ declare(strict_types=1);
  * fila del albergue). Todo lo demás libera. Por eso un estado que ocupa es
  * siempre uno de RESERVA_ESTADOS_OCUPA, y el resto nunca ocupa.
  *
- * El vencimiento de una Pre-Reserva se evalúa contra:
+ * El plazo de pago se mide contra el día de ingreso: el comprobante se
+ * acepta hasta `ventana_pago_horas` antes de `inicio_at`. El límite
+ * efectivo de una Pre-Reserva es:
  *
- *     limite = min(pago_vence_at, inicio_at - anticipacion_horas)
+ *     limite = min(pago_vence_at, inicio_at - ventana_pago_horas)
  *
- * usando LEAST() en SQL. Así las reservas viejas (que tienen 7 días grabados)
- * también quedan protegidas sin necesidad de backfill.
+ * usando LEAST() en SQL. La segunda rama protege a las reservas viejas
+ * (grabadas con la regla anterior, o con 7 días) sin backfill, y garantiza
+ * que nadie pague después de lo que el sistema permite.
  */
 
 const RESERVA_ESTADOS = [
@@ -91,6 +94,12 @@ function reservaPolitica(PDO $pdo): array
     $pol['anticipacion_horas']     = max(0, $pol['anticipacion_horas']);
     $pol['ventana_pago_horas']     = max(1, $pol['ventana_pago_horas']);
     $pol['ventana_pago_min_horas'] = max(1, $pol['ventana_pago_min_horas']);
+    // El plazo se cuenta HACIA ATRÁS desde el inicio, así que una ventana
+    // demasiado grande haría nacer la reserva vencida. Como el horizonte de
+    // creación es anticipacion + ventana_min, acotar la ventana a
+    // anticipacion_horas garantiza siempre ventana_pago_min_horas de plazo
+    // al crear. Si un super_admin carga un valor mayor, se acota acá.
+    $pol['ventana_pago_horas']     = min($pol['ventana_pago_horas'], max(1, $pol['anticipacion_horas']));
     $pol['cancelacion_horas']      = max(0, $pol['cancelacion_horas']);
     $pol['devolucion_temprana_pct'] = min(100, max(0, $pol['devolucion_temprana_pct']));
     $pol['devolucion_tardia_pct']   = min(100, max(0, $pol['devolucion_tardia_pct']));
@@ -138,14 +147,17 @@ function reservaHorizonteHoras(array $pol): int
 }
 
 /**
- * Vencimiento del pago: el menor entre la ventana del cliente y el tope por
- * fecha de ingreso. Nunca posterior a `inicio_at - anticipacion_horas`.
+ * Vencimiento del pago: `ventana_pago_horas` antes del día de ingreso.
+ *
+ * Es el plazo que se graba en `pago_vence_at` al crear (y el que se recalcula
+ * al rechazar un comprobante). El horizonte de creación
+ * (anticipacion + ventana_min) garantiza que, al crear, siempre queden al
+ * menos `ventana_pago_min_horas` de margen, por lo que acá no hace falta
+ * recortar contra `ahora`.
  */
 function reservaVencimiento(DateTimeImmutable $ahora, DateTimeImmutable $inicio, array $pol): DateTimeImmutable
 {
-    $ventana = $ahora->modify('+' . (int) $pol['ventana_pago_horas'] . ' hours');
-    $tope    = $inicio->modify('-' . (int) $pol['anticipacion_horas'] . ' hours');
-    return $ventana < $tope ? $ventana : $tope;
+    return $inicio->modify('-' . (int) $pol['ventana_pago_horas'] . ' hours');
 }
 
 /**
@@ -161,7 +173,7 @@ function reservaVencimientoValidacion(DateTimeImmutable $ahora, DateTimeImmutabl
 /** Expresión SQL con el límite efectivo de una Pre-Reserva. */
 function reservaSqlLimite(string $a, array $pol): string
 {
-    $h = max(1, (int) $pol['anticipacion_horas']);
+    $h = max(1, (int) $pol['ventana_pago_horas']);
     $tope = "({$a}inicio_at - INTERVAL '{$h} hours')";
     // LEAST() de PostgreSQL ignora NULL, por eso no hace falta COALESCE por pago_vence_at.
     return "COALESCE(LEAST({$a}pago_vence_at, {$tope}), {$tope})";
@@ -183,7 +195,7 @@ function reservaEstadoEfectivo(string $estado, ?string $pagoVenceAt, ?string $in
     }
     $tope = null;
     if ($inicioAt !== null && $inicioAt !== '') {
-        $tope = strtotime($inicioAt) - ((int) $pol['anticipacion_horas'] * 3600);
+        $tope = strtotime($inicioAt) - ((int) $pol['ventana_pago_horas'] * 3600);
     }
     if ($pagoVenceAt !== null && $pagoVenceAt !== '') {
         $v = strtotime($pagoVenceAt);

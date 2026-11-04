@@ -1,0 +1,119 @@
+<!--
+  partials/nav.html — barra de navegación canónica de v2
+  ---------------------------------------------------------------------------
+  Se copia dentro de <body>, antes del contenido de la página. Requiere
+  assets/css/tokens.css, base.css y components.css, en ese orden.
+
+  Reglas de este bloque:
+  - Un solo CTA de peso alto: Reservar. Mi reserva va como acción secundaria.
+  - Reservar no apunta al wizard: apunta al buscador de la home, que es donde
+    se eligen albergue y modalidad. El wizard sin esos datos no puede reservar
+    nada y devuelve al buscador.
+  - La marca lleva el sello de UNT (assets/img/brand/unt-sello.png) a 40 px de
+    alto; en la barra compacta baja a 34 (--brand-mark-h y --brand-mark-h-sm).
+    El alt va vacío a propósito: el nombre del producto es el texto del enlace y
+    la institución ya está nombrada en la firma del pie, así el lector de
+    pantalla no la anuncia dos veces.
+  - Los íconos van en línea: la barra no depende del sprite de cada página.
+  - El menú compacto usa <details>: funciona sin JS y se opera con teclado.
+    El resumen recibe foco, Enter y Espacio abren y cierran, y el navegador
+    anuncia el estado expandido. Escape no lo cierra.
+  - aria-current="page" marca la sección actual: moverlo según la página.
+  - Con una reserva en curso, descomentar el bloque .nav__session del final.
+-->
+<header class="nav">
+  <div class="container nav__bar">
+    <a class="brand" href="index.html">
+      <img
+        class="brand__mark"
+        src="assets/img/brand/unt-sello.png"
+        alt=""
+        width="96"
+        height="118"
+        decoding="async"
+      />
+      <span class="brand__name">Albergues recreativos</span>
+    </a>
+
+    <nav class="nav__links" aria-label="Principal">
+      <a class="nav__link" href="index.html#albergues" aria-current="page"
+        >Albergues</a
+      >
+      <a class="nav__link" href="index.html#como-funciona">Cómo funciona</a>
+      <a class="nav__link" href="index.html#ayuda">Ayuda</a>
+    </nav>
+
+    <div class="nav__actions">
+      <a class="btn btn--ghost btn--sm nav__account" href="mi-reserva.html">
+        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true">
+          <path
+            d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
+          />
+          <path d="M13 5v2M13 11v2M13 17v2" />
+        </svg>
+        <span class="btn__label">Mi reserva</span>
+      </a>
+      <a class="btn btn--primary btn--sm" href="index.html#buscador" data-accion="reservar">
+        <span class="btn__label">Reservar</span>
+      </a>
+
+      <details class="nav__disclosure">
+        <summary class="nav__toggle">
+          <span class="visually-hidden">Menú</span>
+          <svg
+            class="icon nav__toggle-icon nav__toggle-icon--menu"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <svg
+            class="icon nav__toggle-icon nav__toggle-icon--close"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </summary>
+        <nav class="nav__panel" aria-label="Menú">
+          <a class="nav__panel-link" href="index.html#albergues" aria-current="page"
+            >Albergues</a
+          >
+          <a class="nav__panel-link" href="index.html#como-funciona"
+            >Cómo funciona</a
+          >
+          <a class="nav__panel-link" href="index.html#ayuda">Ayuda</a>
+          <a class="nav__panel-link nav__panel-link--account" href="mi-reserva.html"
+            >Mi reserva</a
+          >
+        </nav>
+      </details>
+    </div>
+  </div>
+
+  <!--
+    Reserva en curso. Descomentar y completar con los datos de la reserva
+    activa: el código y el estado son campos, no texto redactado.
+  -->
+  <!--
+  <div class="nav__session">
+    <div class="container nav__session-inner">
+      <span class="badge badge--warning"
+        ><span class="badge__dot"></span>Pre-reserva</span
+      >
+      <p class="nav__session-data">
+        <span class="nav__session-code" data-rol="codigo">R-000184</span>
+        <span class="nav__session-detail"
+          >Maestro José Fierro, del 15/11 al 18/11, 3 camas</span
+        >
+      </p>
+      <a class="link link--with-icon nav__session-cta" href="pago.html"
+        >Cargar comprobante
+        <svg class="icon icon--sm" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+      </a>
+    </div>
+  </div>
+  -->
+</header>

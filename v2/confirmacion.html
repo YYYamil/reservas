@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pre-reserva creada — Albergues recreativos</title>
+    <meta
+      name="description"
+      content="Pantalla de confirmación de la reserva: código, plazo para subir el comprobante de pago y detalle de la estadía."
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/img/brand/favicon-32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="assets/img/brand/icon-192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/img/brand/apple-touch-icon-180.png"
+    />
+    <link rel="stylesheet" href="assets/css/tokens.css" />
+    <link rel="stylesheet" href="assets/css/base.css" />
+    <link rel="stylesheet" href="assets/css/components.css" />
+    <link rel="stylesheet" href="assets/css/confirmacion.css" />
+  </head>
+  <body class="page-confirmacion">
+    <a class="skip-link" href="#contenido">Ir al contenido</a>
+
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+      <symbol id="i-ticket" viewBox="0 0 24 24">
+        <path
+          d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"
+        />
+        <path d="M13 5v2M13 11v2M13 17v2" />
+      </symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </symbol>
+      <symbol id="i-check" viewBox="0 0 24 24">
+        <path d="M20 6 9 17l-5-5" />
+      </symbol>
+      <symbol id="i-check-circle" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="m9 12 2 2 4-4" />
+      </symbol>
+      <symbol id="i-upload" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <path d="M17 8l-5-5-5 5" />
+        <path d="M12 3v12" />
+      </symbol>
+      <symbol id="i-alert" viewBox="0 0 24 24">
+        <path
+          d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+        />
+        <path d="M12 9v4M12 17h.01" />
+      </symbol>
+      <symbol id="i-map-pin" viewBox="0 0 24 24">
+        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+        <circle cx="12" cy="10" r="3" />
+      </symbol>
+      <symbol id="i-clock" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 6v6l4 2" />
+      </symbol>
+      <symbol id="i-phone" viewBox="0 0 24 24">
+        <path
+          d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.2 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"
+        />
+      </symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24">
+        <rect width="20" height="16" x="2" y="4" rx="2" />
+        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+      </symbol>
+    </svg>
+
+    <header class="nav">
+      <div class="container nav__bar">
+        <a class="brand" href="index.html">
+          <img
+            class="brand__mark"
+            src="assets/img/brand/unt-sello.png"
+            alt=""
+            width="96"
+            height="118"
+            decoding="async"
+          />
+          <span class="brand__name">Albergues recreativos</span>
+        </a>
+
+        <nav class="nav__links" aria-label="Principal">
+          <a class="nav__link" href="index.html#albergues">Albergues</a>
+          <a class="nav__link" href="index.html#como-funciona">Cómo funciona</a>
+          <a class="nav__link" href="index.html#ayuda">Ayuda</a>
+        </nav>
+
+        <div class="nav__actions">
+          <a class="btn btn--ghost btn--sm nav__account" href="mi-reserva.html">
+            <svg class="icon icon--sm" aria-hidden="true"><use href="#i-ticket"></use></svg>
+            <span class="btn__label">Mi reserva</span>
+          </a>
+          <a class="btn btn--primary btn--sm" href="index.html#buscador" data-accion="reservar">
+            <span class="btn__label">Reservar</span>
+          </a>
+
+          <details class="nav__disclosure">
+            <summary class="nav__toggle">
+              <span class="visually-hidden">Menú</span>
+              <svg class="icon nav__toggle-icon nav__toggle-icon--menu" aria-hidden="true">
+                <use href="#i-menu"></use>
+              </svg>
+              <svg class="icon nav__toggle-icon nav__toggle-icon--close" aria-hidden="true">
+                <use href="#i-close"></use>
+              </svg>
+            </summary>
+            <nav class="nav__panel" aria-label="Menú">
+              <a class="nav__panel-link" href="index.html#albergues">Albergues</a>
+              <a class="nav__panel-link" href="index.html#como-funciona">Cómo funciona</a>
+              <a class="nav__panel-link" href="index.html#ayuda">Ayuda</a>
+              <a class="nav__panel-link nav__panel-link--account" href="mi-reserva.html">Mi reserva</a>
+            </nav>
+          </details>
+        </div>
+      </div>
+
+      <!-- Reserva en curso: el código y la acción pendiente quedan a la vista en
+           cualquier página mientras la pre-reserva no esté confirmada. -->
+      <div class="nav__session">
+        <div class="container nav__session-inner">
+          <span class="nav__session-data">
+            <span class="nav__session-code">R-248715</span>
+            <span class="nav__session-detail">Maestro José Fierro · 15/11 al 18/11</span>
+          </span>
+          <a class="btn btn--primary btn--sm nav__session-cta" href="pago.html" data-accion="pagar">
+            <span class="btn__label">Cargar comprobante</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!--
+      PANTALLA DE ÉXITO
+      Es la salida del wizard. Acá está fijada con los datos reales de
+      `maestro` (92 camas, $5.000 por cama y noche) y el rango del mock
+      (15 al 18/11, 3 noches): en integración el código, las fechas y el monto
+      los escribe el JS.
+
+      Contrato (no renombrar):
+        data-rol="codigo"  → código de reserva (formato R-000000)
+        data-rol="estado"  → estado de la reserva dentro del badge
+        data-rol="total"   → monto total
+      El plazo de pago es ventana_pago_horas (48 h) antes del día de ingreso
+      (docs/MAQUINA-ESTADOS-RESERVAS.md).
+    -->
+    <main id="contenido" tabindex="-1">
+      <div class="container confirmacion" data-albergue="maestro">
+        <div class="confirmacion__grid">
+          <section class="confirmacion__panel" aria-labelledby="confirmacion-titulo">
+            <header class="confirmacion__head">
+              <span class="seal seal--success" aria-hidden="true">
+                <svg class="icon icon--lg"><use href="#i-check-circle"></use></svg>
+              </span>
+
+              <h1 class="confirmacion__title" id="confirmacion-titulo">
+                Pre-reserva creada
+              </h1>
+              <p class="confirmacion__lead">
+                Guardamos las 3 camas del 15 al 18 de noviembre en Maestro José
+                Fierro. Se confirman cuando llegue el comprobante de pago.
+              </p>
+
+              <span class="badge badge--warning">
+                <span class="badge__dot"></span>
+                <span data-rol="estado">Esperando comprobante</span>
+              </span>
+            </header>
+
+            <div class="confirmacion__code">
+              <p class="confirmacion__code-label">Código de reserva</p>
+              <p class="confirmacion__code-value" data-rol="codigo">R-248715</p>
+              <p class="confirmacion__code-note">
+                Con este código cargás el comprobante o cancelás la reserva. No
+                hace falta usuario ni contraseña.
+              </p>
+            </div>
+
+            <div class="notice notice--warning" role="status">
+              <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                <use href="#i-alert"></use>
+              </svg>
+              <div class="notice__body">
+                <p class="notice__title">Subí el comprobante antes del 13/11 a las 00:00</p>
+                <p class="notice__text">
+                  Pasado ese plazo la pre-reserva se libera y las camas vuelven a
+                  estar disponibles. Son 48 h antes del día de ingreso (15/11):
+                  el plazo se mide contra tu fecha de entrada, no contra el día
+                  en que reservaste.
+                </p>
+              </div>
+            </div>
+
+            <div class="confirmacion__actions">
+              <a class="btn btn--primary btn--lg" href="pago.html" data-accion="pagar">
+                <svg class="icon icon--sm" aria-hidden="true">
+                  <use href="#i-upload"></use>
+                </svg>
+                <span class="btn__label">Cargar comprobante</span>
+              </a>
+              <a class="btn btn--secondary" href="mi-reserva.html" data-accion="consultar">
+                <span class="btn__label">Mi reserva</span>
+              </a>
+              <a class="link" href="index.html#albergues">Volver a los albergues</a>
+            </div>
+          </section>
+
+          <aside class="confirmacion__aside" aria-labelledby="detalle-titulo">
+            <div class="summary">
+              <h2 class="summary__title" id="detalle-titulo">Tu reserva</h2>
+
+              <dl class="summary__list">
+                <div class="summary__row">
+                  <dt>Albergue</dt>
+                  <dd>Maestro José Fierro</dd>
+                </div>
+                <div class="summary__row">
+                  <dt>Modalidad</dt>
+                  <dd>Estadía con camas</dd>
+                </div>
+                <div class="summary__row">
+                  <dt>Delegación</dt>
+                  <dd>Escuela</dd>
+                </div>
+                <div class="summary__row">
+                  <dt>Camas</dt>
+                  <dd>3</dd>
+                </div>
+                <div class="summary__row">
+                  <dt>Fechas</dt>
+                  <dd>15/11 al 18/11</dd>
+                </div>
+                <div class="summary__row">
+                  <dt>Ingreso</dt>
+                  <dd>15/11, 09:00</dd>
+                </div>
+                <div class="summary__row">
+                  <dt>Salida</dt>
+                  <dd>18/11, 18:00</dd>
+                </div>
+              </dl>
+
+              <div class="summary__total">
+                <span class="summary__total-label">Total</span>
+                <span class="summary__amount" data-rol="total">$60.000</span>
+              </div>
+            </div>
+
+            <div class="summary">
+              <h2 class="summary__title">Qué sigue</h2>
+
+              <ol class="next">
+                <li class="next__item">
+                  <span class="next__num" aria-hidden="true">1</span>
+                  <div>
+                    <p class="next__title">Subí el comprobante</p>
+                    <p class="next__text">
+                      Desde la página de pago, con el código R-248715.
+                    </p>
+                  </div>
+                </li>
+                <li class="next__item">
+                  <span class="next__num" aria-hidden="true">2</span>
+                  <div>
+                    <p class="next__title">Confirmamos la reserva</p>
+                    <p class="next__text">
+                      Cuando el pago se acredita, la pre-reserva pasa a
+                      confirmada.
+                    </p>
+                  </div>
+                </li>
+                <li class="next__item">
+                  <span class="next__num" aria-hidden="true">3</span>
+                  <div>
+                    <p class="next__title">El día del ingreso</p>
+                    <p class="next__text">
+                      Presentate el 15/11 a las 09:00 con el código a mano.
+                    </p>
+                    <p class="next__text">
+                      <a
+                        class="link link--with-icon"
+                        href="https://www.google.com/maps?q=-26.89248109236016,-65.19288722381081"
+                        data-accion="ver-mapa"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        <svg class="icon icon--sm" aria-hidden="true">
+                          <use href="#i-map-pin"></use>
+                        </svg>
+                        Ver mapa
+                      </a>
+                    </p>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__top">
+        <div class="footer__brand">
+          <a class="brand brand--footer" href="index.html">
+            <span class="brand__name">Albergues recreativos</span>
+          </a>
+          <p class="footer__claim">
+            Estadías y visitas de un día en los albergues recreativos.
+          </p>
+          <p class="footer__entidad">
+            <img
+              class="footer__entidad-logo"
+              src="assets/img/brand/unt-logo.png"
+              alt="Universidad Nacional de Tucumán"
+              width="400"
+              height="203"
+              loading="lazy"
+              decoding="async"
+            />
+          </p>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Reservas</h3>
+          <ul class="footer__list">
+            <li><a href="index.html#albergues">Albergues</a></li>
+            <li><a href="index.html#como-funciona">Cómo funciona</a></li>
+            <li><a href="index.html#buscador">Reservar</a></li>
+            <li><a href="mi-reserva.html">Mi reserva</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Condiciones</h3>
+          <ul class="footer__list">
+            <li><a href="index.html#ayuda">Cancelación y devoluciones</a></li>
+            <li><a href="index.html#ayuda">Horarios de ingreso y salida</a></li>
+            <li><a href="index.html#ayuda">Duración máxima de la estadía</a></li>
+            <li><a href="#" data-placeholder="reglamento">Reglamento</a></li>
+          </ul>
+        </div>
+
+        <div class="footer__col">
+          <h3 class="footer__col-title">Contacto</h3>
+          <ul class="footer__contact">
+            <li class="footer__contact-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-phone"></use></svg>
+              <a class="footer__pending" href="#" data-placeholder="telefono">Teléfono a confirmar</a>
+            </li>
+            <li class="footer__contact-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-mail"></use></svg>
+              <a class="footer__pending" href="#" data-placeholder="correo">Correo a confirmar</a>
+            </li>
+          </ul>
+
+          <dl class="footer__hours">
+            <div class="footer__hours-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+              <dt>Ingreso</dt>
+              <dd class="footer__hours-value">09:00</dd>
+            </div>
+            <div class="footer__hours-row">
+              <svg class="icon icon--sm" aria-hidden="true"><use href="#i-clock"></use></svg>
+              <dt>Salida</dt>
+              <dd class="footer__hours-value">18:00</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="footer__legal">
+        <div class="container footer__legal-inner">
+          <p>
+            <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+            Reservas de los albergues recreativos.
+          </p>
+          <ul class="footer__legal-list">
+            <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
+            <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>
+            <li><a href="#" data-placeholder="accesibilidad">Accesibilidad</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
