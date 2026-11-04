@@ -19,6 +19,12 @@
   gap: var(--sp-2);
 }
 
+/* Estado de carga de los datos del albergue: una línea con anillo debajo del
+   título, para que los guiones de capacidad y montos tengan explicación. */
+.wizard__cargando {
+  margin-block-start: var(--sp-1);
+}
+
 .wizard__back {
   justify-self: start;
   font-size: var(--fs-200);
@@ -134,18 +140,12 @@
   display: flex;
 }
 
-/* --- Selector de modalidad ---
-   Entre el encabezado y la barra de pasos, fuera de los formularios de los
-   pasos: un solo name="modalidad" para las dos formas de reservar. Cambia el
-   mock sin JS; la integración sigue mandando por data-modalidad. */
-.wizard > .segmented {
-  justify-self: start;
-}
-
 /* --- Visita: una sola página, sin stepper ni delegación ---
    El bloque .visita no lleva .paso a propósito: si lo llevara entraría en la
-   máquina de :target de los pasos. Se muestra con :has() y con el atributo, y
-   las reglas ganan por especificidad, sin borrar las de :target. */
+   máquina de :target de los pasos. Se muestra con el atributo, y las reglas
+   ganan por especificidad, sin borrar las de :target. La modalidad se elige en
+   la home y no tiene selector acá: las gemelas :has() quedan solo para cuando
+   el wizard se mira suelto, con un selector en el markup. */
 .visita {
   display: none;
   gap: var(--sp-4);
@@ -418,4 +418,34 @@
   .wizard:has(#step-4-maestro:target) .step[data-paso="4"] .step__label {
     display: block;
   }
+}
+
+/* --- Confirmación en la misma página ---
+   Reemplaza a la grilla del wizard cuando la API confirma la reserva. Mantiene
+   el ritmo del .panel y deja el sello y los datos en una columna legible. */
+.confirmacion {
+  display: grid;
+  gap: var(--sp-6);
+  max-width: 46rem;
+  margin-inline: auto;
+}
+
+.confirmacion .paso__head {
+  display: grid;
+  gap: var(--sp-2);
+  justify-items: start;
+}
+
+.confirmacion .summary__list {
+  padding: var(--sp-4);
+  background-color: var(--c-surface-sunken);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+
+.confirmacion .paso__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3) var(--sp-4);
 }

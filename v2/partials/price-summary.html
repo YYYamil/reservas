@@ -16,8 +16,8 @@
   Ganchos que actualiza el JS: data-rol="total", data-rol="unitario",
   data-rol="disponibles" y el id fecha-range-display-alo-{clave}.
 
-  Cálculo de estadía: monto_cama × camas × noches.
-  Cálculo de visita: monto_visita × personas.
+  Cálculo de estadía: monto_cama × camas × días del rango (entrada y salida
+  incluidas, como lo calcula la API). Cálculo de visita: monto_visita × personas.
 -->
 <aside class="summary wizard__summary" aria-labelledby="resumen-titulo">
   <h2 class="summary__title" id="resumen-titulo">Resumen</h2>
@@ -52,12 +52,12 @@
   <div class="summary__total">
     <span class="summary__total-label">Total</span>
     <span class="summary__amount" id="monto-total-alo-maestro" data-rol="total">
-      $45.000
+      $60.000
     </span>
   </div>
 
   <p class="summary__note">
-    Se paga por transferencia. Tenés 48 h para subir el comprobante; si la fecha
-    está cerca, el plazo baja a 6 h.
+    Se paga por transferencia. El comprobante se sube hasta 48 h antes del día
+    de ingreso; si vence sin comprobante, la pre-reserva se libera.
   </p>
 </aside>

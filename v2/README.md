@@ -23,18 +23,43 @@ v2/
   styleguide.html       sistema visual (prompt 01) + nav y footer (prompt 02)
   assets/css/           tokens, base, components, hero (home), wizard (reserva),
                         confirmacion (éxito) y styleguide (documento)
+  assets/js/            runtime propio: app.js (utilidades), validacion.js
+                        (reglas de los formularios de datos), index.js,
+                        reservar.js, pago.js y mi-reserva.js
+  assets/img/           fotos de los albergues (una carpeta por clave) y
+                        brand/ con el lockup de UNT y los íconos de pestaña
   partials/             piezas canónicas: nav, footer, tarjeta, ficha, estado vacío,
                         stepper, delegación, calendario, datos y resumen de precio
 ```
 
 ## Reglas
 
-- Nada de lógica de reservas acá: los `data-*` son el contrato, la conexión se
-  hace en el paso de integración.
+- La v2 tiene runtime propio (`assets/js/`): no carga `script.js` y habla con la
+  API pública existente. El detalle está en `docs/CONTRATO-INTEGRACION.md`,
+  sección 9.
 - Ningún archivo de `api/`, `admin/` ni el `styles.css` actual se referencia
   desde esta carpeta.
 - Los datos de ejemplo salen de `docs/datos-mock.md`.
 - Todo el texto en español rioplatense.
+- A la reserva se entra por el buscador, una sola vez: el CTA del nav y del pie
+  abren `index.html#buscador`, la tarjeta hereda modalidad y cantidad
+  (`data-cta-hereda`) y la ficha ofrece las dos modalidades en su pie. El
+  albergue es obligatorio en el buscador, y `reservar.html` sin `?albergue` y
+  `?modalidad` vuelve al buscador con `?motivo=completar`: no hay albergue ni
+  modalidad por defecto.
+
+## Probar en local
+
+1. Levantar el túnel SSH a PostgreSQL y dejar `api/config.local.php` apuntando a
+   `reserva_albergue_dev` (nunca producción).
+2. Desde la raíz del repo: `C:\php\php.exe -S 127.0.0.1:8000`.
+3. Abrir `http://127.0.0.1:8000/v2/index.html`.
+4. Recorrido mínimo: reservar una visita, subir un comprobante en `pago.html` y
+   cancelarla en `mi-reserva.html`. En alojamiento, repetir con un rango de
+   fechas.
+
+La confirmación de la reserva es inline en `reservar.html`; `confirmacion.html`
+queda como mock visual.
 
 ## Estado
 
@@ -60,4 +85,8 @@ v2/
 | Mi reserva (prompt 10) | listo: `mi-reserva.html` con la consulta por código + DNI, los cuatro desenlaces (buscar, confirmar, cancelada, rechazada) y la política de devolución; `assets/css/mi-reserva.css` + sección *Mi reserva* en `styleguide.html` |
 | Comprobante de pago (prompt 11) | listo: `pago.html` con la zona de carga y los cinco estados (sin archivo, subiendo, recibido, rechazado, error de red); `assets/css/pago.css` + componente `.upload` en `components.css` + sección *Comprobante* en `styleguide.html` |
 | Páginas del brief | completas: `index`, `reservar`, `confirmacion`, `mi-reserva` y `pago` |
+| Runtime de integración | listo: `assets/js/app.js`, `index.js`, `reservar.js`, `pago.js` y `mi-reserva.js`; flujo visita y alojamiento probados de punta a punta contra `reserva_albergue_dev` |
 | Accesibilidad y responsive (prompt 12) | listo: `INFORME-ACCESIBILIDAD.md` con el método, el resultado y el recorrido final; arreglados el foco del campo de fecha nativo, el alto del skip link, los avisos del paso 3 a 1024, la tecla Enter del acordeón y el hover de la tarjeta. axe sin violaciones en las páginas auditadas |
+| Navegación a la reserva | listo: el CTA del nav y del pie abren el buscador, la tarjeta hereda modalidad y cantidad, la ficha ofrece *Reservar visita* y *Reservar estadía*, y `reservar.html` sin datos vuelve al buscador en lugar de caer en Maestro José Fierro con estadía. Documentado en *Nav y footer* del styleguide |
+| Datos de modalidad en tarjeta y ficha | listo: una fila por modalidad (`.spec-list` en la tarjeta, `.modal__facts` en la ficha) con capacidad y precio adentro; `index.js` escribe capacidad, lugares de visita y los dos montos de `listarAlbergues` en las dos superficies (`data-modalidad` + `data-rol`), con singular/plural y respaldo al markup si la API falla. Documentado en *Una fila por modalidad* |
+| Controles de los datos del responsable | listo: `assets/js/validacion.js` con reglas declarativas por `data-regla` (obligatorio, solo números, solo letras y largo; DNI de 7 u 8 con contador) en los dos modos de la reserva, Mi reserva y el comprobante. Documentado en *Datos del responsable* e `INFORME-ACCESIBILIDAD.md` |

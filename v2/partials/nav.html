@@ -6,6 +6,14 @@
 
   Reglas de este bloque:
   - Un solo CTA de peso alto: Reservar. Mi reserva va como acción secundaria.
+  - Reservar no apunta al wizard: apunta al buscador de la home, que es donde
+    se eligen albergue y modalidad. El wizard sin esos datos no puede reservar
+    nada y devuelve al buscador.
+  - La marca lleva el sello de UNT (assets/img/brand/unt-sello.png) a 40 px de
+    alto; en la barra compacta baja a 34 (--brand-mark-h y --brand-mark-h-sm).
+    El alt va vacío a propósito: el nombre del producto es el texto del enlace y
+    la institución ya está nombrada en la firma del pie, así el lector de
+    pantalla no la anuncia dos veces.
   - Los íconos van en línea: la barra no depende del sprite de cada página.
   - El menú compacto usa <details>: funciona sin JS y se opera con teclado.
     El resumen recibe foco, Enter y Espacio abren y cierran, y el navegador
@@ -16,6 +24,14 @@
 <header class="nav">
   <div class="container nav__bar">
     <a class="brand" href="index.html">
+      <img
+        class="brand__mark"
+        src="assets/img/brand/unt-sello.png"
+        alt=""
+        width="96"
+        height="118"
+        decoding="async"
+      />
       <span class="brand__name">Albergues recreativos</span>
     </a>
 
@@ -37,7 +53,7 @@
         </svg>
         <span class="btn__label">Mi reserva</span>
       </a>
-      <a class="btn btn--primary btn--sm" href="reservar.html" data-accion="reservar">
+      <a class="btn btn--primary btn--sm" href="index.html#buscador" data-accion="reservar">
         <span class="btn__label">Reservar</span>
       </a>
 

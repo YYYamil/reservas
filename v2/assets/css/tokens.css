@@ -189,6 +189,14 @@
   --dur-spin: 900ms;
   --dur-pulse: 1600ms;
 
+  /* Impresión y scroll. No son transiciones de estado, son las animaciones con
+     las que el landing se compone: por eso quedan fuera de la escala de 200 ms,
+     que sigue siendo el tope para todo lo que responde al puntero o al foco. */
+  --dur-print: 420ms;
+  --dur-wipe: 560ms;
+  --stagger: 55ms;
+  --ease-out-soft: cubic-bezier(0.16, 0.84, 0.32, 1);
+
   /* ------------------------------------------------------------------------
      10. Layout
      Breakpoints del brief: 360 / 480 / 768 / 1024 / 1280.
@@ -226,6 +234,14 @@
   --nav-h: 64px;
   --nav-gap: var(--sp-3);
   --footer-gap: var(--sp-8);
+  /* Sello institucional de la barra. A 40 px el escudo se lee como sello y el
+     bloque de marca sigue entrando en los 64 px de la barra; en compacto baja a
+     34 para dejar sitio a "Reservar" y al menú. */
+  --brand-mark-h: 40px;
+  --brand-mark-h-sm: 34px;
+  /* Firma institucional del pie. El archivo mide el doble (400 px de ancho),
+     así que a 200 px entra sin pérdida en pantallas de 2x. */
+  --footer-logo-w: 200px;
 
   --badge-px: var(--sp-3);
   --badge-py: var(--sp-1);
@@ -262,6 +278,12 @@
     --dur-2: 0ms;
     --dur-3: 0ms;
     --dur-pulse: 0ms;
+    /* Las animaciones de impresión y scroll se apagan en motion.css con
+       @media (prefers-reduced-motion: no-preference); estos tokens quedan en
+       cero por si alguna se escribe por fuera de ese bloque. */
+    --dur-print: 0ms;
+    --dur-wipe: 0ms;
+    --stagger: 0ms;
   }
 }
 

@@ -1,8 +1,15 @@
 # Contrato de integración — markup nuevo ↔ lógica actual
 
-El rediseño **no reescribe** `script.js`: lo reutiliza. Para eso, el markup que
-genere Kombai tiene que exponer los identificadores que el JS ya busca, o un
-puente que los mapee.
+> **Estado del rediseño (v2).** La v2 ya no carga `script.js`. Usa un runtime
+> propio y mínimo (`v2/assets/js/app.js`, `reservar.js`, `pago.js` y
+> `mi-reserva.js`) que habla con los **mismos endpoints públicos** de
+> `api/index.php`. Las tablas de `script.js` de este documento quedan como
+> referencia del sitio actual y como inventario histórico; para la v2 manda la
+> sección **9. Runtime propio de la v2**, al final.
+
+El rediseño del sitio actual **no reescribe** `script.js`: lo reutiliza. Para
+eso, el markup que genere Kombai tiene que exponer los identificadores que el JS
+ya busca, o un puente que los mapee.
 
 Este documento es el inventario completo, extraído de `script.js`. Si un
 identificador de esta lista falta en el markup, la función asociada falla en
@@ -236,3 +243,100 @@ existe) y `mi-reserva.html` intenta renderizar tarjetas que no van.
 7. Consola del navegador sin errores en las 4 páginas.
 
 Cada punto se prueba contra `reserva_albergue_dev`, nunca contra producción.
+
+---
+
+## 9. Runtime propio de la v2
+
+Decisión de integración: la v2 **no carga `script.js`** y no reutiliza sus
+funciones. Cada página trae un script pequeño que consume la API pública ya
+existente. No se agregaron endpoints, no se tocó `api/` y no se tocó `admin/`.
+
+| Archivo | Alcance |
+|---|---|
+| `v2/assets/js/app.js` | Utilidades compartidas: `V2.apiGet`, `V2.apiPost`, `V2.cargarAlbergues`, fechas locales, formato de dinero y escape. |
+| `v2/assets/js/index.js` | Enlaces de mapa y reglamento de las fichas de la home, desde `mapa` y `pdf` de `listarAlbergues`. |
+| `v2/assets/js/reservar.js` | Hidratación del albergue, modalidad, wizard de 4 pasos, calendarios, validación y creación de la reserva. |
+| `v2/assets/js/pago.js` | Selección del archivo, validación (PDF/JPG/PNG, 8 MB), subida con progreso y estados del comprobante. |
+| `v2/assets/js/mi-reserva.js` | Búsqueda por código + DNI, confirmación y cancelación. |
+
+La base de la API se detecta en `app.js`: desde `/v2/` usa `../api/index.php`;
+si la v2 se sirve desde la raíz, usa `api/index.php`.
+
+### 9.1 Endpoints y payloads
+
+| Acción | Parámetros | Respuesta que usa la v2 |
+|---|---|---|
+| `listarAlbergues` | — | `albergues`, `fecha_minima_reserva`, `meses_anticipacion`, `ventana_pago_horas`, `ventana_pago_min_horas`. |
+| `obtenerDisponibilidadDia` | `albergue`, `fecha` | `capacidad`, `ocupados`, `disponibles`. |
+| `obtenerDisponibilidadDiaAlojamiento` | `albergue`, `fecha` | `capacidad`, `ocupados`, `disponibles`. |
+| `disponibilidadAlojamientoMes` | `albergue`, `anio`, `mes` (1–12) | `dias: { "YYYY-MM-DD": libres }`. |
+| `crearReserva` (visita) | `albergue`, `institucion`, `responsable`, `dni`, `contacto`, `email`, `cantidad`, `fechaIngreso`, `horaIngreso`, `horaEgreso` | `codigoPublico`, `montoTotal`, `pagoVenceAt`, `modalidad`. |
+| `crearReservaAlojamiento` | `albergue`, `institucion`, `responsable`, `dni`, `contacto`, `email`, `cantidad`, `rangoFechas` (CSV, ordenado y consecutivo, hasta 4 días) | Igual que visita. |
+| `subirComprobante` | multipart: `action`, `codigo`, `comprobante` | `codigo`, `estado: "Comprobar"`, `mensaje`. |
+| `cancelarReserva` | `idReserva` (código público), `dni` | Solo `{ success, message }`. |
+
+`albergue` viaja con el **nombre completo** (`Maestro José Fierro`), porque la
+API lo resuelve por nombre, no por clave.
+
+### 9.2 IDs fijos `-maestro`
+
+El markup de `reservar.html` usa los ids de `maestro` como **hooks únicos para
+cualquier albergue**. El albergue concreto se resuelve con `?albergue=clave` (o
+`data-albergue` del wizard) y se escribe en los textos y en la llamada a la API.
+Es una desviación deliberada del patrón `{campo}-{clave}`: no hay un DOM por
+albergue.
+
+Formularios y botones que no hay que renombrar:
+
+| Página | IDs |
+|---|---|
+| `reservar.html` | `reservaFormMaestro`, `aloFormMaestro`, `btn-submit-maestro`, `btn-submit-alo-maestro`, `btn-continuar-1/2/3-maestro`, `wizard-alert`, `reserva-confirmada`. |
+| `pago.html` | `pagoForm`, `pago-codigo`, `pago-archivo`, `pagoBtn`, `pagoMsg`, `pagoMsg-texto`. |
+| `mi-reserva.html` | `cancelForm`, `cancel-id`, `cancel-dni`, `btn-cancelar-enviar`, `consulta-alerta`. |
+
+### 9.3 Calendarios de la v2
+
+Los calendarios los dibuja `reservar.js` dentro de `#calendario-alo-maestro` y
+`#calendario-maestro`. Cada día es un `button.cal__day` con `data-fecha` y
+`data-date` (`YYYY-MM-DD`). El mes visible se controla con `.cal__nav-btn`.
+
+- **Alojamiento:** rango de entrada y salida; hasta 4 días para escuelas y 3
+  para otra delegación. Se consulta `disponibilidadAlojamientoMes` para los
+  badges y se revalida día por día antes de habilitar el paso de datos.
+- **Visita:** día único. No hay cupo mensual: al elegir el día se consulta
+  `obtenerDisponibilidadDia` y se habilita el envío solo si alcanza el cupo.
+
+Los estados visuales son `.cal__day--past`, `--full`, `--low`, `--in-range`,
+`--range-start`, `--range-end` y `--invalid`.
+
+### 9.4 Modalidad y confirmación
+
+La modalidad viaja en `data-modalidad` del `.wizard` y se cambia con los radios
+`name="modalidad"`. Alojamiento mantiene el wizard de 4 pasos; visita es una sola
+página con horarios. La confirmación es **inline** en `reservar.html`
+(`#reserva-confirmada`): no se redirige a `confirmacion.html`.
+
+Totales: visita = `cantidad × monto_visita`; alojamiento =
+`cantidad × días del rango × monto_cama`. La salida cuenta como día, igual que
+en la API (15/11 al 18/11 = 4 días).
+
+### 9.5 Pago y mi-reserva
+
+- `pago.html` usa `#pagoForm[data-estado]` con `sin-archivo`, `subiendo`,
+  `recibido`, `rechazado` y `error-red`. `pago.js` agrega `.pago__card--js`;
+  sin JS siguen funcionando los estados por `:target`.
+- `mi-reserva.html` conserva los cuatro estados por `:target`: `#buscar-reserva`,
+  `#confirmar-cancelacion`, `#reserva-cancelada` y `#cancelacion-rechazada`.
+  No hay consulta de estado: la búsqueda solo valida formato y la API valida al
+  cancelar. No se muestran montos de devolución, porque `cancelarReserva` no los
+  devuelve.
+- Ambas páginas aceptan `?codigo=` y lo precargan.
+
+### 9.6 Prueba local
+
+1. Túnel SSH a PostgreSQL y `api/config.local.php` apuntando a
+   `reserva_albergue_dev`.
+2. `C:\php\php.exe -S 127.0.0.1:8000` desde la raíz del repo.
+3. `http://127.0.0.1:8000/v2/reservar.html?modalidad=visita&albergue=maestro`.
+4. Flujo completo: crear → subir comprobante → cancelar, siempre en dev.

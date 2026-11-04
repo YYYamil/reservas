@@ -8,6 +8,23 @@
       name="description"
       content="Consultá una reserva con el código y el DNI del responsable y cancelala, con el monto de devolución que corresponde."
     />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/img/brand/favicon-32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="assets/img/brand/icon-192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/img/brand/apple-touch-icon-180.png"
+    />
     <link rel="stylesheet" href="assets/css/tokens.css" />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/components.css" />
@@ -51,6 +68,9 @@
         <circle cx="12" cy="12" r="10" />
         <path d="M12 16v-4M12 8h.01" />
       </symbol>
+      <symbol id="i-loading" viewBox="0 0 24 24">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+      </symbol>
       <symbol id="i-alert-triangle" viewBox="0 0 24 24">
         <path
           d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
@@ -80,6 +100,14 @@
     <header class="nav">
       <div class="container nav__bar">
         <a class="brand" href="index.html">
+          <img
+            class="brand__mark"
+            src="assets/img/brand/unt-sello.png"
+            alt=""
+            width="96"
+            height="118"
+            decoding="async"
+          />
           <span class="brand__name">Albergues recreativos</span>
         </a>
 
@@ -170,53 +198,79 @@
                 </p>
               </div>
 
-              <form class="estado__form" action="mi-reserva.html" method="get">
+              <form class="estado__form" id="cancelForm" action="mi-reserva.html" method="get" novalidate>
                 <div class="consulta__fields">
                   <div class="field">
-                    <label class="field__label" for="consulta-codigo">Código de reserva</label>
+                    <div class="field__head">
+                      <label class="field__label" for="cancel-id">Código de reserva</label>
+                      <span class="field__count" aria-hidden="true"></span>
+                    </div>
                     <input
                       class="input input--codigo"
-                      id="consulta-codigo"
+                      id="cancel-id"
                       name="codigo"
                       data-campo="codigo"
                       type="text"
                       placeholder="R-000000"
+                      data-regla="codigo"
+                      data-contador="8"
+                      minlength="6"
                       maxlength="8"
                       autocomplete="off"
                       spellcheck="false"
-                      aria-describedby="consulta-codigo-ayuda"
+                      aria-describedby="cancel-id-ayuda"
                       required
                     />
-                    <p class="field__help" id="consulta-codigo-ayuda">
+                    <p class="field__help" id="cancel-id-ayuda">
                       Lo viste al terminar la reserva.
                     </p>
                   </div>
 
                   <div class="field">
-                    <label class="field__label" for="consulta-dni">DNI del responsable</label>
+                    <div class="field__head">
+                      <label class="field__label" for="cancel-dni">DNI del responsable</label>
+                      <span class="field__count" aria-hidden="true"></span>
+                    </div>
                     <input
                       class="input"
-                      id="consulta-dni"
+                      id="cancel-dni"
                       name="dni"
                       data-campo="dni"
                       type="text"
                       inputmode="numeric"
+                      data-regla="dni"
+                      data-contador="8"
+                      pattern="\d{7,8}"
+                      minlength="7"
                       maxlength="8"
-                      placeholder="8 números"
+                      placeholder="7 u 8 números"
                       autocomplete="off"
+                      aria-describedby="cancel-dni-ayuda"
                       required
                     />
+                    <p class="field__help" id="cancel-dni-ayuda">
+                      El del responsable de la reserva, sin puntos.
+                    </p>
                   </div>
                 </div>
               </form>
 
+              <div class="notice notice--danger" id="consulta-alerta" role="alert" hidden>
+                <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                  <use href="#i-alert-triangle"></use>
+                </svg>
+                <div class="notice__body">
+                  <p class="notice__text" id="consulta-alerta-texto"></p>
+                </div>
+              </div>
+
               <div class="estado__actions">
-                <a class="btn btn--primary btn--lg" href="#confirmar-cancelacion" data-accion="consultar">
+                <button class="btn btn--primary btn--lg" type="submit" form="cancelForm" data-accion="consultar">
                   <svg class="icon icon--sm" aria-hidden="true">
                     <use href="#i-search"></use>
                   </svg>
                   <span class="btn__label">Buscar reserva</span>
-                </a>
+                </button>
               </div>
             </section>
 
@@ -230,10 +284,9 @@
             >
               <div class="estado__head">
                 <h2 class="estado__title" id="confirmar-titulo">Cancelar la reserva</h2>
-                <p class="estado__lead">
-                  Al confirmar, la reserva del código R-248715 queda cancelada y
-                  las camas vuelven a estar disponibles para otro grupo. La
-                  devolución se muestra en el paso siguiente.
+                <p class="estado__lead" id="confirmar-texto">
+                  Al confirmar, la reserva queda cancelada y las camas vuelven a
+                  estar disponibles para otro grupo.
                 </p>
               </div>
 
@@ -251,10 +304,13 @@
               </div>
 
               <div class="estado__actions">
-                <a class="btn btn--danger btn--lg" href="#reserva-cancelada" data-accion="cancelar">
+                <button class="btn btn--danger btn--lg" type="button" id="btn-cancelar-enviar" data-accion="cancelar">
+                  <svg class="icon btn__spinner" aria-hidden="true">
+                    <use href="#i-loading"></use>
+                  </svg>
                   <span class="btn__label">Cancelar la reserva</span>
-                </a>
-                <a class="btn btn--secondary" href="mi-reserva.html">Volver a buscar</a>
+                </button>
+                <a class="btn btn--secondary" href="#buscar-reserva" id="btn-volver-buscar">Volver a buscar</a>
               </div>
             </section>
 
@@ -268,10 +324,8 @@
                 </span>
 
                 <h2 class="estado__title" id="cancelada-titulo">Reserva cancelada</h2>
-                <p class="estado__lead">
-                  Cancelamos las 3 camas del 15 al 18 de noviembre en Maestro José
-                  Fierro. El código R-248715 ya no sirve para cargar el
-                  comprobante.
+                <p class="estado__lead" id="cancelada-texto">
+                  La reserva quedó cancelada y el cupo volvió a estar disponible.
                 </p>
 
                 <span class="badge badge--danger">
@@ -280,23 +334,14 @@
                 </span>
               </div>
 
-              <div class="devolucion">
-                <p class="devolucion__label">Devolución</p>
-                <p class="devolucion__amount">$45.000</p>
-                <p class="devolucion__note">
-                  100 % del total, porque la cancelación fue con más de 48 h de
-                  anticipación.
-                </p>
-              </div>
-
               <div class="notice" role="status">
                 <svg class="icon icon--sm notice__icon" aria-hidden="true">
                   <use href="#i-info"></use>
                 </svg>
                 <div class="notice__body">
-                  <p class="notice__text">
-                    Guardá el código R-248715 y el monto de la devolución: son el
-                    comprobante de esta cancelación.
+                  <p class="notice__text" id="cancelada-aviso">
+                    Si la reserva tenía pago acreditado y la cancelación entra en
+                    la política de devolución, la administración procesa el reintegro.
                   </p>
                 </div>
               </div>
@@ -323,10 +368,9 @@
                 </span>
 
                 <h2 class="estado__title" id="rechazada-titulo">No se puede cancelar</h2>
-                <p class="estado__lead">
-                  La reserva R-248715 tenía ingreso el 15 de noviembre y esa fecha
-                  ya pasó. Una reserva con el ingreso hecho no se cancela desde
-                  acá.
+                <p class="estado__lead" id="rechazada-texto">
+                  La reserva no se puede cancelar desde acá. Revisá el código y el
+                  DNI, o los plazos de la política de cancelación.
                 </p>
               </div>
 
@@ -366,7 +410,7 @@
                 Si todavía no subiste el comprobante, la reserva sigue en
                 pre-reserva hasta que se acredite el pago.
               </p>
-              <a class="btn btn--secondary" href="pago.html" data-accion="pagar">
+              <a class="btn btn--secondary" href="pago.html" id="comprobante-link" data-accion="pagar">
                 <svg class="icon icon--sm" aria-hidden="true">
                   <use href="#i-upload"></use>
                 </svg>
@@ -387,6 +431,17 @@
           <p class="footer__claim">
             Estadías y visitas de un día en los albergues recreativos.
           </p>
+          <p class="footer__entidad">
+            <img
+              class="footer__entidad-logo"
+              src="assets/img/brand/unt-logo.png"
+              alt="Universidad Nacional de Tucumán"
+              width="400"
+              height="203"
+              loading="lazy"
+              decoding="async"
+            />
+          </p>
         </div>
 
         <div class="footer__col">
@@ -394,7 +449,7 @@
           <ul class="footer__list">
             <li><a href="index.html#albergues">Albergues</a></li>
             <li><a href="index.html#como-funciona">Cómo funciona</a></li>
-            <li><a href="reservar.html">Reservar</a></li>
+            <li><a href="index.html#buscador">Reservar</a></li>
             <li><a href="mi-reserva.html">Mi reserva</a></li>
           </ul>
         </div>
@@ -439,7 +494,10 @@
 
       <div class="footer__legal">
         <div class="container footer__legal-inner">
-          <p>Reservas de los albergues recreativos.</p>
+          <p>
+            <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+            Reservas de los albergues recreativos.
+          </p>
           <ul class="footer__legal-list">
             <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
             <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>
@@ -448,5 +506,9 @@
         </div>
       </div>
     </footer>
+
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/validacion.js"></script>
+    <script src="assets/js/mi-reserva.js"></script>
   </body>
 </html>

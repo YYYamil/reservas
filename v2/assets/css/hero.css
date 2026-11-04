@@ -5,8 +5,10 @@
    desde el botón (#buscador), sin JS: el ancla lo muestra con :target.
    ========================================================================== */
 
+/* El hero cierra sin aire propio: la franja de confianza es parte del bloque y
+   la separación con Albergues la pone el ritmo de la sección siguiente. */
 .hero {
-  padding-block: var(--sp-12);
+  padding-block: var(--sp-8) 0;
 }
 
 .hero__inner {
@@ -49,6 +51,13 @@
   display: block;
 }
 
+/* Aviso de llegada incompleta: reservar.html devuelve al buscador cuando el
+   enlace que la abrió no traía albergue ni modalidad. Ocupa el ancho del panel
+   y no compite con el formulario. */
+.hero__aviso {
+  margin-block-end: var(--sp-4);
+}
+
 .hero__form {
   display: grid;
   gap: var(--sp-4);
@@ -69,10 +78,6 @@
   gap: var(--sp-4);
 }
 
-.hero__field--salida {
-  display: none;
-}
-
 .hero__action .btn {
   width: 100%;
 }
@@ -91,21 +96,17 @@
   display: none;
 }
 
-/* En visita no hay fecha de salida: el campo desaparece del formulario. */
-.hero__form:has([value="alojamiento"]:checked) .hero__field--salida {
-  display: block;
-}
-
+/* Sin campos de fecha, la fila es albergue + cantidad y el botón abajo a todo
+   el ancho: el albergue lleva más aire porque los nombres son largos. */
 @media (min-width: 480px) {
   .hero__modes .segmented {
     width: auto;
   }
 
   .hero__fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
   }
 
-  .hero__field--albergue,
   .hero__action {
     grid-column: 1 / -1;
   }
@@ -113,7 +114,7 @@
 
 @media (min-width: 768px) {
   .hero {
-    padding-block: var(--sp-16) var(--sp-24);
+    padding-block: var(--sp-16) 0;
   }
 
   .hero__open {
@@ -130,23 +131,81 @@
    de ser una franja horizontal, así que los campos pasan a dos por fila y la
    acción ocupa su ancho completo. Entre 768 y 1023 queda apilado como está. */
 @media (min-width: 1024px) {
+  /* Dos filas en la columna del título para que la franja de confianza quede
+     pegada al lead y no al pie del panel: con una sola fila, la altura del
+     buscador empujaba la lista al fondo y el hueco seguía estando. */
   .hero__inner {
     grid-template-columns: minmax(0, 1fr) minmax(24rem, 30rem);
+    grid-template-rows: auto auto;
+    grid-template-areas:
+      "intro panel"
+      "trust panel";
     align-items: start;
-    gap: var(--sp-12);
+    gap: var(--sp-8) var(--sp-12);
+  }
+
+  .hero__intro {
+    grid-area: intro;
+  }
+
+  .hero__panel {
+    grid-area: panel;
   }
 
   .hero__fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
     align-items: end;
   }
 
-  .hero__field--albergue,
   .hero__action {
     grid-column: 1 / -1;
   }
 
   .hero__action .btn {
     width: 100%;
+  }
+}
+
+/* --- Franja de confianza dentro del hero ---
+   Hasta 1023 conserva la banda a todo el ancho: el margen negativo la saca del
+   contenedor y el padding la vuelve a alinear con el texto. Desde 1024 deja de
+   ser banda y se convierte en la lista de condiciones de la columna del título,
+   que es el aire que queda libre debajo del lead. */
+.hero__trust {
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+}
+
+@media (min-width: 1024px) {
+  .hero__trust {
+    grid-area: trust;
+    margin-inline: 0;
+    padding-inline: 0;
+    background-color: transparent;
+    border-block: 0;
+  }
+
+  .hero__trust .trust__inner {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 32rem;
+    padding-top: var(--sp-4);
+    border-top: var(--bw) solid var(--c-border);
+  }
+
+  /* Una condición por fila: el rótulo arriba y la consecuencia abajo, con el
+     hairline entre una y otra. */
+  .hero__trust .trust__item {
+    padding: var(--sp-4) 0;
+    border-top: var(--bw) solid var(--c-border);
+    border-left: 0;
+  }
+
+  .hero__trust .trust__item:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .hero__trust .trust__item:last-child {
+    padding-bottom: 0;
   }
 }

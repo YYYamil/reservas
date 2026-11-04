@@ -32,6 +32,19 @@ y chequeos propios a 360, 390, 768, 1024 y 1280.
   todas las páginas y en todos los estados por hash.
 - **Imágenes**: sin `alt` faltantes y con `aspect-ratio` fijo; el CLS medido en
   las páginas queda por debajo de 0.01.
+- **Firma institucional**: el lockup de UNT entra como imagen con
+  `alt` "Universidad Nacional de Tucumán" y `width`/`height` declarados, así que
+  no aporta CLS. La línea de la franja legal queda en 9.4:1 sobre el carbón y no
+  es un enlace: no compite con los tres enlaces legales ni les roba el foco.
+- **Sello de la barra**: va con `alt` vacío y `width`/`height` declarados. El
+  nombre accesible del enlace sigue siendo "Albergues recreativos" —que es lo que
+  el enlace hace, volver al inicio— y la institución se anuncia una sola vez, en
+  la firma del pie, en lugar de dos veces por página.
+- **Galería de la ficha**: la foto grande y las miniaturas llevan `alt` generado
+  con el nombre del albergue y la posición ("Tinku Huasi, foto 3"), porque el
+  array de fotos viene de la base y no trae descripciones. La tira se oculta sola
+  cuando no hay fotos adicionales: una ficha de una sola foto no deja una banda
+  vacía ni controles sin contenido.
 
 ## Arreglos de esta pasada
 
@@ -88,6 +101,41 @@ el pedido falla y el sitio se dibuja con las familias de reemplazo (`Georgia` y
 la sans del sistema), que es lo que muestran las capturas de esta pasada. El
 diseño se sostiene, pero si el despliegue no puede depender de esa red conviene
 autoalojar los `woff2` y declarar `@font-face` en `tokens.css`.
+
+## Controles de los datos del responsable
+
+Los cuatro formularios con datos personales —`reservar.html` en los dos modos,
+`mi-reserva.html` y `pago.html`— declaran la regla de cada campo en
+`data-regla`, y `assets/js/validacion.js` la aplica: filtra al tipear, valida al
+salir del campo y al confirmar, y frena el envío.
+
+| Regla | Qué acepta | Largo |
+|---|---|---|
+| `institucion` | letras, números y signos del nombre de una escuela (`N° 4`) | 3 a 80 |
+| `nombre` | solo letras, espacios, apóstrofo y guion | 3 a 60 |
+| `dni` | solo dígitos, sin puntos ni espacios | 7 u 8, con contador |
+| `celular` | solo dígitos, sin 0 ni 15 | 9 o 10 sumando el área |
+| `email` | arroba y dominio, sin espacios | hasta 120 |
+| `codigo` | mayúsculas, números y guion | 6 a 8, con contador |
+| `acepta` | casilla marcada | — |
+
+Decisiones de accesibilidad:
+
+- `form.noValidate = true` se aplica en tiempo de ejecución: los mensajes son
+  propios y en español, no las burbujas del navegador. `required`, `pattern`,
+  `minlength` y `maxlength` siguen en el markup como contrato y como respaldo
+  sin script.
+- El aviso se crea debajo del campo con `.field--invalid` y `.field__error`,
+  entra en `aria-describedby` y el campo toma `aria-invalid`. El foco va al
+  primero que falla, así el lector de pantalla lo lee al enfocar. La ayuda del
+  pie se oculta mientras el aviso está visible: no se repite la misma regla dos
+  veces.
+- El contador de caracteres va `aria-hidden`: la regla ya está en la ayuda y en
+  el aviso, y un contador que se anuncia en cada tecla estorba.
+- Axe sobre `reservar.html` en modalidad visita, con los seis avisos visibles y a
+  390 px: **0 violaciones**, con `aria-describedby` apuntando a nodos existentes.
+  Sin desborde horizontal (`scrollWidth` = `clientWidth` = 375) y con los avisos
+  envolviendo dentro del panel.
 
 ## Límites conocidos (del patrón sin JS, no del rediseño)
 

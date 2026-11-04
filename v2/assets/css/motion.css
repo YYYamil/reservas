@@ -1,0 +1,353 @@
+/* ==========================================================================
+   motion.css — movimiento del landing, lenguaje de imprenta
+   --------------------------------------------------------------------------
+   Nada se desvanece: todo se compone. Cuatro piezas, todas sin JS.
+
+   1. El título del hero se escribe palabra por palabra, de izquierda a derecha.
+   2. Al scrollear, cada sección dibuja su filete de 1 px, su título se escribe
+      y la foto de cada tarjeta se revela con un barrido vertical.
+   3. La ficha y el visor se despliegan desde el borde superior.
+   4. Respuesta al puntero: sólo las flechas de los enlaces empujan.
+
+   Reglas que respeta todo lo de acá:
+   - Se animan clip-path, scale (filetes) y translate (flechas). No hay fundidos
+     de opacidad y no se toca ninguna propiedad que provoque reflow, así el CLS
+     sigue en cero. El texto nunca se mueve: se recorta, como al imprimir.
+   - Todo vive dentro de @media (prefers-reduced-motion: no-preference). Con
+     movimiento reducido el sitio se ve exactamente como antes.
+   - Lo que depende de animation-timeline va además dentro de @supports, y ahí
+     el filete pasa a ser un pseudo-elemento. Si el navegador no soporta esas
+     animaciones (Firefox estable), queda el borde original de siempre y ningún
+     bloque arranca recortado.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. El título se escribe palabra por palabra
+   Cada palabra es un inline-block que se recorta de izquierda a derecha. No se
+   usan máscaras con overflow: hidden porque cortarían las tildes y las colas;
+   el recorte se anima hasta dejarlo en cero, así a mitad de camino se lee como
+   una línea que se está escribiendo y al final el texto queda intacto.
+   ========================================================================== */
+.print-word__in {
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .print-word__in {
+    animation-name: print-write;
+    animation-duration: var(--dur-print);
+    animation-timing-function: var(--ease-out-soft);
+    animation-fill-mode: both;
+  }
+
+  .print-word:nth-child(1) .print-word__in {
+    animation-delay: 0ms;
+  }
+
+  .print-word:nth-child(2) .print-word__in {
+    animation-delay: calc(var(--stagger) * 1);
+  }
+
+  .print-word:nth-child(3) .print-word__in {
+    animation-delay: calc(var(--stagger) * 2);
+  }
+
+  .print-word:nth-child(4) .print-word__in {
+    animation-delay: calc(var(--stagger) * 3);
+  }
+
+  .print-word:nth-child(5) .print-word__in {
+    animation-delay: calc(var(--stagger) * 4);
+  }
+
+  .print-word:nth-child(6) .print-word__in {
+    animation-delay: calc(var(--stagger) * 5);
+  }
+
+  .print-word:nth-child(7) .print-word__in {
+    animation-delay: calc(var(--stagger) * 6);
+  }
+
+  .print-word:nth-child(8) .print-word__in {
+    animation-delay: calc(var(--stagger) * 7);
+  }
+}
+
+/* El resto del hero entra después del título, en el orden en que se lee:
+   el lead se escribe, el buscador se despliega y las condiciones se escriben
+   al final. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero__lead,
+  .hero__trust {
+    animation-name: print-write;
+    animation-duration: var(--dur-wipe);
+    animation-timing-function: var(--ease-out-soft);
+    animation-fill-mode: both;
+  }
+
+  .hero__lead {
+    animation-delay: 320ms;
+  }
+
+  .hero__panel {
+    animation-name: print-develop;
+    animation-duration: var(--dur-wipe);
+    animation-timing-function: var(--ease-out-soft);
+    animation-fill-mode: both;
+    animation-delay: 420ms;
+  }
+
+  .hero__trust {
+    animation-delay: 560ms;
+  }
+}
+
+@keyframes print-write {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes print-develop {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* ==========================================================================
+   2. Al scrollear: filetes, títulos y fotos
+   animation-range: entry 0% entry 45% = la pieza empieza a componerse cuando su
+   borde superior toca el inferior del viewport y termina cuando entró casi la
+   mitad de su alto. Un bloque que ya estaba en pantalla al cargar se dibuja
+   directo en su estado final.
+
+   animation-duration tiene que ser auto: con un tiempo, el navegador considera
+   inactiva la animación y la pieza no se compone nunca.
+   ========================================================================== */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* El filete de 1 px se dibuja de izquierda a derecha. El borde real se
+       vuelve transparente y lo dibuja el pseudo-elemento: un border-top no se
+       puede escalar sin mover el contenido. */
+    .section-heading,
+    .how__step {
+      position: relative;
+      border-top-color: transparent;
+    }
+
+    .section-heading::before,
+    .how__step::before {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      inset-block-start: calc(var(--bw) * -1);
+      height: var(--bw);
+      background-color: var(--c-border);
+      transform-origin: left center;
+      animation-name: rule-draw;
+      animation-duration: auto;
+      animation-timing-function: var(--ease-out-soft);
+      animation-fill-mode: both;
+      animation-timeline: view();
+      /* El rango se mide sobre el alto del propio elemento, y un filete mide
+         1 px: con "entry" a secas la animación se resolvía en 1 px de scroll.
+         La fase cover suma el alto del viewport, así el trazo dura unos 250 px
+         de scroll y se percibe. */
+      animation-range: entry 0% cover 25%;
+    }
+
+    /* Títulos: se escriben de izquierda a derecha, igual que el del hero. */
+    .section-heading h2 {
+      animation-name: print-write;
+      animation-duration: auto;
+      animation-timing-function: var(--ease-out-soft);
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 25%;
+    }
+
+    /* Fotos: se revelan de arriba hacia abajo, como una copia que aparece en
+       el revelado. Al terminar el recorte queda en cero y la foto está entera. */
+    .card__media > img {
+      animation-name: print-develop;
+      animation-duration: auto;
+      animation-timing-function: var(--ease-out-soft);
+      animation-fill-mode: both;
+      animation-timeline: view();
+      /* Un poco más largo que el alto de la foto: la copia se revela mientras
+         la tarjeta termina de entrar, no de golpe. */
+      animation-range: entry 0% cover 30%;
+    }
+  }
+}
+
+@keyframes rule-draw {
+  from {
+    scale: 0 1;
+  }
+
+  to {
+    scale: 1 1;
+  }
+}
+
+/* ==========================================================================
+   3. La ficha se abre y la foto se enfoca
+   Las dos se muestran con :target sobre un elemento que estaba en display:none,
+   así que la animación arranca sola al abrirlos, sin JS. Cerrar no se anima:
+   salir de un :target no es un evento que el CSS pueda observar.
+
+   La ficha entra como una tarjeta que se levanta del plano (sube 28 px y sale
+   de un 97 %) y el velo se enciende en 240 ms. La foto ampliada llega desde un
+   6 % más grande, así el ojo la sigue desde la miniatura que se acaba de tocar.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .modal__backdrop,
+  .visor__backdrop {
+    animation: scrim-in 240ms var(--ease-out) both;
+  }
+
+  .modal__panel {
+    animation: card-in 420ms var(--ease-out-soft) both;
+  }
+
+  .visor img:target {
+    animation: photo-focus 320ms var(--ease-out-soft) both;
+  }
+}
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    translate: 0 28px;
+    scale: 0.97;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
+@keyframes photo-focus {
+  from {
+    opacity: 0.35;
+    scale: 1.06;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* --- Cierre ---
+   Sólo existe cuando overlays.js agrega .is-closing: sin JS la clase nunca
+   aparece y las anclas cierran como siempre. El cierre es más corto que la
+   apertura porque se percibe más rápido. */
+@media (prefers-reduced-motion: no-preference) {
+  .modal.is-closing .modal__backdrop,
+  .visor.is-closing .visor__backdrop {
+    animation: scrim-out 200ms var(--ease-out) both;
+  }
+
+  .modal.is-closing .modal__panel {
+    animation: card-out 260ms var(--ease-out-soft) both;
+  }
+
+  .visor.is-closing img:target {
+    animation: photo-out 200ms var(--ease-out-soft) both;
+  }
+}
+
+@keyframes scrim-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes card-out {
+  from {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    translate: 0 20px;
+    scale: 0.98;
+  }
+}
+
+@keyframes photo-out {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0.4;
+    scale: 0.97;
+  }
+}
+
+/* El fondo no scrollea mientras hay una capa abierta. El relleno compensa el
+   ancho de la barra que desaparece, así el contenido no salta. */
+.hay-capa {
+  overflow: hidden;
+  padding-right: var(--ancho-barra, 0);
+}
+
+/* Al tocar la portada o una miniatura, la foto cede un píxel: confirma que el
+   clic entró antes de que llegue el visor. */
+@media (hover: hover) {
+  .modal__media-link img,
+  .modal__tira a img {
+    transition: scale var(--dur-2) var(--ease-out);
+  }
+
+  .modal__media-link:active img,
+  .modal__tira a:active img {
+    scale: 0.98;
+  }
+}
+
+/* ==========================================================================
+   4. Respuesta al puntero
+   Lo único que se mueve con el cursor son las flechas de los enlaces: empujan
+   hacia donde llevan. Las tarjetas y la franja quedan quietas, con el hover de
+   borde y sombra que ya define components.css.
+   ========================================================================== */
+.link--with-icon .icon {
+  transition: translate var(--dur-2) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .link--with-icon:hover .icon {
+    translate: 5px 0;
+  }
+}

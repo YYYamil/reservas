@@ -16,6 +16,14 @@
   Los enlaces de condiciones apuntan a #ayuda de la home, que es donde viven
   la cancelación, los horarios y la duración máxima. No hay "Qué llevar": ese
   contenido no existe todavía y no se inventa un ancla vacía.
+
+  Firma institucional (UNT):
+  - En la columna de marca, el lockup va sobre .footer__entidad porque el PNG
+    se distribuye con fondo blanco propio; recortarlo degradaría el escudo.
+  - En la franja legal la firma es texto, no imagen: las únicas piezas blancas
+    del set de marca son del Ministerio de Educación y quedaron fuera.
+  - Íconos declarados en el head de cada página: assets/img/brand/favicon-32.png,
+    icon-192.png y apple-touch-icon-180.png.
 -->
 <footer class="footer">
   <div class="container footer__top">
@@ -26,6 +34,21 @@
       <p class="footer__claim">
         Estadías y visitas de un día en los albergues recreativos.
       </p>
+
+      <!-- Firma institucional. El PNG trae fondo blanco propio, así que se
+           apoya sobre una placa de superficie (.footer__entidad) en lugar de
+           recortarlo: el blanco es parte de la pieza original. -->
+      <p class="footer__entidad">
+        <img
+          class="footer__entidad-logo"
+          src="assets/img/brand/unt-logo.png"
+          alt="Universidad Nacional de Tucumán"
+          width="400"
+          height="203"
+          loading="lazy"
+          decoding="async"
+        />
+      </p>
     </div>
 
     <div class="footer__col">
@@ -33,7 +56,7 @@
       <ul class="footer__list">
         <li><a href="index.html#albergues">Albergues</a></li>
         <li><a href="index.html#como-funciona">Cómo funciona</a></li>
-        <li><a href="reservar.html">Reservar</a></li>
+        <li><a href="index.html#buscador">Reservar</a></li>
         <li><a href="mi-reserva.html">Mi reserva</a></li>
       </ul>
     </div>
@@ -82,7 +105,10 @@
 
   <div class="footer__legal">
     <div class="container footer__legal-inner">
-      <p>Reservas de los albergues recreativos.</p>
+      <p>
+        <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+        Reservas de los albergues recreativos.
+      </p>
       <ul class="footer__legal-list">
         <li>
           <a href="#" data-placeholder="terminos">Términos y condiciones</a>

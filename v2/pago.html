@@ -8,6 +8,23 @@
       name="description"
       content="Carga del comprobante de la transferencia para confirmar la reserva: estado sin archivo, subiendo, recibido, rechazado y error de red."
     />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/img/brand/favicon-32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="assets/img/brand/icon-192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/img/brand/apple-touch-icon-180.png"
+    />
     <link rel="stylesheet" href="assets/css/tokens.css" />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/components.css" />
@@ -79,6 +96,14 @@
     <header class="nav">
       <div class="container nav__bar">
         <a class="brand" href="index.html">
+          <img
+            class="brand__mark"
+            src="assets/img/brand/unt-sello.png"
+            alt=""
+            width="96"
+            height="118"
+            decoding="async"
+          />
           <span class="brand__name">Albergues recreativos</span>
         </a>
 
@@ -148,26 +173,47 @@
           <h1 class="pago__title">Comprobante de pago</h1>
           <p class="pago__lead">
             Subí el comprobante de la transferencia para que la reserva quede
-            confirmada. Tenés 48 h después de reservar; si el ingreso es en menos
-            de 48 h, el plazo baja a 6 h.
+            confirmada. El plazo se mide desde el día de ingreso: tenés hasta
+            48 h antes para subirlo.
           </p>
         </div>
 
         <div class="pago__grid">
           <div class="pago__main">
-            <section class="panel pago__card" aria-labelledby="carga-titulo">
+            <form
+              class="panel pago__card"
+              id="pagoForm"
+              data-estado="sin-archivo"
+              action="pago.html"
+              method="post"
+              enctype="multipart/form-data"
+              novalidate
+              aria-labelledby="carga-titulo"
+            >
               <div class="pago__head">
                 <h2 class="pago__title" id="carga-titulo">Comprobante de la reserva</h2>
                 <ul class="pago__meta">
                   <li>Maestro José Fierro</li>
-                  <li>Importe $45.000</li>
-                  <li>Vence el 1/11 a las 18:00</li>
+                  <li>Importe $60.000</li>
+                  <li>Vence el 13/11 a las 00:00</li>
                 </ul>
+              </div>
+
+              <div class="notice notice--danger" id="pagoMsg" role="alert" hidden>
+                <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                  <use href="#i-alert-triangle"></use>
+                </svg>
+                <div class="notice__body">
+                  <p class="notice__text" id="pagoMsg-texto"></p>
+                </div>
               </div>
 
               <div class="pago__identidad">
                 <div class="field">
-                  <label class="field__label" for="pago-codigo">Código de reserva</label>
+                  <div class="field__head">
+                    <label class="field__label" for="pago-codigo">Código de reserva</label>
+                    <span class="field__count" aria-hidden="true"></span>
+                  </div>
                   <input
                     class="input input--codigo"
                     id="pago-codigo"
@@ -175,11 +221,18 @@
                     data-campo="codigo"
                     type="text"
                     value="R-248715"
+                    data-regla="codigo"
+                    data-contador="8"
+                    minlength="6"
                     maxlength="8"
                     autocomplete="off"
                     spellcheck="false"
+                    aria-describedby="pago-codigo-ayuda"
                     required
                   />
+                  <p class="field__help" id="pago-codigo-ayuda">
+                    Con la letra adelante, como lo da la reserva.
+                  </p>
                 </div>
 
               </div>
@@ -188,7 +241,7 @@
                    ESTADO 1 — Sin archivo
                    ======================================================== -->
               <section class="subida" id="sin-archivo" aria-label="Subir el comprobante">
-                <label class="upload__drop" for="comprobante">
+                <label class="upload__drop" for="pago-archivo">
                   <svg class="icon icon--lg upload__drop-icon" aria-hidden="true">
                     <use href="#i-upload"></use>
                   </svg>
@@ -196,19 +249,21 @@
                   <span class="upload__drop-hint">PDF o foto del comprobante.</span>
                   <input
                     class="upload__input visually-hidden"
-                    id="comprobante"
+                    id="pago-archivo"
                     name="comprobante"
+                    data-campo="comprobante"
                     type="file"
-                    accept="application/pdf,image/*"
+                    accept="application/pdf,image/jpeg,image/png"
                   />
                 </label>
 
                 <div class="pago__actions">
                   <button
                     class="btn btn--primary btn--lg"
-                    type="button"
+                    type="submit"
+                    id="pagoBtn"
                     data-accion="pagar"
-                    aria-disabled="true"
+                    disabled
                   >
                     <span class="btn__label">Enviar comprobante</span>
                   </button>
@@ -225,27 +280,28 @@
                     <svg class="icon icon--sm"><use href="#i-file"></use></svg>
                   </span>
                   <div>
-                    <p class="upload__file-name">comprobante-transferencia.pdf</p>
+                    <p class="upload__file-name" id="subiendo-nombre">comprobante-transferencia.pdf</p>
                     <p class="upload__file-meta">
                       <svg class="icon icon--sm upload__spin" aria-hidden="true">
                         <use href="#i-loading"></use>
                       </svg>
-                      1,2 MB, subiendo
+                      <span id="subiendo-meta">1,2 MB, subiendo</span>
                     </p>
                   </div>
                 </div>
 
                 <progress
                   class="upload__progress"
-                  value="62"
+                  id="subiendo-progress"
+                  value="0"
                   max="100"
                   aria-label="Subida del comprobante"
                 >
-                  62 %
+                  0 %
                 </progress>
 
                 <div class="pago__actions">
-                  <button class="btn btn--secondary" type="button">Cancelar la subida</button>
+                  <button class="btn btn--secondary" type="button" id="btn-cancelar-subida">Cancelar la subida</button>
                   <p class="field__help">No cierres la página hasta que termine.</p>
                 </div>
               </section>
@@ -259,8 +315,8 @@
                     <svg class="icon icon--sm"><use href="#i-file"></use></svg>
                   </span>
                   <div>
-                    <p class="upload__file-name">comprobante-transferencia.pdf</p>
-                    <p class="upload__file-meta">1,2 MB, PDF</p>
+                    <p class="upload__file-name" id="recibido-nombre">comprobante-transferencia.pdf</p>
+                    <p class="upload__file-meta" id="recibido-meta">1,2 MB, PDF</p>
                   </div>
                   <span class="badge badge--success">
                     <span class="badge__dot"></span>
@@ -274,7 +330,7 @@
                   </svg>
                   <div class="notice__body">
                     <p class="notice__title">Comprobante recibido</p>
-                    <p class="notice__text">
+                    <p class="notice__text" id="recibido-texto">
                       La reserva pasa a confirmada cuando el pago se acredita. No
                       hace falta que subas nada más.
                     </p>
@@ -282,7 +338,7 @@
                 </div>
 
                 <div class="pago__actions">
-                  <a class="btn btn--primary btn--lg" href="mi-reserva.html" data-accion="consultar">
+                  <a class="btn btn--primary btn--lg" id="recibido-mireserva" href="mi-reserva.html" data-accion="consultar">
                     <span class="btn__label">Ver mi reserva</span>
                   </a>
                   <a class="link" href="index.html#albergues">Volver a los albergues</a>
@@ -298,8 +354,8 @@
                     <svg class="icon icon--sm"><use href="#i-file"></use></svg>
                   </span>
                   <div>
-                    <p class="upload__file-name">comprobante-transferencia.jpg</p>
-                    <p class="upload__file-meta">2,4 MB, JPG</p>
+                    <p class="upload__file-name" id="rechazado-nombre">comprobante-transferencia.jpg</p>
+                    <p class="upload__file-meta" id="rechazado-meta">2,4 MB, JPG</p>
                   </div>
                   <span class="badge badge--danger">
                     <span class="badge__dot"></span>
@@ -312,8 +368,8 @@
                     <use href="#i-alert-triangle"></use>
                   </svg>
                   <div class="notice__body">
-                    <p class="notice__title">No pudimos leer el comprobante</p>
-                    <p class="notice__text">
+                    <p class="notice__title">No pudimos cargar el comprobante</p>
+                    <p class="notice__text" id="rechazado-texto">
                       La foto está borrosa: no se ven el importe ni la fecha. Subí
                       otra donde se lean los dos datos.
                     </p>
@@ -321,7 +377,7 @@
                 </div>
 
                 <div class="pago__actions">
-                  <button class="btn btn--primary" type="button">Elegir otro archivo</button>
+                  <button class="btn btn--primary" type="button" id="btn-elegir-otro-rechazado">Elegir otro archivo</button>
                   <a class="link" href="mi-reserva.html">Mi reserva</a>
                 </div>
               </section>
@@ -335,8 +391,8 @@
                     <svg class="icon icon--sm"><use href="#i-file"></use></svg>
                   </span>
                   <div>
-                    <p class="upload__file-name">comprobante-transferencia.pdf</p>
-                    <p class="upload__file-meta">1,2 MB, PDF</p>
+                    <p class="upload__file-name" id="error-nombre">comprobante-transferencia.pdf</p>
+                    <p class="upload__file-meta" id="error-meta">1,2 MB, PDF</p>
                   </div>
                   <span class="badge badge--warning">
                     <span class="badge__dot"></span>
@@ -358,13 +414,13 @@
                 </div>
 
                 <div class="pago__actions">
-                  <button class="btn btn--primary btn--lg" type="button" data-accion="pagar">
+                  <button class="btn btn--primary btn--lg" type="button" id="btn-reintentar" data-accion="pagar">
                     <span class="btn__label">Reintentar</span>
                   </button>
-                  <button class="btn btn--ghost" type="button">Elegir otro archivo</button>
+                  <button class="btn btn--ghost" type="button" id="btn-elegir-otro-error">Elegir otro archivo</button>
                 </div>
               </section>
-            </section>
+            </form>
           </div>
 
           <aside class="pago__aside" aria-labelledby="plazo-titulo">
@@ -372,21 +428,22 @@
               <h2 class="summary__title" id="plazo-titulo">Plazo para subirlo</h2>
               <dl class="summary__list">
                 <div class="summary__row">
-                  <dt>Reserva hecha</dt>
-                  <dd>30/10, 16:20</dd>
+                  <dt>Día de ingreso</dt>
+                  <dd>15/11</dd>
                 </div>
                 <div class="summary__row">
                   <dt>Vence</dt>
-                  <dd>1/11, 18:00</dd>
+                  <dd>13/11, 00:00</dd>
                 </div>
                 <div class="summary__row">
-                  <dt>Plazo mínimo</dt>
-                  <dd>6 h</dd>
+                  <dt>Regla</dt>
+                  <dd>48 h antes</dd>
                 </div>
               </dl>
               <p class="summary__note">
-                Si la reserva se hace con menos de 48 h de anticipación al
-                ingreso, el plazo para subir el comprobante baja a 6 h.
+                El plazo se mide contra el día de ingreso, no contra la fecha
+                de la reserva. Si vence sin comprobante, la pre-reserva se
+                libera y el cupo vuelve a estar disponible.
               </p>
             </div>
 
@@ -424,6 +481,17 @@
           <p class="footer__claim">
             Estadías y visitas de un día en los albergues recreativos.
           </p>
+          <p class="footer__entidad">
+            <img
+              class="footer__entidad-logo"
+              src="assets/img/brand/unt-logo.png"
+              alt="Universidad Nacional de Tucumán"
+              width="400"
+              height="203"
+              loading="lazy"
+              decoding="async"
+            />
+          </p>
         </div>
 
         <div class="footer__col">
@@ -431,7 +499,7 @@
           <ul class="footer__list">
             <li><a href="index.html#albergues">Albergues</a></li>
             <li><a href="index.html#como-funciona">Cómo funciona</a></li>
-            <li><a href="reservar.html">Reservar</a></li>
+            <li><a href="index.html#buscador">Reservar</a></li>
             <li><a href="mi-reserva.html">Mi reserva</a></li>
           </ul>
         </div>
@@ -476,7 +544,10 @@
 
       <div class="footer__legal">
         <div class="container footer__legal-inner">
-          <p>Reservas de los albergues recreativos.</p>
+          <p>
+            <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+            Reservas de los albergues recreativos.
+          </p>
           <ul class="footer__legal-list">
             <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
             <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>
@@ -485,5 +556,9 @@
         </div>
       </div>
     </footer>
+
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/validacion.js"></script>
+    <script src="assets/js/pago.js"></script>
   </body>
 </html>

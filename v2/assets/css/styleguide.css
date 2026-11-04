@@ -181,6 +181,82 @@
   font-size: var(--fs-200);
 }
 
+/* Reglas de los campos: nombre de la regla, qué acepta y el largo. Tres
+   columnas para que se lea como una tabla sin serlo. */
+.sg-rules {
+  display: grid;
+  max-width: 82ch;
+  margin: 0;
+}
+
+.sg-rule {
+  display: grid;
+  gap: var(--sp-1) var(--sp-4);
+  padding-block: var(--sp-3);
+  border-top: var(--rule-width) solid var(--c-border);
+}
+
+.sg-rule:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.sg-rule dd {
+  margin: 0;
+}
+
+/* Explicación de las reglas: el mismo ancho de lectura que la lista. */
+.sg-rules__note {
+  max-width: 82ch;
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.sg-rule__name {
+  color: var(--c-text);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, Consolas,
+    monospace;
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+}
+
+.sg-rule__what {
+  color: var(--c-text-subtle);
+  font-size: var(--fs-200);
+  line-height: var(--lh-body);
+}
+
+.sg-rule__len {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 768px) {
+  .sg-rule {
+    grid-template-columns: 9rem minmax(0, 1fr) 8rem;
+    align-items: baseline;
+  }
+
+  .sg-rule__len {
+    text-align: right;
+  }
+}
+
+/* Renglones de archivo de marca: sin viñeta y con aire entre uno y otro,
+   porque cada renglón lleva una explicación de varias líneas. */
+.sg-file-list {
+  display: grid;
+  gap: var(--sp-2);
+  max-width: 78ch;
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  list-style: none;
+}
+
 /* Muestra de estado vacío: el bloque ocupa el ancho del marco para que se lea
    como en la página. */
 .sg-empty-demo {
@@ -718,6 +794,14 @@
    el recorte del marco hace de ventana. */
 .sg-frame .nav {
   position: relative;
+}
+
+/* Los media queries del layout siguen al viewport, no al marco: con el gutter
+   de escritorio (32) el marco de 390 deja 326 px útiles en lugar de los 358 del
+   teléfono, y la marca se parte en dos líneas donde en el teléfono no lo hace.
+   Dentro del marco, el gutter es el de móvil. */
+.sg-frame .container {
+  padding-inline: var(--sp-4);
 }
 
 .sg-frames {

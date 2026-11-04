@@ -7,15 +7,34 @@
   - El celular viaja como prefijo + número (dos campos), pero se lee y se enfoca
     como un solo dato: el grupo lleva role="group" y los controles tienen su
     etiqueta oculta.
-  - El DNI va como texto con inputmode="numeric" y maxlength: no se usan las
-    flechas de un number para un documento.
+  - El DNI va como texto con inputmode="numeric", pattern, maxlength y un
+    contador de caracteres en la fila de la etiqueta: se escriben 7 u 8 números
+    sin puntos, y las flechas de un number no sirven para un documento.
   - La aceptación es un checkbox real dentro del label, así que el texto también
     marca la casilla; el error, si falta, va debajo (ver .field--invalid en
     components.css).
   - En integración el enlace del reglamento apunta al campo `pdf` del albergue
     que devuelve listarAlbergues. Acá es un placeholder declarado.
+
+  Validación (assets/js/validacion.js)
+  --------------------------------------------------------------------------
+  Cada campo declara su regla en data-regla y el módulo la aplica: filtra al
+  tipear, valida al salir y al confirmar, y marca el campo con .field--invalid
+  más el .field__error debajo. Los atributos required, pattern, minlength y
+  maxlength quedan como contrato y como respaldo sin script.
+
+     institución   solo letras y números          3 a 80
+     responsable   solo letras                    3 a 60
+     DNI           7 u 8 dígitos, sin puntos      contador 8
+     celular       solo dígitos, sin 0 ni 15      con el área suma 9 o 10
+     correo        con arroba y dominio            hasta 120
+     aceptación    casilla marcada
 -->
-<form class="paso__form" action="reservar.html" method="get">
+<!-- La nota de obligatoriedad va en el encabezado del panel (.paso__head), una
+     sola vez para los seis campos. -->
+<p class="form__required">Todos los datos son obligatorios.</p>
+
+<form class="paso__form" id="aloFormMaestro" action="reservar.html" method="get">
   <div class="paso__fields">
     <div class="field paso__field--full">
       <label class="field__label" for="institucion-alo-maestro">Institución</label>
@@ -27,8 +46,13 @@
         type="text"
         placeholder="Escuela o institución"
         autocomplete="organization"
+        data-regla="institucion"
+        minlength="3"
+        maxlength="80"
+        aria-describedby="institucion-alo-maestro-ayuda"
         required
       />
+      <p class="field__help" id="institucion-alo-maestro-ayuda">Solo letras y números.</p>
     </div>
 
     <div class="field">
@@ -41,12 +65,20 @@
         type="text"
         placeholder="Nombre y apellido"
         autocomplete="name"
+        data-regla="nombre"
+        minlength="3"
+        maxlength="60"
+        aria-describedby="responsable-alo-maestro-ayuda"
         required
       />
+      <p class="field__help" id="responsable-alo-maestro-ayuda">Solo letras.</p>
     </div>
 
     <div class="field">
-      <label class="field__label" for="dni-alo-maestro">DNI del responsable</label>
+      <div class="field__head">
+        <label class="field__label" for="dni-alo-maestro">DNI del responsable</label>
+        <span class="field__count" aria-hidden="true"></span>
+      </div>
       <input
         class="input"
         id="dni-alo-maestro"
@@ -54,8 +86,12 @@
         data-campo="dni"
         type="text"
         inputmode="numeric"
+        data-regla="dni"
+        data-contador="8"
+        pattern="\d{7,8}"
+        minlength="7"
         maxlength="8"
-        placeholder="8 números"
+        placeholder="7 u 8 números"
         aria-describedby="dni-alo-maestro-ayuda"
         required
       />
@@ -89,13 +125,16 @@
           data-campo="numero"
           type="tel"
           inputmode="numeric"
-          placeholder="555 1234"
+          data-regla="celular"
+          minlength="5"
+          maxlength="7"
+          placeholder="5551234"
           autocomplete="tel"
           aria-describedby="celular-alo-maestro-ayuda"
           required
         />
       </div>
-      <p class="field__help" id="celular-alo-maestro-ayuda">Sin 0 ni 15.</p>
+      <p class="field__help" id="celular-alo-maestro-ayuda">Solo números, sin 0 ni 15.</p>
     </div>
 
     <div class="field">
@@ -108,6 +147,8 @@
         type="email"
         placeholder="nombre@correo.com"
         autocomplete="email"
+        data-regla="email"
+        maxlength="120"
         required
       />
     </div>
@@ -121,6 +162,7 @@
             name="acepta-terminos"
             data-campo="acepta-terminos"
             type="checkbox"
+            data-regla="acepta"
             required
           />
           <svg class="icon checkbox__check" aria-hidden="true">

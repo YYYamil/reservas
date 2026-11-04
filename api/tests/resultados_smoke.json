@@ -1,6 +1,6 @@
 {
-    "fecha": "2026-10-26 14:04:57",
-    "pass": 67,
+    "fecha": "2026-11-04 18:11:51",
+    "pass": 91,
     "fail": 0,
     "checks": [
         {
@@ -11,7 +11,7 @@
         {
             "test": "1. listarAlbergues devuelve 3 albergues",
             "ok": true,
-            "detalle": "recibidos=3"
+            "detalle": "recibidos=5"
         },
         {
             "test": "2. albergues exponen ambas capacidades",
@@ -31,7 +31,7 @@
         {
             "test": "3. crearReserva (visita) responde success",
             "ok": true,
-            "detalle": "{\"success\":true,\"idReserva\":8168,\"codigoPublico\":\"R-000001\",\"codigo_publico\":\"R-000001\",\"montoTotal\":10000,\"modalidad\":\"visita\",\"mensaje\":\"Reserva creada correctamente\"}"
+            "detalle": "{\"success\":true,\"idReserva\":9032,\"codigoPublico\":\"R-000001\",\"codigo_publico\":\"R-000001\",\"montoTotal\":10000,\"pagoVenceAt\":\"2026-11-14 00:00:00-03:00\",\"modalidad\":\"visita\",\"mensaje\":\"Reserva creada correctamente\"}"
         },
         {
             "test": "4. visita devuelve codigo publico unico",
@@ -61,7 +61,7 @@
         {
             "test": "9. crearReservaAlojamiento responde success",
             "ok": true,
-            "detalle": "{\"success\":true,\"idReserva\":2586,\"codigoPublico\":\"R-000002\",\"codigo_publico\":\"R-000002\",\"montoTotal\":30000,\"modalidad\":\"alojamiento\",\"mensaje\":\"Reserva creada correctamente\"}"
+            "detalle": "{\"success\":true,\"idReserva\":1986,\"codigoPublico\":\"R-000002\",\"codigo_publico\":\"R-000002\",\"montoTotal\":30000,\"pagoVenceAt\":\"2026-11-19 00:00:00-03:00\",\"modalidad\":\"alojamiento\",\"mensaje\":\"Reserva creada correctamente\"}"
         },
         {
             "test": "10. alojamiento comparte MISMA secuencia (R-000002)",
@@ -86,27 +86,27 @@
         {
             "test": "14. disponibilidad visitas usa capacidad_visitas=150",
             "ok": true,
-            "detalle": "{\"success\":true,\"fecha\":\"2026-11-10\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":5,\"disponibles\":145}"
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-16\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":5,\"disponibles\":145}"
         },
         {
             "test": "15. ocupados visitas refleja la reserva activa (5)",
             "ok": true,
-            "detalle": "{\"success\":true,\"fecha\":\"2026-11-10\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":5,\"disponibles\":145}"
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-16\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":5,\"disponibles\":145}"
         },
         {
             "test": "16. disponibilidad alojamiento usa capacidad=92",
             "ok": true,
-            "detalle": "{\"success\":true,\"fecha\":\"2026-11-15\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":2,\"disponibles\":90}"
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-21\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":2,\"disponibles\":90}"
         },
         {
             "test": "17. ocupados alojamiento refleja la reserva activa (2)",
             "ok": true,
-            "detalle": "{\"success\":true,\"fecha\":\"2026-11-15\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":2,\"disponibles\":90}"
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-21\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":2,\"disponibles\":90}"
         },
         {
             "test": "18. cancelar por CODIGO PUBLICO + DNI funciona",
             "ok": true,
-            "detalle": "{\"success\":true,\"message\":\"Reserva cancelada correctamente\"}"
+            "detalle": "{\"success\":true,\"message\":\"Reserva cancelada correctamente.\"}"
         },
         {
             "test": "19. alojamiento quedo en estado Cancelado",
@@ -116,7 +116,7 @@
         {
             "test": "20. cancelar por NRO DE RESERVA + DNI (form actual) funciona",
             "ok": true,
-            "detalle": "{\"success\":true,\"message\":\"Reserva cancelada correctamente\"}"
+            "detalle": "{\"success\":true,\"message\":\"Reserva cancelada correctamente.\"}"
         },
         {
             "test": "21. visita quedo en estado Cancelado",
@@ -136,12 +136,12 @@
         {
             "test": "24. cancelada -> cupo de visitas liberado (0)",
             "ok": true,
-            "detalle": "{\"success\":true,\"fecha\":\"2026-11-10\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":0,\"disponibles\":150}"
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-16\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":150,\"ocupados\":0,\"disponibles\":150}"
         },
         {
             "test": "25. cancelada -> cupo de alojamiento liberado (0)",
             "ok": true,
-            "detalle": "{\"success\":true,\"fecha\":\"2026-11-15\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":0,\"disponibles\":92}"
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-21\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":0,\"disponibles\":92}"
         },
         {
             "test": "26. v_reservas_todas expone codigo_publico",
@@ -171,7 +171,7 @@
         {
             "test": "32. visita responde montoTotal = cantidad x monto_visita (4 x 2000)",
             "ok": true,
-            "detalle": "{\"success\":true,\"idReserva\":6065,\"codigoPublico\":\"R-000003\",\"codigo_publico\":\"R-000003\",\"montoTotal\":8000,\"modalidad\":\"visita\",\"mensaje\":\"Reserva creada correctamente\"}"
+            "detalle": "{\"success\":true,\"idReserva\":8119,\"codigoPublico\":\"R-000003\",\"codigo_publico\":\"R-000003\",\"montoTotal\":8000,\"pagoVenceAt\":\"2026-11-24 00:00:00-03:00\",\"modalidad\":\"visita\",\"mensaje\":\"Reserva creada correctamente\"}"
         },
         {
             "test": "33. monto_total persistido (congelado) en visita",
@@ -179,9 +179,9 @@
             "detalle": "monto=8000"
         },
         {
-            "test": "34. pago_vence_at seteado (~7 dias)",
+            "test": "34. pago_vence_at = dia de ingreso - 48 h (plazo medido desde el ingreso)",
             "ok": true,
-            "detalle": "vence=2026-11-02 14:04:49.978003+00 dias=7"
+            "detalle": "vence=2026-11-24 03:00:00+00 desvio=0 h"
         },
         {
             "test": "35. visita sin email es rechazada",
@@ -196,7 +196,7 @@
         {
             "test": "37. alojamiento responde montoTotal = camas x noches x monto_cama (3 x 2 x 5000)",
             "ok": true,
-            "detalle": "{\"success\":true,\"idReserva\":140,\"codigoPublico\":\"R-000004\",\"codigo_publico\":\"R-000004\",\"montoTotal\":30000,\"modalidad\":\"alojamiento\",\"mensaje\":\"Reserva creada correctamente\"}"
+            "detalle": "{\"success\":true,\"idReserva\":4096,\"codigoPublico\":\"R-000004\",\"codigo_publico\":\"R-000004\",\"montoTotal\":30000,\"pagoVenceAt\":\"2026-11-29 00:00:00-03:00\",\"modalidad\":\"alojamiento\",\"mensaje\":\"Reserva creada correctamente\"}"
         },
         {
             "test": "38. monto_total persistido (congelado) en alojamiento",
@@ -221,22 +221,22 @@
         {
             "test": "42. procesarNotificaciones responde (worker outbox, cola drenada)",
             "ok": true,
-            "detalle": "{\"success\":true,\"enviados\":0,\"fallidos\":0,\"vencimientos\":{\"recordatorios\":0,\"canceladas\":0}}"
+            "detalle": "{\"success\":true,\"enviados\":0,\"fallidos\":0,\"vencimientos\":{\"recordatorios\":0,\"vencidas\":0,\"finalizadas\":0,\"omitido\":false}}"
         },
         {
             "test": "43. tareasVencimiento responde",
             "ok": true,
-            "detalle": "{\"success\":true,\"vencimientos\":{\"recordatorios\":0,\"canceladas\":0}}"
+            "detalle": "{\"success\":true,\"vencimientos\":{\"recordatorios\":0,\"vencidas\":0,\"finalizadas\":0,\"omitido\":false}}"
         },
         {
             "test": "44. v_reservas_todas expone monto_total y comprobante_id",
             "ok": true,
-            "detalle": "cantidad,estado_modificado_at,pk,id_reserva,monto_total,pago_vence_at,comprobante_id,created_at,hora_ingreso,hora_egreso,estado,rango_fechas,observaciones,estado_modificado_por,estado_origen,email,modalidad,comprobante_ruta,codigo_publico,albergue,institucion,responsable,dni,contacto,fecha_p"
+            "detalle": "cantidad,pk,monto_total,pago_vence_at,comprobante_id,id_reserva,inicio_at,comprobado_at,finalizado_at,created_at,devolucion_pct,devolucion_monto,devolucion_ejecutada_at,estado_modificado_at,validacion_vence_at,email,comprobante_ruta,motivo_cierre,comprobante_estado,estado_modificado_por,codigo_publico,albergue,institucion,responsable,dni,contacto,fecha_p,hora_ingreso,hora_egreso,estado,rango_fechas,observaciones,modalidad,estado_origen"
         },
         {
             "test": "45. adminConfiguraciones lista claves (panel)",
             "ok": true,
-            "detalle": "{\"success\":true,\"configuraciones\":[{\"clave\":\"app_url\",\"valor\":\"\",\"updated_at\":\"2026-10-26 10:43:25.244233-03\"},{\"clave\":\"mail_admin\",\"valor\":\"smoke.admin@example.com\",\"updated_at\":\"2026-10-26 11:04:58.501353-03\"},{\"clave\":\"notif_enviar_admin\",\"valor\":\"0\",\"updated_at\":\"2026-10-26 11:01:53.370621-03\"},{\"clave\":\"notif_envio_inmediato\",\"valor\":\"0\",\"updated_at\":\"2026-10-26 10:43:25.244233-03\"}]}"
+            "detalle": "{\"success\":true,\"configuraciones\":[{\"clave\":\"anticipacion_horas\",\"valor\":\"60\",\"updated_at\":\"2026-10-29 09:50:09.316562-03\"},{\"clave\":\"app_url\",\"valor\":\"\",\"updated_at\":\"2026-10-26 10:43:25.244233-03\"},{\"clave\":\"cancelacion_horas\",\"valor\":\"48\",\"updated_at\":\"2026-10-29 09:50:09.316562-03\"},{\"clave\":\"devolucion_tardia_pct\",\"valor\":\"50\",\"updated_at\":\"2026-10-29 09:50:09.316562-03\"},{\"clave\":\"devolucion_temprana_pct\",\"valor\":\"100\",\"updated_at\":\"2026-10-29 09:50:09.316562-03\"},{\"clave\":\"mail_admin\",\"valor\":\"smoke.admin@example.com\",\"updated_at\":\"2026-11-04 15:10:43.401946-03\"},{\"clave\":\"notif_enviar_admin\",\"valor\":\"0\",\"updated_at\":\"2026-10-26 11:01:53.370621-03\"},{\"clave\":\"notif_envio_inmediato\",\"valor\":\"0\",\"updated_at\":\"2026-10-29 19:49:22.220729-03\"},{\"clave\":\"ultimo_barrido_at\",\"valor\":\"2026-11-04 15:10:17-03:00\",\"updated_at\":\"2026-11-04 15:10:52.502595-03\"},{\"clave\":\"validacion_horas\",\"valor\":\"24\",\"updated_at\":\"2026-10-29 21:54:19.41078-03\"},{\"clave\":\"ventana_pago_horas\",\"valor\":\"48\",\"updated_at\":\"2026-10-29 09:50:09.316562-03\"},{\"clave\":\"ventana_pago_min_horas\",\"valor\":\"6\",\"updated_at\":\"2026-10-29 09:50:09.316562-03\"}]}"
         },
         {
             "test": "46. adminConfiguracionEditar guarda meses_anticipacion",
@@ -247,6 +247,11 @@
             "test": "47. adminConfiguracionEditar rechaza claves no permitidas",
             "ok": true,
             "detalle": "{\"success\":false,\"message\":\"Clave de configuraci\\u00f3n no v\\u00e1lida\"}"
+        },
+        {
+            "test": "47b. adminConfiguracionEditar rechaza ventana_pago_horas > anticipacion_horas",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"La ventana de pago no puede superar anticipacion_horas (60 h): el plazo se cuenta hacia atr\\u00e1s desde el ingreso.\"}"
         },
         {
             "test": "48. adminReservas expone codigo_publico en todas las filas",
@@ -291,7 +296,7 @@
         {
             "test": "56. al cancelar el usuario se envía el mail de refuerzo de cancelación",
             "ok": true,
-            "detalle": "{\"cancel\":{\"success\":true,\"message\":\"Reserva cancelada correctamente\"},\"evento\":\"cancelacion_cliente\"}"
+            "detalle": "{\"cancel\":{\"success\":true,\"message\":\"Reserva cancelada correctamente.\"},\"evento\":\"cancelacion_cliente\"}"
         },
         {
             "test": "57. el mail de cancelación incluye el detalle y el estado Cancelado",
@@ -299,39 +304,154 @@
             "detalle": "codigo=R-000005"
         },
         {
+            "test": "58. subir comprobante deja la reserva en Comprobar con el comprobante pendiente",
+            "ok": true,
+            "detalle": "{\"resp\":{\"success\":true,\"codigo\":\"R-000006\",\"estado\":\"Comprobar\",\"mensaje\":\"Comprobante recibido. La administraci\\u00f3n lo verificar\\u00e1 y confirmar\\u00e1 tu reserva.\"},\"estado\":\"Comprobar\",\"comp\":{\"id\":1,\"estado\":\"pendiente\"}}"
+        },
+        {
+            "test": "58b. no se acepta un segundo comprobante si ya hay uno en revisión",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"Ya recibimos un comprobante para esta reserva. La administraci\\u00f3n lo est\\u00e1 verificando.\"}"
+        },
+        {
+            "test": "58d. la subida genera acuse al cliente y aviso al admin",
+            "ok": true,
+            "detalle": "acuse=1 admin=1"
+        },
+        {
+            "test": "58c. una reserva en Comprobar sigue ocupando cupo",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-12-16\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":4,\"disponibles\":88}"
+        },
+        {
             "test": "58a. la cuenta admin inicia sesión con rol admin",
             "ok": true,
             "detalle": "{\"rol\":\"admin\"}"
         },
         {
-            "test": "58. al pasar a Confirmado se notifica al usuario final",
+            "test": "59. al aprobar, la reserva pasa a Confirmado y se notifica al usuario final",
             "ok": true,
-            "detalle": "{\"estado\":{\"success\":true,\"estado\":\"Confirmado\",\"estado_anterior\":\"Pre-Reserva\",\"notificacion\":\"enviada\",\"modificado_por\":\"admin\",\"modificado_at\":\"2026-10-26 11:05:15.95895\",\"origen\":\"panel\"},\"evento\":\"confirmacion\"}"
+            "detalle": "{\"estado\":{\"success\":true,\"accion\":\"aprobar\",\"estado\":\"Confirmado\",\"estado_anterior\":\"Comprobar\",\"notificacion\":\"enviada\",\"modificado_por\":\"admin\",\"modificado_at\":\"2026-11-04 15:11:16.715207\",\"origen\":\"panel\"},\"db\":\"Confirmado\",\"evento\":\"confirmacion\"}"
         },
         {
-            "test": "59. el mail de confirmación incluye detalle, monto y estado Confirmado",
+            "test": "59b. el comprobante queda aprobado y con el revisor registrado",
+            "ok": true,
+            "detalle": "{\"estado\":\"aprobado\",\"revisado_por\":\"admin\"}"
+        },
+        {
+            "test": "59c. el mail de confirmación incluye detalle, monto y estado Confirmado",
             "ok": true,
             "detalle": "codigo=R-000006"
         },
         {
-            "test": "60. adminEstado sin cambio real de estado no duplica avisos",
+            "test": "59d. al aprobar se avisa al admin con el nombre de quien validó",
             "ok": true,
-            "detalle": "segunda llamada con el mismo estado"
+            "detalle": "{\"dest\":\"smoke.admin@example.com\"}"
         },
         {
-            "test": "61. al cancelar desde el panel se avisa al usuario final",
+            "test": "60. aprobar dos veces es rechazado (transición inválida)",
             "ok": true,
-            "detalle": "{\"success\":true,\"estado\":\"Cancelado\",\"estado_anterior\":\"Confirmado\",\"notificacion\":\"enviada\",\"modificado_por\":\"admin\",\"modificado_at\":\"2026-10-26 11:05:19.908401\",\"origen\":\"panel\"}"
+            "detalle": "{\"success\":false,\"message\":\"No se puede pasar de 'Confirmado' con la acci\\u00f3n 'aprobar'.\"}"
+        },
+        {
+            "test": "61. al anular desde el panel se avisa al usuario final",
+            "ok": true,
+            "detalle": "{\"success\":true,\"accion\":\"anular\",\"estado\":\"Cancelado\",\"estado_anterior\":\"Pre-Reserva\",\"notificacion\":\"enviada\",\"modificado_por\":\"admin\",\"modificado_at\":\"2026-11-04 15:11:24.366792\",\"origen\":\"panel\"}"
         },
         {
             "test": "62. cancelación del usuario registra cancelado_at y origen web",
             "ok": true,
-            "detalle": "{\"cancelado_at\":\"2026-10-26 14:05:11.628793+00\",\"cancelado_origen\":\"web\"}"
+            "detalle": "{\"cancelado_at\":\"2026-11-04 18:11:06.627049+00\",\"cancelado_origen\":\"web\"}"
         },
         {
             "test": "63. el cambio desde el panel registra usuario, fecha y origen",
             "ok": true,
-            "detalle": "{\"estado_modificado_por\":\"admin\",\"estado_modificado_at\":\"2026-10-26 11:05:19.908401\",\"estado_origen\":\"panel\"}"
+            "detalle": "{\"estado_modificado_por\":\"admin\",\"estado_modificado_at\":\"2026-11-04 15:11:16.715207\",\"estado_origen\":\"panel\"}"
+        },
+        {
+            "test": "64. reserva dentro del horizonte mínimo (66 h) es rechazada",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"La fecha de ingreso queda dentro del plazo m\\u00ednimo de reserva (66 h). Para fechas m\\u00e1s pr\\u00f3ximas, comunicate con el albergue.\"}"
+        },
+        {
+            "test": "65. rango no consecutivo es rechazado",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"Las fechas de la estad\\u00eda deben ser consecutivas\"}"
+        },
+        {
+            "test": "66. estadía de más de 4 días es rechazada",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"La estad\\u00eda admite como m\\u00e1ximo 4 d\\u00edas\"}"
+        },
+        {
+            "test": "67. reserva con monto total 0 es rechazada",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"El albergue no tiene una tarifa configurada\"}"
+        },
+        {
+            "test": "68. con el ingreso cerca el plazo sigue en inicio - 48 h y la reserva nace vigente",
+            "ok": true,
+            "detalle": "desvio=0 h vigente=true"
+        },
+        {
+            "test": "69. la pre-reserva vigente ocupa cupo",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-08\",\"albergue\":\"Tinku Huasi\",\"capacidad\":100,\"ocupados\":1,\"disponibles\":99}"
+        },
+        {
+            "test": "70. no se acepta comprobante de una pre-reserva vencida",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"La pre-reserva venci\\u00f3 por falta de pago y el cupo fue liberado. Inici\\u00e1 una nueva reserva.\"}"
+        },
+        {
+            "test": "71. una pre-reserva vencida libera el cupo sin esperar al barrido",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-11-08\",\"albergue\":\"Tinku Huasi\",\"capacidad\":100,\"ocupados\":0,\"disponibles\":100}"
+        },
+        {
+            "test": "72. el barrido pasa la pre-reserva a Vencido y encola el aviso",
+            "ok": true,
+            "detalle": "{\"barrido\":{\"recordatorios\":0,\"vencidas\":1,\"finalizadas\":0,\"omitido\":false},\"estado\":\"Vencido\",\"mails\":1}"
+        },
+        {
+            "test": "73. cancelar una reserva paga con más de 48 h deja Devolver con devolución 100%",
+            "ok": true,
+            "detalle": "{\"resp\":{\"success\":true,\"message\":\"Reserva cancelada correctamente.\"},\"dev\":{\"estado\":\"Devolver\",\"devolucion_pct\":\"100.00\",\"devolucion_monto\":\"60000.00\"}}"
+        },
+        {
+            "test": "74. el estado Devolver ya liberó el cupo",
+            "ok": true,
+            "detalle": "{\"success\":true,\"fecha\":\"2026-12-16\",\"albergue\":\"Maestro Jos\\u00e9 Fierro\",\"capacidad\":92,\"ocupados\":0,\"disponibles\":92}"
+        },
+        {
+            "test": "75. el operador marca la devolución y la reserva queda Cancelada",
+            "ok": true,
+            "detalle": "{\"resp\":{\"success\":true,\"accion\":\"devolver\",\"estado\":\"Cancelado\",\"estado_anterior\":\"Devolver\",\"notificacion\":\"sin_email\",\"modificado_por\":\"admin\",\"modificado_at\":\"2026-11-04 15:11:47.767073\",\"origen\":\"panel\"},\"dev\":{\"estado\":\"Cancelado\",\"devolucion_ejecutada_at\":\"2026-11-04 18:11:47.767073+00\",\"devolucion_ejecutada_por\":\"admin\"}}"
+        },
+        {
+            "test": "76. no se puede reactivar una reserva cancelada",
+            "ok": true,
+            "detalle": "{\"success\":false,\"message\":\"No se puede pasar de 'Cancelado' con la acci\\u00f3n 'aprobar'.\"}"
+        },
+        {
+            "test": "77. cancelar dentro de las 48 h deja Devolver con devolución 50%",
+            "ok": true,
+            "detalle": "{\"resp\":{\"success\":true,\"message\":\"Reserva cancelada correctamente.\"},\"dev\":{\"estado\":\"Devolver\",\"devolucion_pct\":\"50.00\",\"devolucion_monto\":\"2000.00\"}}"
+        },
+        {
+            "test": "78. no se puede cancelar el día de ingreso ni después",
+            "ok": true,
+            "detalle": "{\"resp\":{\"success\":false,\"message\":\"No se puede cancelar el d\\u00eda de ingreso ni despu\\u00e9s: las plazas ya est\\u00e1n comprometidas.\"},\"estado\":\"Confirmado\"}"
+        },
+        {
+            "test": "79. cancelar una pre-reserva impaga deja Cancelado y sin devolución",
+            "ok": true,
+            "detalle": "{\"resp\":{\"success\":true,\"message\":\"Reserva cancelada correctamente.\"},\"dev\":{\"estado\":\"Cancelado\",\"devolucion_monto\":null}}"
+        },
+        {
+            "test": "80. rechazar el comprobante devuelve la reserva a Pre-Reserva y avisa con el motivo",
+            "ok": true,
+            "detalle": "{\"resp\":{\"success\":true,\"accion\":\"rechazar\",\"estado\":\"Pre-Reserva\",\"estado_anterior\":\"Comprobar\",\"notificacion\":\"enviada\",\"modificado_por\":\"admin\",\"modificado_at\":\"2026-11-04 15:12:21.905747\",\"origen\":\"panel\"},\"fila\":{\"estado\":\"Pre-Reserva\",\"comprobado_at\":null},\"comp\":{\"estado\":\"rechazado\",\"motivo_rechazo\":\"El importe no coincide con el total\"},\"mails\":1}"
         },
         {
             "test": "31. BD de prueba limpiada (sin datos residuales)",

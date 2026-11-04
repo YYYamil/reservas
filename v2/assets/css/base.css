@@ -58,6 +58,12 @@ canvas {
   max-width: 100%;
 }
 
+/* El atributo hidden tiene que ganarle a los display de los componentes
+   (.notice y .summary, por ejemplo, declaran display:grid). */
+[hidden] {
+  display: none !important;
+}
+
 input,
 button,
 textarea,

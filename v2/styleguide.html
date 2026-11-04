@@ -8,6 +8,23 @@
       name="description"
       content="Tokens y componentes base del rediseño v2 del sitio de reservas de los albergues recreativos."
     />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/img/brand/favicon-32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="assets/img/brand/icon-192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/img/brand/apple-touch-icon-180.png"
+    />
     <link rel="stylesheet" href="assets/css/tokens.css" />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/components.css" />
@@ -15,6 +32,7 @@
     <link rel="stylesheet" href="assets/css/mi-reserva.css" />
     <link rel="stylesheet" href="assets/css/pago.css" />
     <link rel="stylesheet" href="assets/css/confirmacion.css" />
+    <link rel="stylesheet" href="assets/css/motion.css" />
     <link rel="stylesheet" href="assets/css/styleguide.css" />
   </head>
   <body>
@@ -111,6 +129,9 @@
         <path d="M17 8l-5-5-5 5" />
         <path d="M12 3v12" />
       </symbol>
+      <symbol id="i-close" viewBox="0 0 24 24">
+        <path d="M6 6l12 12M18 6L6 18" />
+      </symbol>
     </svg>
 
     <header class="sg-header">
@@ -140,6 +161,9 @@
           <li>
             <a class="sg-file" href="assets/css/confirmacion.css">confirmacion.css</a>
           </li>
+          <li>
+            <a class="sg-file" href="assets/css/motion.css">motion.css</a>
+          </li>
         </ul>
       </div>
     </header>
@@ -154,6 +178,8 @@
         <a class="sg-nav__link" href="#filtros">Filtros y estados</a>
         <a class="sg-nav__link" href="#contenedores">Contenedores</a>
         <a class="sg-nav__link" href="#vacio">Estados vacíos</a>
+        <a class="sg-nav__link" href="#carga">Carga de datos</a>
+        <a class="sg-nav__link" href="#ficha">Ficha y visor</a>
         <a class="sg-nav__link" href="#franjas">Franjas de la home</a>
         <a class="sg-nav__link" href="#wizard">Wizard de reserva</a>
         <a class="sg-nav__link" href="#calendario">Calendario</a>
@@ -401,7 +427,7 @@
               </div>
               <div class="sg-type__row">
                 <p class="sg-type__sample sg-fs-400 sg-ui-bold">
-                  3 camas × $5.000 × 3 noches = $45.000
+                  3 camas × $5.000 × 4 días = $60.000
                 </p>
                 <p class="sg-type__meta">18 px · --fs-400 · UI 700</p>
               </div>
@@ -527,7 +553,7 @@
           <div class="sg-block">
             <div class="sg-block__head">
               <h3>Movimiento</h3>
-              <p class="sg-block__meta">de 150 a 200 ms, ease-out</p>
+              <p class="sg-block__meta">estados en 150–200 ms; entrada y scroll aparte</p>
             </div>
             <div class="sg-tokens">
               <div class="sg-token">
@@ -555,7 +581,42 @@
                 <span class="sg-token__value">--dur-*: 0ms</span>
                 <span class="sg-token__use">Sin spinner ni pulso</span>
               </div>
+              <div class="sg-token">
+                <span class="sg-token__name">--dur-print</span>
+                <span class="sg-token__value">420ms</span>
+                <span class="sg-token__use">Se escribe una palabra</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">--dur-wipe</span>
+                <span class="sg-token__value">560ms</span>
+                <span class="sg-token__use">Barrido de bloques del hero</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">--stagger</span>
+                <span class="sg-token__value">55ms</span>
+                <span class="sg-token__use">Separación entre palabras</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">--ease-out-soft</span>
+                <span class="sg-token__value">cubic-bezier(.16,.84,.32,1)</span>
+                <span class="sg-token__use">Solo impresión y scroll</span>
+              </div>
             </div>
+
+            <p class="sg-section__note">
+              El movimiento del landing es de imprenta y vive en
+              <code>motion.css</code>: el título del hero se escribe palabra por
+              palabra, cada sección dibuja su filete de 1 px, los títulos se
+              recortan de izquierda a derecha y la foto de cada tarjeta se revela
+              con un barrido vertical. Nada se desvanece. Las animaciones de scroll
+              son nativas del navegador: sin JS y sin listeners. Todo está dentro
+              de <code>@media (prefers-reduced-motion: no-preference)</code>, así
+              que con movimiento reducido el sitio se ve igual que antes; lo que
+              depende de <code>animation-timeline</code> va además dentro de
+              <code>@supports</code> y ahí el filete pasa a ser un pseudo-elemento,
+              de modo que en un navegador sin soporte queda el borde original y
+              ningún bloque arranca recortado.
+            </p>
           </div>
 
           <!-- Breakpoints -->
@@ -1618,6 +1679,50 @@
             albergue no tiene PDF.
           </p>
 
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Una fila por modalidad</h3>
+              <p class="sg-block__meta">por qué los precios no comparten columna</p>
+            </div>
+
+            <p class="sg-rules__note">
+              La meta de la tarjeta lleva una fila por modalidad y cada fila
+              tiene su capacidad y su precio adentro. Antes eran tres datos en
+              una línea —camas, lugares de visita y, abajo, los dos precios
+              juntos— y al envolver el precio de la visita caía bajo las camas
+              (<code>$2.000 visita / $5.000 cama</code>): se leía como si la cama
+              costara $2.000. No es un problema de tamaño de texto sino de orden;
+              capacidades y precios son de modalidades distintas y no comparten
+              ni fila ni columna.
+            </p>
+
+            <p class="sg-rules__note">
+              Clases: <code>.spec-list</code> (la lista en la tarjeta),
+              <code>.modal__facts</code> (la misma lista en la ficha),
+              <code>.spec</code> (la fila),
+              <code>.spec-mode</code> (modalidad, peso alto),
+              <code>.spec-cap</code> (capacidad),
+              <code>.spec-price</code> y <code>.spec-unit</code>
+              (precio y su unidad). La frase puede partirse en dos líneas en
+              pantallas angostas, pero el precio baja dentro de su propia fila:
+              nunca cae en la fila ni en la columna de la otra modalidad.
+            </p>
+
+            <p class="sg-rules__note">
+              Los números son de la base, no del markup: la fila lleva
+              <code>data-modalidad</code> y cada valor su
+              <code>data-rol</code> (<code>capacidad</code> y
+              <code>precio</code>). <code>assets/js/index.js</code> los escribe
+              en la tarjeta y en la ficha con el mismo dato —
+              <code>capacidad</code>, <code>capacidad_visitas</code>,
+              <code>monto_cama</code> y <code>monto_visita</code> de
+              <code>listarAlbergues</code>— y ajusta el singular: "1 cama",
+              "1 lugar". La modalidad y la unidad son texto fijo. Si la API no
+              responde queda el valor del markup, que salió de la misma base, y
+              la sección muestra su aviso.
+            </p>
+          </div>
+
           <div class="sg-grid sg-grid--cards">
             <article class="card" data-albergue="maestro">
               <div class="card__media">
@@ -1626,18 +1731,18 @@
               </div>
               <div class="card__body">
                 <h3 class="card__title">Maestro José Fierro</h3>
-                <ul class="card__meta">
-                  <li>
+                <ul class="spec-list">
+                  <li class="spec" data-modalidad="estadia">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                    92 camas
+                    <span class="spec-mode">Estadía</span>
+                    <span class="spec-cap" data-rol="capacidad">92 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
                   </li>
-                  <li>
+                  <li class="spec" data-modalidad="visita">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                    150 en visita
-                  </li>
-                  <li>
-                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                    $2.000 visita / $5.000 cama
+                    <span class="spec-mode">Visita</span>
+                    <span class="spec-cap" data-rol="capacidad">150 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
                   </li>
                 </ul>
                 <p class="card__text">
@@ -1658,18 +1763,18 @@
               </div>
               <div class="card__body">
                 <h3 class="card__title">Tinku Huasi</h3>
-                <ul class="card__meta">
-                  <li>
+                <ul class="spec-list">
+                  <li class="spec" data-modalidad="estadia">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                    49 camas
+                    <span class="spec-mode">Estadía</span>
+                    <span class="spec-cap" data-rol="capacidad">49 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
                   </li>
-                  <li>
+                  <li class="spec" data-modalidad="visita">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                    100 en visita
-                  </li>
-                  <li>
-                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                    $2.000 visita / $5.000 cama
+                    <span class="spec-mode">Visita</span>
+                    <span class="spec-cap" data-rol="capacidad">100 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
                   </li>
                 </ul>
                 <p class="card__text">
@@ -1691,18 +1796,18 @@
               </div>
               <div class="card__body">
                 <h3 class="card__title">Aquilina Soldati</h3>
-                <ul class="card__meta">
-                  <li>
+                <ul class="spec-list">
+                  <li class="spec" data-modalidad="estadia">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                    58 camas
+                    <span class="spec-mode">Estadía</span>
+                    <span class="spec-cap" data-rol="capacidad">58 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
                   </li>
-                  <li>
+                  <li class="spec" data-modalidad="visita">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                    100 en visita
-                  </li>
-                  <li>
-                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                    $2.000 visita / $5.000 cama
+                    <span class="spec-mode">Visita</span>
+                    <span class="spec-cap" data-rol="capacidad">100 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
                   </li>
                 </ul>
                 <p class="card__text">
@@ -1741,18 +1846,18 @@
                 </div>
                 <div class="card__body">
                   <h3 class="card__title">Quinta Agronomica</h3>
-                  <ul class="card__meta">
-                    <li>
+                  <ul class="spec-list">
+                    <li class="spec">
                       <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                      150 camas
+                      <span class="spec-mode">Estadía</span>
+                      <span class="spec-cap" data-rol="capacidad">150 camas</span>
+                      <span class="spec-price"><span data-rol="precio">$8.000</span> <span class="spec-unit">por cama</span></span>
                     </li>
-                    <li>
+                    <li class="spec">
                       <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                      250 en visita
-                    </li>
-                    <li>
-                      <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                      $3.000 visita / $8.000 cama
+                      <span class="spec-mode">Visita</span>
+                      <span class="spec-cap" data-rol="capacidad">250 lugares</span>
+                      <span class="spec-price"><span data-rol="precio">$3.000</span> <span class="spec-unit">por persona</span></span>
                     </li>
                   </ul>
                   <p class="card__text">
@@ -1871,8 +1976,363 @@
         </section>
 
         <!-- ============================================================
+             CARGA DE DATOS
+             ============================================================ -->
+        <section class="sg-section" id="carga" aria-labelledby="t-carga">
+          <header class="section-heading">
+            <h2 id="t-carga">Carga de datos</h2>
+            <p class="section-heading__meta">el tiempo en que se espera a la base</p>
+          </header>
+
+          <p class="sg-section__note">
+            Tres piezas para el rato en que la página espera a la base: el
+            indicador en línea, los esqueletos y los avisos de consulta. Ninguna
+            inventa datos: muestran las mismas medidas con la información
+            todavía en camino. Todas se apagan con
+            <code>prefers-reduced-motion</code>.
+          </p>
+
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Indicador en línea</h3>
+              <p class="sg-block__meta">anillo girando y texto, dentro de un role="status"</p>
+            </div>
+            <div class="sg-matrix">
+              <div class="sg-cell">
+                <span class="sg-label">esperando datos</span>
+                <p class="loading" role="status">
+                  <svg class="icon icon--sm loading__spin" aria-hidden="true">
+                    <use href="#i-loading"></use>
+                  </svg>
+                  <span>Cargando los albergues…</span>
+                </p>
+              </div>
+              <div class="sg-cell">
+                <span class="sg-label">esperando una consulta puntual</span>
+                <p class="loading">
+                  <svg class="icon icon--sm loading__spin" aria-hidden="true">
+                    <use href="#i-loading"></use>
+                  </svg>
+                  <span>Consultando la disponibilidad del día…</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Esqueleto de la grilla</h3>
+              <p class="sg-block__meta">tres tarjetas con las medidas reales</p>
+            </div>
+            <div class="sg-grid sg-grid--cards">
+              <article class="card">
+                <div class="skeleton skeleton--media"></div>
+                <div class="card__body">
+                  <div class="skeleton skeleton--line skeleton--line-lg skeleton--w-60"></div>
+                  <div class="skeleton skeleton--line skeleton--w-90"></div>
+                  <div class="skeleton skeleton--line skeleton--w-40"></div>
+                  <div class="skeleton skeleton--action"></div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="skeleton skeleton--media"></div>
+                <div class="card__body">
+                  <div class="skeleton skeleton--line skeleton--line-lg skeleton--w-60"></div>
+                  <div class="skeleton skeleton--line skeleton--w-90"></div>
+                  <div class="skeleton skeleton--line skeleton--w-40"></div>
+                  <div class="skeleton skeleton--action"></div>
+                </div>
+              </article>
+              <article class="card">
+                <div class="skeleton skeleton--media"></div>
+                <div class="card__body">
+                  <div class="skeleton skeleton--line skeleton--line-lg skeleton--w-60"></div>
+                  <div class="skeleton skeleton--line skeleton--w-90"></div>
+                  <div class="skeleton skeleton--line skeleton--w-40"></div>
+                  <div class="skeleton skeleton--action"></div>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Avisos de carga</h3>
+              <p class="sg-block__meta">consulta en curso y error al hidratar</p>
+            </div>
+            <div class="sg-matrix">
+              <div class="sg-cell">
+                <span class="sg-label">consulta en curso · .is-loading</span>
+                <div class="notice notice--warning is-loading" role="status">
+                  <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                    <use href="#i-loading"></use>
+                  </svg>
+                  <div class="notice__body">
+                    <p class="notice__title">Revisando disponibilidad</p>
+                    <p class="notice__text">
+                      Consultando las 3 camas para cada día del rango…
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="sg-cell">
+                <span class="sg-label">la home no pudo hidratar</span>
+                <div class="notice notice--warning" role="status">
+                  <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                    <use href="#i-alert"></use>
+                  </svg>
+                  <div class="notice__body">
+                    <p class="notice__text">
+                      No pudimos cargar los datos de los albergues. El mapa y el
+                      reglamento pueden no estar disponibles.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Dónde se usa</h3>
+              <p class="sg-block__meta">el contrato de cada pieza</p>
+            </div>
+            <div class="sg-tokens">
+              <div class="sg-token">
+                <span class="sg-token__name">home · albergues</span>
+                <span class="sg-token__value">esqueleto + línea de estado</span>
+                <span class="sg-token__use">al responder, la grilla entra con .is-revealing</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">wizard · calendarios</span>
+                <span class="sg-token__value">cal__grid--loading + 35 skeleton--day</span>
+                <span class="sg-token__use">aria-busy="true" y flechas inertes</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">aviso de consulta</span>
+                <span class="sg-token__value">.notice.is-loading</span>
+                <span class="sg-token__use">el ícono pasa a #i-loading y gira</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">botones</span>
+                <span class="sg-token__value">.btn.is-loading + .btn__spinner</span>
+                <span class="sg-token__use">confirmar reserva y cancelar reserva</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">comprobante</span>
+                <span class="sg-token__value">form[aria-busy="true"]</span>
+                <span class="sg-token__use">mientras sube el archivo</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             FICHA Y VISOR
+             ============================================================ -->
+        <section class="sg-section" id="ficha" aria-labelledby="t-ficha">
+          <header class="section-heading">
+            <h2 id="t-ficha">Ficha y visor</h2>
+            <p class="section-heading__meta">abre con :target, cierra animada con JS</p>
+          </header>
+
+          <p class="sg-section__note">
+            Una ficha por albergue, fuera de la grilla: adentro de la tarjeta
+            quedaría recortada. Se abre con su propio hash
+            (<code>#modal-{clave}</code>), sigue abierta cuando el hash apunta a
+            una foto de adentro y se cierra volviendo a
+            <code>#albergue-{clave}</code>. La apertura la anima el CSS; el
+            cierre lo resuelve <code>overlays.js</code>: intercepta el clic, deja
+            que el CSS anime con <code>.is-closing</code>, espera el
+            <code>animationend</code> y recién ahí cambia el hash. Sin el script
+            las anclas cierran igual, sin animación.
+          </p>
+
+          <p class="sg-section__note">
+            Los datos de la ficha usan la misma fila por modalidad que la
+            tarjeta —modalidad, capacidad y precio en una frase—, así que el
+            precio de la visita no queda alineado con el de la cama. Las dos
+            superficies se escriben desde <code>listarAlbergues</code>; el
+            detalle de los ganchos está en *Una fila por modalidad*, arriba en
+            Contenedores.
+          </p>
+
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Demo en vivo</h3>
+              <p class="sg-block__meta">abrí la ficha, ampliá una foto y cerrá con Escape</p>
+            </div>
+            <div class="sg-matrix">
+              <div class="sg-cell">
+                <span class="sg-label">disparador y cierre animado</span>
+                <a class="btn btn--primary btn--sm" href="#sg-ficha">
+                  <span class="btn__label">Ver detalle</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Qué agrega el script</h3>
+              <p class="sg-block__meta">sobre lo que ya hace el CSS solo</p>
+            </div>
+            <div class="sg-tokens">
+              <div class="sg-token">
+                <span class="sg-token__name">apertura</span>
+                <span class="sg-token__value">card-in · 420 ms</span>
+                <span class="sg-token__use">la tarjeta sube 28 px y sale de 97 %</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">cierre</span>
+                <span class="sg-token__value">card-out · 260 ms</span>
+                <span class="sg-token__use">se anima antes de cambiar el hash</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">velo</span>
+                <span class="sg-token__value">scrim-in / scrim-out</span>
+                <span class="sg-token__use">240 ms de entrada, 200 de salida</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">visor</span>
+                <span class="sg-token__value">photo-focus · 320 ms</span>
+                <span class="sg-token__use">llega desde 6 % más grande; cerrar vuelve a la ficha</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">Escape</span>
+                <span class="sg-token__value">primero el visor, después la ficha</span>
+                <span class="sg-token__use">con el foco donde estaba</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">foco y scroll</span>
+                <span class="sg-token__value">vuelve al disparador · .hay-capa</span>
+                <span class="sg-token__use">el fondo no scrollea y no salta</span>
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">historial</span>
+                <span class="sg-token__value">location.replace</span>
+                <span class="sg-token__use">cerrar no suma una entrada nueva</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!--
+          Ficha de la demo. Vive fuera de las secciones a propósito: las
+          matrices del styleguide usan overflow: clip y no queremos depender de
+          que la capa fija escape de ellas.
+        -->
+        <div
+          class="modal"
+          id="sg-ficha"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="sg-ficha-title"
+          tabindex="-1"
+        >
+          <a class="modal__backdrop" href="#ficha" tabindex="-1" aria-hidden="true"></a>
+          <div class="modal__panel">
+            <header class="modal__head">
+              <h2 class="modal__title" id="sg-ficha-title">Maestro José Fierro</h2>
+              <a class="modal__close" href="#ficha">
+                <span class="visually-hidden">Cerrar la ficha</span>
+                <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+              </a>
+            </header>
+            <div class="modal__galeria">
+              <div class="modal__media">
+                <a class="modal__media-link" href="#sg-foto-1">
+                  <img src="assets/img/maestro/01.jpg" alt="Maestro José Fierro, foto 1" loading="lazy" decoding="async" />
+                </a>
+              </div>
+              <ul class="modal__tira" aria-label="Más fotos de Maestro José Fierro">
+                <li>
+                  <a href="#sg-foto-2">
+                    <img src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" />
+                  </a>
+                </li>
+                <li>
+                  <a href="#sg-foto-3">
+                    <img src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" />
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div class="modal__body">
+              <dl class="modal__facts">
+                <div class="modal__fact spec" data-modalidad="estadia">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    Estadía
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">92 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama y noche</span></span>
+                  </dd>
+                </div>
+                <div class="modal__fact spec" data-modalidad="visita">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    Visita de un día
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">150 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
+                  </dd>
+                </div>
+              </dl>
+              <ul class="modal__features">
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Comedor con capacidad para 150 personas.
+                </li>
+                <li>
+                  <svg class="icon icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>
+                  Dormitorios compartidos en 6 habitaciones.
+                </li>
+              </ul>
+            </div>
+            <footer class="modal__foot">
+              <a class="link link--with-icon" href="#ficha">
+                Ver mapa
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+              </a>
+              <a class="btn btn--ghost btn--sm" href="#ficha">
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
+                <span class="btn__label">Reglamento</span>
+              </a>
+              <!-- En el sitio estos dos CTA llevan a reservar.html con
+                   ?albergue=<clave>&modalidad=visita|alojamiento. Acá quedan en
+                   #ficha para no salir de la demo. -->
+              <div class="modal__foot-ctas">
+                <a class="btn btn--primary btn--sm" href="#ficha">
+                  <span class="btn__label">Reservar visita</span>
+                </a>
+                <a class="btn btn--secondary btn--sm" href="#ficha">
+                  <span class="btn__label">Reservar estadía</span>
+                </a>
+              </div>
+            </footer>
+          </div>
+
+          <div class="visor" role="dialog" aria-label="Foto ampliada">
+            <a class="visor__backdrop" href="#sg-ficha" tabindex="-1" aria-hidden="true"></a>
+            <figure class="visor__marco">
+              <img id="sg-foto-1" src="assets/img/maestro/01.jpg" alt="Maestro José Fierro, foto 1" loading="lazy" decoding="async" />
+              <img id="sg-foto-2" src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" />
+              <img id="sg-foto-3" src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" />
+            </figure>
+            <a class="visor__close" href="#sg-ficha">
+              <span class="visually-hidden">Cerrar la foto</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- ============================================================
              FRANJAS DE LA HOME
              ============================================================ -->
+
         <section class="sg-section" id="franjas" aria-labelledby="t-franjas">
           <header class="section-heading">
             <h2 id="t-franjas">Franjas de la home</h2>
@@ -1968,7 +2428,7 @@
                       </svg>
                     </summary>
                     <p class="accordion__panel">
-                      Hasta 3 meses antes del ingreso y como mínimo 60 h antes.
+                      Hasta 3 meses antes del ingreso y como mínimo 66 h antes.
                     </p>
                   </details>
 
@@ -2046,53 +2506,64 @@
 
           <div class="sg-block">
             <div class="sg-block__head">
-              <h3>Selector de modalidad</h3>
+              <h3>Modalidad: se elige en la home y se bloquea en el wizard</h3>
               <p class="sg-block__meta">
-                el mismo <code>.segmented</code> del buscador, con
-                <code>name="modalidad"</code>
+                el <code>.segmented</code> vive en el buscador; el wizard la
+                recibe fija por la URL
               </p>
             </div>
             <div class="sg-matrix">
               <div class="sg-cell">
-                <span class="sg-label">con alojamiento: wizard de 4 pasos</span>
-                <fieldset class="segmented" aria-label="Modalidad con alojamiento">
+                <span class="sg-label">buscador de la home: el único lugar donde se cambia</span>
+                <fieldset class="segmented">
                   <legend class="visually-hidden">Modalidad de la reserva</legend>
                   <label class="segmented__option">
-                    <input class="segmented__input visually-hidden" type="radio" name="sg-modalidad-1" value="alojamiento" checked />
-                    <span>Con alojamiento</span>
+                    <input
+                      class="segmented__input visually-hidden"
+                      type="radio"
+                      name="sg-modalidad"
+                      value="visita"
+                      checked
+                    />
+                    <span>Visita de un día</span>
                   </label>
                   <label class="segmented__option">
-                    <input class="segmented__input visually-hidden" type="radio" name="sg-modalidad-1" value="visita" />
-                    <span>Visita de un día</span>
+                    <input
+                      class="segmented__input visually-hidden"
+                      type="radio"
+                      name="sg-modalidad"
+                      value="alojamiento"
+                    />
+                    <span>Con alojamiento</span>
                   </label>
                 </fieldset>
               </div>
               <div class="sg-cell">
-                <span class="sg-label">visita: formulario de una página</span>
-                <fieldset class="segmented" aria-label="Modalidad visita">
-                  <legend class="visually-hidden">Modalidad de la reserva</legend>
-                  <label class="segmented__option">
-                    <input class="segmented__input visually-hidden" type="radio" name="sg-modalidad-2" value="alojamiento" />
-                    <span>Con alojamiento</span>
-                  </label>
-                  <label class="segmented__option">
-                    <input class="segmented__input visually-hidden" type="radio" name="sg-modalidad-2" value="visita" checked />
-                    <span>Visita de un día</span>
-                  </label>
-                </fieldset>
+                <span class="sg-label">wizard: solo se muestra, ya no se edita</span>
+                <ul class="wizard__meta">
+                  <li>
+                    <span class="badge badge--info">
+                      <span class="badge__dot"></span>
+                      <span>Visita de un día</span>
+                    </span>
+                  </li>
+                  <li>150 personas en visita</li>
+                  <li>$2.000 por persona</li>
+                </ul>
               </div>
             </div>
             <p class="sg-section__note">
-              El selector va entre el encabezado y la barra de pasos, fuera de los
-              formularios de los pasos. Con <code>:has()</code> sobre
-              <code>.wizard</code> cambia el mock sin JS: alojamiento muestra
-              <code>.steps</code> y los cuatro <code>.paso</code>; visita los
-              esconde y muestra <code>.visita</code>, un formulario de una página
-              sin delegación. <code>data-modalidad</code> en el contenedor sigue
-              siendo el contrato de la integración: cada regla por atributo tiene
-              su gemela por <code>:has()</code>. Las horas de ingreso y egreso son
-              exclusivas de la visita, la única reserva de un solo día; la estadía
-              con alojamiento no elige horario y no tiene esos selects.
+              La modalidad se elige en el buscador de la home y viaja por la URL
+              (<code>?modalidad=visita</code>). En el wizard no hay selector: el
+              badge del encabezado y la fila "Modalidad" del resumen la muestran,
+              y desde ahí no se cambia. El contenedor sigue llevando
+              <code>data-modalidad</code>, que es el contrato que lee la
+              integración, y conserva las gemelas <code>:has()</code> para cuando
+              el wizard se revisa suelto con un selector en el markup. Las fechas
+              tampoco se piden en el buscador: se eligen en el calendario de
+              disponibilidad, que es donde se ve el cupo de cada día. Las horas de
+              ingreso y egreso son exclusivas de la visita, la única reserva de un
+              solo día.
             </p>
           </div>
 
@@ -2231,11 +2702,12 @@
                   </dl>
                   <div class="summary__total">
                     <span class="summary__total-label">Total</span>
-                    <span class="summary__amount">$45.000</span>
+                    <span class="summary__amount">$60.000</span>
                   </div>
                   <p class="summary__note">
-                    Se paga por transferencia. Tenés 48 h para subir el
-                    comprobante.
+                    Se paga por transferencia. El comprobante se sube hasta 48 h
+                    antes del día de ingreso; si vence sin comprobante, la
+                    pre-reserva se libera.
                   </p>
                 </aside>
               </div>
@@ -2500,6 +2972,29 @@
                   Fuera de la ventana
                 </li>
               </ul>
+            </div>
+          </div>
+
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Leyenda según la modalidad</h3>
+              <p class="sg-block__meta">la visita no pinta camas ni días con el cupo agotado</p>
+            </div>
+            <div class="sg-tokens">
+              <div class="sg-token">
+                <span class="sg-token__name">alojamiento</span>
+                <span class="sg-token__value">Camas libres · Quedan pocas camas · Sin cupo · Tu reserva</span>
+                <span class="sg-token__use"
+                  >cada día lleva el badge con las camas que quedan y el rango marca entrada y salida</span
+                >
+              </div>
+              <div class="sg-token">
+                <span class="sg-token__name">visita</span>
+                <span class="sg-token__value">Tu visita</span>
+                <span class="sg-token__use"
+                  >un solo día: el cupo se consulta al elegirlo y se lee en .cal__cupo</span
+                >
+              </div>
             </div>
           </div>
 
@@ -3153,13 +3648,81 @@
           </header>
 
           <p class="sg-section__note">
-            Último paso del wizard, en <code>reservar.html#step-4-maestro</code>.
-            Los ids (<code>{campo}-alo-{clave}</code>) y los
-            <code>data-campo</code> son los que espera el backend. El celular
-            viaja como prefijo + número, pero se lee y se enfoca como un solo
-            dato. Institución y correo son campos estándar, documentados en
-            *Campos*.
+            Último paso del wizard, en <code>reservar.html#step-4-maestro</code>,
+            y mismo bloque en la modalidad visita. Los ids
+            (<code>{campo}-alo-{clave}</code>) y los <code>data-campo</code> son
+            los que espera el backend. El celular viaja como prefijo + número,
+            pero se lee y se enfoca como un solo dato. Institución y correo son
+            campos estándar, documentados en *Campos*.
           </p>
+
+          <div class="sg-block">
+            <div class="sg-block__head">
+              <h3>Qué acepta cada campo</h3>
+              <p class="sg-block__meta">filtro al tipear, obligatorio y largo</p>
+            </div>
+
+            <p class="sg-rules__note">
+              Los campos declaran su regla con <code>data-regla</code> y la aplica
+              <code>assets/js/validacion.js</code>. Lo que no corresponde al campo
+              no llega a escribirse: en el DNI no entran letras y en el nombre del
+              responsable no entran números, tampoco al pegar. Valida al salir del
+              campo y al confirmar; el envío se frena con el foco en el primero que
+              falla. Los atributos <code>required</code>, <code>pattern</code>,
+              <code>minlength</code> y <code>maxlength</code> quedan en el markup
+              como contrato y como respaldo sin script.
+            </p>
+
+            <dl class="sg-rules">
+              <div class="sg-rule">
+                <dt class="sg-rule__name">institucion</dt>
+                <dd class="sg-rule__what">
+                  Letras, números y los signos de un nombre de escuela
+                  (<code>N° 4</code>, guiones, paréntesis). No acepta solo números.
+                </dd>
+                <dd class="sg-rule__len">3 a 80</dd>
+              </div>
+              <div class="sg-rule">
+                <dt class="sg-rule__name">nombre</dt>
+                <dd class="sg-rule__what">
+                  Solo letras, espacios, apóstrofo y guion: sin dígitos, aunque se
+                  peguen.
+                </dd>
+                <dd class="sg-rule__len">3 a 60</dd>
+              </div>
+              <div class="sg-rule">
+                <dt class="sg-rule__name">dni</dt>
+                <dd class="sg-rule__what">
+                  Solo dígitos, sin puntos ni espacios. El contador de la fila de
+                  la etiqueta muestra cuántos van sobre 8.
+                </dd>
+                <dd class="sg-rule__len">7 u 8</dd>
+              </div>
+              <div class="sg-rule">
+                <dt class="sg-rule__name">celular</dt>
+                <dd class="sg-rule__what">
+                  Solo dígitos, sin 0 ni 15. La regla es la suma con el código de
+                  área del select: si cambia el área, se revalida el número.
+                </dd>
+                <dd class="sg-rule__len">9 o 10 con el área</dd>
+              </div>
+              <div class="sg-rule">
+                <dt class="sg-rule__name">email</dt>
+                <dd class="sg-rule__what">
+                  Arroba y dominio. Sin espacios, también al pegar.
+                </dd>
+                <dd class="sg-rule__len">hasta 120</dd>
+              </div>
+              <div class="sg-rule">
+                <dt class="sg-rule__name">acepta</dt>
+                <dd class="sg-rule__what">
+                  La casilla del reglamento tiene que estar marcada; el aviso va
+                  debajo de la casilla, no en el encabezado del paso.
+                </dd>
+                <dd class="sg-rule__len">—</dd>
+              </div>
+            </dl>
+          </div>
 
           <div class="sg-grid sg-grid--2">
             <div class="sg-block">
@@ -3168,7 +3731,9 @@
                 <p class="sg-block__meta">responsable, DNI, celular y aceptación</p>
               </div>
 
-              <div class="sg-size">
+              <div class="paso__form">
+                <p class="form__required">Todos los datos son obligatorios.</p>
+
                 <div class="field">
                   <label class="field__label" for="sg-datos-responsable">Responsable del grupo</label>
                   <input
@@ -3177,13 +3742,35 @@
                     type="text"
                     value="Lucía Gómez"
                     autocomplete="name"
+                    data-regla="nombre"
+                    minlength="3"
+                    maxlength="60"
+                    aria-describedby="sg-datos-responsable-ayuda"
                   />
+                  <p class="field__help" id="sg-datos-responsable-ayuda">Solo letras.</p>
                 </div>
 
                 <div class="field">
-                  <label class="field__label" for="sg-datos-dni">DNI del responsable</label>
-                  <input class="input" id="sg-datos-dni" type="text" value="30111222" inputmode="numeric" />
-                  <p class="field__help">Sin puntos ni espacios.</p>
+                  <div class="field__head">
+                    <label class="field__label" for="sg-datos-dni">DNI del responsable</label>
+                    <span class="field__count">8/8</span>
+                  </div>
+                  <input
+                    class="input"
+                    id="sg-datos-dni"
+                    type="text"
+                    value="30111222"
+                    inputmode="numeric"
+                    data-regla="dni"
+                    data-contador="8"
+                    pattern="\d{7,8}"
+                    minlength="7"
+                    maxlength="8"
+                    aria-describedby="sg-datos-dni-ayuda"
+                  />
+                  <p class="field__help" id="sg-datos-dni-ayuda">
+                    7 u 8 números, sin puntos ni espacios.
+                  </p>
                 </div>
 
                 <div class="field" role="group" aria-labelledby="sg-datos-celular-label">
@@ -3199,9 +3786,19 @@
                         <use href="#i-chevron-down"></use>
                       </svg>
                     </div>
-                    <input class="input" type="tel" value="555 1234" inputmode="numeric" aria-label="Número" />
+                    <input
+                      class="input"
+                      type="tel"
+                      value="5551234"
+                      inputmode="numeric"
+                      data-regla="celular"
+                      minlength="5"
+                      maxlength="7"
+                      aria-label="Número"
+                      aria-describedby="sg-datos-celular-ayuda"
+                    />
                   </div>
-                  <p class="field__help">Sin 0 ni 15.</p>
+                  <p class="field__help" id="sg-datos-celular-ayuda">Solo números, sin 0 ni 15.</p>
                 </div>
 
                 <label class="checkbox">
@@ -3228,7 +3825,10 @@
 
               <div class="sg-size">
                 <div class="field field--invalid">
-                  <label class="field__label" for="sg-datos-dni-err">DNI del responsable</label>
+                  <div class="field__head">
+                    <label class="field__label" for="sg-datos-dni-err">DNI del responsable</label>
+                    <span class="field__count">4/8</span>
+                  </div>
                   <input
                     class="input"
                     id="sg-datos-dni-err"
@@ -3240,7 +3840,7 @@
                   />
                   <p class="field__error" id="sg-datos-dni-err-msg">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert"></use></svg>
-                    El DNI tiene que tener 8 números.
+                    El DNI tiene que tener 7 u 8 números.
                   </p>
                 </div>
 
@@ -3269,7 +3869,7 @@
                   </div>
                   <p class="field__error" id="sg-datos-celular-err-msg">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-alert"></use></svg>
-                    El número tiene que tener 7 dígitos.
+                    El código de área y el número tienen que sumar 9 o 10 dígitos.
                   </p>
                 </div>
 
@@ -3374,7 +3974,7 @@
                 <span class="sg-label">con más de 48 h</span>
                 <div class="devolucion">
                   <p class="devolucion__label">Devolución</p>
-                  <p class="devolucion__amount">$45.000</p>
+                  <p class="devolucion__amount">$60.000</p>
                   <p class="devolucion__note">
                     100 % del total: la cancelación es con más de 48 h de
                     anticipación al ingreso del 15/11.
@@ -3386,7 +3986,7 @@
                 <span class="sg-label">dentro de las 48 h previas</span>
                 <div class="devolucion">
                   <p class="devolucion__label">Devolución</p>
-                  <p class="devolucion__amount">$22.500</p>
+                  <p class="devolucion__amount">$30.000</p>
                   <p class="devolucion__note">
                     50 % del total: la cancelación es dentro de las 48 h previas
                     al ingreso.
@@ -3739,9 +4339,58 @@
         <header class="section-heading">
           <h2 id="t-nav-footer">Nav y footer</h2>
           <p class="section-heading__meta">
-            3 estados de barra y pie único
+            3 estados de barra, pie único y entradas a la reserva
           </p>
         </header>
+      </div>
+
+      <!-- La regla que ordena la navegación: la modalidad y el albergue se
+           eligen una sola vez, en el buscador; el resto los hereda o los pide
+           explícitamente. Sin esta regla el CTA del nav abría el wizard con el
+           primer albergue de la API y el de la tarjeta con la modalidad por
+           defecto, que era la confusión a corregir. -->
+      <div class="container">
+        <div class="sg-block">
+          <div class="sg-block__head">
+            <h3>De dónde se entra a la reserva</h3>
+            <p class="sg-block__meta">un solo lugar elige, el resto hereda</p>
+          </div>
+          <div class="sg-tokens">
+            <div class="sg-token">
+              <span class="sg-token__name">Reservar, nav y pie</span>
+              <span class="sg-token__value">index.html#buscador</span>
+              <span class="sg-token__use">no abre el wizard: abre el buscador</span>
+            </div>
+            <div class="sg-token">
+              <span class="sg-token__name">buscador</span>
+              <span class="sg-token__value">albergue · modalidad · cantidad</span>
+              <span class="sg-token__use"
+                >albergue obligatorio: no hay opción "todos"</span
+              >
+            </div>
+            <div class="sg-token">
+              <span class="sg-token__name">tarjeta</span>
+              <span class="sg-token__value">data-cta-hereda</span>
+              <span class="sg-token__use"
+                >hereda modalidad y cantidad; el botón dice cuál reserva</span
+              >
+            </div>
+            <div class="sg-token">
+              <span class="sg-token__name">ficha</span>
+              <span class="sg-token__value">Reservar visita · Reservar estadía</span>
+              <span class="sg-token__use"
+                >las dos modalidades, la única superficie que no hereda</span
+              >
+            </div>
+            <div class="sg-token">
+              <span class="sg-token__name">wizard incompleto</span>
+              <span class="sg-token__value">?motivo=completar#buscador</span>
+              <span class="sg-token__use"
+                >sin albergue o modalidad no adivina: vuelve al buscador</span
+              >
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="sg-demo">
@@ -3751,6 +4400,14 @@
         <header class="nav">
           <div class="container nav__bar">
             <a class="brand" href="index.html">
+              <img
+                class="brand__mark"
+                src="assets/img/brand/unt-sello.png"
+                alt=""
+                width="96"
+                height="118"
+                decoding="async"
+              />
               <span class="brand__name">Albergues recreativos</span>
             </a>
 
@@ -3774,7 +4431,7 @@
               </a>
               <a
                 class="btn btn--primary btn--sm"
-                href="reservar.html"
+                href="index.html#buscador"
                 data-accion="reservar"
               >
                 <span class="btn__label">Reservar</span>
@@ -3830,6 +4487,14 @@
         <header class="nav">
           <div class="container nav__bar">
             <a class="brand" href="index.html">
+              <img
+                class="brand__mark"
+                src="assets/img/brand/unt-sello.png"
+                alt=""
+                width="96"
+                height="118"
+                decoding="async"
+              />
               <span class="brand__name">Albergues recreativos</span>
             </a>
 
@@ -3851,7 +4516,7 @@
               </a>
               <a
                 class="btn btn--primary btn--sm"
-                href="reservar.html"
+                href="index.html#buscador"
                 data-accion="reservar"
               >
                 <span class="btn__label">Reservar</span>
@@ -3922,6 +4587,14 @@
             <header class="nav nav--compact">
               <div class="container nav__bar">
                 <a class="brand" href="index.html">
+                  <img
+                    class="brand__mark"
+                    src="assets/img/brand/unt-sello.png"
+                    alt=""
+                    width="96"
+                    height="118"
+                    decoding="async"
+                  />
                   <span class="brand__name">Albergues recreativos</span>
                 </a>
 
@@ -3938,7 +4611,7 @@
                   </a>
                   <a
                     class="btn btn--primary btn--sm"
-                    href="reservar.html"
+                    href="index.html#buscador"
                     data-accion="reservar"
                   >
                     <span class="btn__label">Reservar</span>
@@ -3989,6 +4662,14 @@
             <header class="nav nav--compact">
               <div class="container nav__bar">
                 <a class="brand" href="index.html">
+                  <img
+                    class="brand__mark"
+                    src="assets/img/brand/unt-sello.png"
+                    alt=""
+                    width="96"
+                    height="118"
+                    decoding="async"
+                  />
                   <span class="brand__name">Albergues recreativos</span>
                 </a>
 
@@ -4005,7 +4686,7 @@
                   </a>
                   <a
                     class="btn btn--primary btn--sm"
-                    href="reservar.html"
+                    href="index.html#buscador"
                     data-accion="reservar"
                   >
                     <span class="btn__label">Reservar</span>
@@ -4069,6 +4750,17 @@
               <p class="footer__claim">
                 Estadías y visitas de un día en los albergues recreativos.
               </p>
+              <p class="footer__entidad">
+                <img
+                  class="footer__entidad-logo"
+                  src="assets/img/brand/unt-logo.png"
+                  alt="Universidad Nacional de Tucumán"
+                  width="400"
+                  height="203"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </p>
             </div>
 
             <div class="footer__col">
@@ -4076,7 +4768,7 @@
               <ul class="footer__list">
                 <li><a href="index.html#albergues">Albergues</a></li>
                 <li><a href="index.html#como-funciona">Cómo funciona</a></li>
-                <li><a href="reservar.html">Reservar</a></li>
+                <li><a href="index.html#buscador">Reservar</a></li>
                 <li><a href="mi-reserva.html">Mi reserva</a></li>
               </ul>
             </div>
@@ -4132,7 +4824,10 @@
 
           <div class="footer__legal">
             <div class="container footer__legal-inner">
-              <p>Reservas de los albergues recreativos.</p>
+              <p>
+                <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+                Reservas de los albergues recreativos.
+              </p>
               <ul class="footer__legal-list">
                 <li>
                   <a href="#" data-placeholder="terminos">Términos y condiciones</a>
@@ -4148,6 +4843,83 @@
           </div>
         </footer>
       </div>
+
+      <!-- La firma institucional no es un componente de página sino una pieza
+           fija del pie; se documenta acá porque define qué archivo entra, con
+           qué tratamiento y cuáles quedaron fuera de la marca. -->
+      <div class="sg-demo">
+        <div class="container">
+          <p class="sg-label">Firma institucional del pie</p>
+          <p class="sg-block__meta">
+            Placa de superficie para el lockup de UNT, que se distribuye con
+            fondo blanco propio; recortarlo degradaría el escudo. La placa mide
+            lo que mide el logo, no el ancho de la columna.
+          </p>
+          <p class="footer__entidad">
+            <img
+              class="footer__entidad-logo"
+              src="assets/img/brand/unt-logo.png"
+              alt="Universidad Nacional de Tucumán"
+              width="400"
+              height="203"
+            />
+          </p>
+        </div>
+      </div>
+
+      <div class="sg-demo">
+        <div class="container">
+          <p class="sg-label">Línea legal con la firma</p>
+          <p class="sg-block__meta">
+            Abre la franja oscura en su propio renglón, un escalón más clara que
+            los enlaces porque no es un enlace. En escritorio la franja no crece
+            (64 px); en móvil suma una fila de 21 px.
+          </p>
+        </div>
+        <div class="footer__legal">
+          <div class="container footer__legal-inner">
+            <p>
+              <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+              Reservas de los albergues recreativos.
+            </p>
+            <ul class="footer__legal-list">
+              <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
+              <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>
+              <li><a href="#" data-placeholder="accesibilidad">Accesibilidad</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="sg-demo">
+        <div class="container">
+          <p class="sg-label">Archivos de marca</p>
+          <ul class="sg-file-list">
+            <li>
+              En uso: <code>unt-logo.png</code> (400×203, el doble de su tamaño
+              en pantalla) en el pie, <code>unt-sello.png</code> (96×118, solo
+              el escudo) en la barra a 40 px —34 en compacto— y los íconos
+              <code>favicon-32.png</code>, <code>icon-192.png</code> y
+              <code>apple-touch-icon-180.png</code>, declarados en el
+              <code>head</code> de las seis páginas. El sello de la barra va con
+              <code>alt</code> vacío: el nombre del producto es el texto del
+              enlace y la institución ya está nombrada en la firma del pie.
+            </li>
+            <li>
+              Fuera de la marca: <code>Blanco.png</code>,
+              <code>3 - Blanco.png</code> y <code>3 - Blanco (1).png</code> son
+              las tres versiones blancas del Ministerio de Educación. Si vuelven
+              a entrar, la firma de la franja oscura pasa de texto a imagen.
+            </li>
+            <li>
+              Descartados por formato: <code>Cabecera_web_facet_opc_04.png</code>
+              (1300×400 con el contenido en una banda de 118 px, 72 % de aire) y
+              <code>Escudo-UNT-3-300x136.jpg</code> (duplicado sin
+              transparencia del PNG).
+            </li>
+          </ul>
+        </div>
+      </div>
     </section>
 
     <footer class="sg-footer">
@@ -4158,5 +4930,9 @@
         </p>
       </div>
     </footer>
+
+    <!-- Cierre animado de la ficha y del visor: es el mismo script que corre en
+         la home. Sin él, la demo de §Ficha y visor cierra sin animación. -->
+    <script src="assets/js/overlays.js"></script>
   </body>
 </html>

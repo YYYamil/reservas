@@ -8,10 +8,28 @@
       name="description"
       content="Reservá estadía con camas o una visita de un día en los albergues recreativos. Elegí albergue y fechas, y ves el cupo y el total antes de confirmar."
     />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/img/brand/favicon-32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="assets/img/brand/icon-192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/img/brand/apple-touch-icon-180.png"
+    />
     <link rel="stylesheet" href="assets/css/tokens.css" />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/components.css" />
     <link rel="stylesheet" href="assets/css/hero.css" />
+    <link rel="stylesheet" href="assets/css/motion.css" />
   </head>
   <body>
     <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -88,6 +106,9 @@
       <symbol id="i-plus" viewBox="0 0 24 24">
         <path d="M12 5v14M5 12h14" />
       </symbol>
+      <symbol id="i-loading" viewBox="0 0 24 24">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+      </symbol>
       <symbol id="i-minus" viewBox="0 0 24 24">
         <path d="M5 12h14" />
       </symbol>
@@ -100,6 +121,14 @@
     <header class="nav">
       <div class="container nav__bar">
         <a class="brand" href="index.html">
+          <img
+            class="brand__mark"
+            src="assets/img/brand/unt-sello.png"
+            alt=""
+            width="96"
+            height="118"
+            decoding="async"
+          />
           <span class="brand__name">Albergues recreativos</span>
         </a>
 
@@ -116,7 +145,10 @@
             </svg>
             <span class="btn__label">Mi reserva</span>
           </a>
-          <a class="btn btn--primary btn--sm" href="reservar.html" data-accion="reservar">
+          <!-- Reservar no abre el wizard: abre el buscador, que es donde se
+               eligen albergue y modalidad. El wizard sin esos datos no puede
+               reservar nada. -->
+          <a class="btn btn--primary btn--sm" href="index.html#buscador" data-accion="reservar">
             <span class="btn__label">Reservar</span>
           </a>
 
@@ -149,8 +181,21 @@
       <section class="hero" aria-labelledby="hero-title">
         <div class="container hero__inner">
           <div class="hero__intro">
+            <!--
+              El título va palabra por palabra: cada una tiene su máscara y su
+              retardo, así se compone como una línea de imprenta. Los espacios
+              entre los <span> son los del texto: el lector de pantalla sigue
+              leyendo "Reservá estadía o una visita de un día" de corrido.
+            -->
             <h1 class="hero__title" id="hero-title">
-              Reservá estadía o una visita de un día
+              <span class="print-word"><span class="print-word__in">Reservá</span></span>
+              <span class="print-word"><span class="print-word__in">estadía</span></span>
+              <span class="print-word"><span class="print-word__in">o</span></span>
+              <span class="print-word"><span class="print-word__in">una</span></span>
+              <span class="print-word"><span class="print-word__in">visita</span></span>
+              <span class="print-word"><span class="print-word__in">de</span></span>
+              <span class="print-word"><span class="print-word__in">un</span></span>
+              <span class="print-word"><span class="print-word__in">día</span></span>
             </h1>
             <p class="hero__lead">
               Elegí albergue, fechas y cuántas personas viajan. Ves el cupo y el
@@ -163,12 +208,34 @@
           >
 
           <!--
-            El formulario viaja por GET a reservar.html con albergue y
-            modalidad, que es lo que esa página espera en la URL. El listado de
-            albergues tiene que generarse desde listarAlbergues: hoy son los que
-            devuelve la API, con sus claves reales como value.
+            El buscador es la puerta de la reserva: elige modalidad, albergue y
+            cantidad, y el formulario viaja con eso al wizard. Sin albergue no
+            hay reserva posible, así que el campo es obligatorio y no tiene la
+            opción "todos": una reserva siempre es de un albergue. Las fechas no
+            se piden acá, se eligen en el calendario de disponibilidad, que es
+            donde se ve el cupo de cada día. El listado tiene que generarse
+            desde listarAlbergues, con sus claves reales como value.
           -->
           <div class="hero__panel" id="buscador">
+            <!-- Aviso de llegada incompleta. reservar.html devuelve acá con
+                 ?motivo=completar cuando el enlace no traía albergue ni
+                 modalidad; lo muestra index.js y sin script queda oculto. -->
+            <div
+              class="notice notice--warning hero__aviso"
+              id="buscador-aviso"
+              role="status"
+              hidden
+            >
+              <svg class="icon icon--sm notice__icon" aria-hidden="true">
+                <use href="#i-alert"></use>
+              </svg>
+              <div class="notice__body">
+                <p class="notice__text">
+                  Elegí el albergue y la modalidad para abrir la reserva.
+                </p>
+              </div>
+            </div>
+
             <form
               class="hero__form"
               action="reservar.html"
@@ -204,8 +271,8 @@
                 <div class="field hero__field hero__field--albergue">
                   <label class="field__label" for="albergue">Albergue</label>
                   <div class="select">
-                    <select class="input select__control" id="albergue" name="albergue">
-                      <option value="">Todos los albergues</option>
+                    <select class="input select__control" id="albergue" name="albergue" required>
+                      <option value="" selected disabled>Elegí un albergue</option>
                       <option value="maestro">Maestro José Fierro</option>
                       <option value="tinku">Tinku Huasi</option>
                       <option value="aquilina">Aquilina Soldati</option>
@@ -216,19 +283,6 @@
                       <use href="#i-chevron-down"></use>
                     </svg>
                   </div>
-                </div>
-
-                <div class="field hero__field hero__field--entrada">
-                  <label class="field__label" for="entrada">
-                    <span class="when-visita">Fecha de la visita</span>
-                    <span class="when-alojamiento">Entrada</span>
-                  </label>
-                  <input class="input input--date" type="date" id="entrada" name="entrada" />
-                </div>
-
-                <div class="field hero__field hero__field--salida">
-                  <label class="field__label" for="salida">Salida</label>
-                  <input class="input input--date" type="date" id="salida" name="salida" />
                 </div>
 
                 <div class="field hero__field hero__field--cantidad">
@@ -257,36 +311,38 @@
               </div>
             </form>
           </div>
-        </div>
-      </section>
 
-      <!--
-        Línea de confianza: tres condiciones reales del sistema (devolución,
-        cupo por día y confirmación con comprobante). Sin íconos y con
-        separadores de 1 px: el dato manda y no compite con la grilla.
-      -->
-      <section class="trust" aria-labelledby="confianza-titulo">
-        <h2 class="visually-hidden" id="confianza-titulo">
-          Condiciones de la reserva
-        </h2>
-        <dl class="container trust__inner">
-          <div class="trust__item">
-            <dt class="trust__label">Devolución completa</dt>
-            <dd class="trust__value">Hasta 48 h antes del ingreso.</dd>
-          </div>
-          <div class="trust__item">
-            <dt class="trust__label">Cupo por día</dt>
-            <dd class="trust__value">
-              En cada albergue, para visita y para estadía.
-            </dd>
-          </div>
-          <div class="trust__item">
-            <dt class="trust__label">Confirmación</dt>
-            <dd class="trust__value">
-              Transferís y subís el comprobante: la reserva queda confirmada.
-            </dd>
-          </div>
-        </dl>
+          <!--
+            Línea de confianza: tres condiciones reales del sistema (devolución,
+            cupo por día y confirmación con comprobante). Sin íconos: el dato
+            manda. Vive dentro del hero porque en escritorio ocupa la columna
+            del título, debajo del lead; hasta 1023 se lee como banda de
+            separadores debajo del buscador.
+          -->
+          <section class="trust hero__trust" aria-labelledby="confianza-titulo">
+            <h2 class="visually-hidden" id="confianza-titulo">
+              Condiciones de la reserva
+            </h2>
+            <dl class="trust__inner">
+              <div class="trust__item">
+                <dt class="trust__label">Devolución completa</dt>
+                <dd class="trust__value">Hasta 48 h antes del ingreso.</dd>
+              </div>
+              <div class="trust__item">
+                <dt class="trust__label">Cupo por día</dt>
+                <dd class="trust__value">
+                  En cada albergue, para visita y para estadía.
+                </dd>
+              </div>
+              <div class="trust__item">
+                <dt class="trust__label">Confirmación</dt>
+                <dd class="trust__value">
+                  Transferís y subís el comprobante: la reserva queda confirmada.
+                </dd>
+              </div>
+            </dl>
+          </section>
+        </div>
       </section>
 
       <!--
@@ -315,7 +371,64 @@
             </p>
           </header>
 
-          <div class="results__grid">
+          <!--
+            Estado de carga de la grilla. El script los muestra mientras espera
+            listarAlbergues y los vuelve a ocultar cuando la respuesta llega, sea
+            con datos o con error. La línea de estado tiene role="status": el
+            lector anuncia "cargando" y después "listo" sin que haya que mirar.
+          -->
+          <p class="loading section-status" id="resultados-estado" role="status" hidden>
+            <svg class="icon icon--sm loading__spin" aria-hidden="true">
+              <use href="#i-loading"></use>
+            </svg>
+            <span id="resultados-estado-texto">Cargando los albergues…</span>
+          </p>
+
+          <div class="notice notice--warning section-status" id="resultados-aviso" role="status" hidden>
+            <svg class="icon icon--sm notice__icon" aria-hidden="true">
+              <use href="#i-alert"></use>
+            </svg>
+            <div class="notice__body">
+              <p class="notice__text" id="resultados-aviso-texto">
+                No pudimos cargar los datos de los albergues. El mapa y el
+                reglamento pueden no estar disponibles.
+              </p>
+            </div>
+          </div>
+
+          <!-- Esqueleto: mismas medidas que las tarjetas, sin datos falsos.
+               Tres columnas es lo que muestra la grilla en escritorio. -->
+          <div class="results__grid" id="resultados-cargando" hidden aria-hidden="true">
+            <article class="card">
+              <div class="skeleton skeleton--media"></div>
+              <div class="card__body">
+                <div class="skeleton skeleton--line skeleton--line-lg skeleton--w-60"></div>
+                <div class="skeleton skeleton--line skeleton--w-90"></div>
+                <div class="skeleton skeleton--line skeleton--w-40"></div>
+                <div class="skeleton skeleton--action"></div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="skeleton skeleton--media"></div>
+              <div class="card__body">
+                <div class="skeleton skeleton--line skeleton--line-lg skeleton--w-60"></div>
+                <div class="skeleton skeleton--line skeleton--w-90"></div>
+                <div class="skeleton skeleton--line skeleton--w-40"></div>
+                <div class="skeleton skeleton--action"></div>
+              </div>
+            </article>
+            <article class="card">
+              <div class="skeleton skeleton--media"></div>
+              <div class="card__body">
+                <div class="skeleton skeleton--line skeleton--line-lg skeleton--w-60"></div>
+                <div class="skeleton skeleton--line skeleton--w-90"></div>
+                <div class="skeleton skeleton--line skeleton--w-40"></div>
+                <div class="skeleton skeleton--action"></div>
+              </div>
+            </article>
+          </div>
+
+          <div class="results__grid" id="resultados-grilla">
             <!-- maestro -->
             <article class="card" id="albergue-maestro" data-albergue="maestro">
               <div class="card__media">
@@ -328,26 +441,29 @@
               </div>
               <div class="card__body">
                 <h3 class="card__title">Maestro José Fierro</h3>
-                <ul class="card__meta">
-                  <li>
+                <ul class="spec-list">
+                  <li class="spec" data-modalidad="estadia">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                    92 camas
+                    <span class="spec-mode">Estadía</span>
+                    <span class="spec-cap" data-rol="capacidad">92 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
                   </li>
-                  <li>
+                  <li class="spec" data-modalidad="visita">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                    150 en visita
-                  </li>
-                  <li>
-                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                    $2.000 visita / $5.000 cama
+                    <span class="spec-mode">Visita</span>
+                    <span class="spec-cap" data-rol="capacidad">150 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
                   </li>
                 </ul>
                 <p class="card__text">
                   El Albergue Escolar Maestro José Fierro se encuentra ubicado al
                   sureste de la ciudad capital.
                 </p>
+                <!-- La tarjeta hereda modalidad y cantidad del buscador:
+                     index.js reescribe este href y el texto del botón. Sin
+                     script queda la modalidad con la que abre el buscador. -->
                 <div class="card__actions">
-                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=maestro" data-accion="reservar">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=maestro&modalidad=visita" data-accion="reservar" data-cta-hereda>
                     <span class="btn__label">Reservar</span>
                   </a>
                   <a class="btn btn--ghost btn--sm" href="#modal-maestro" data-accion="ver-detalle">
@@ -369,18 +485,18 @@
               </div>
               <div class="card__body">
                 <h3 class="card__title">Tinku Huasi</h3>
-                <ul class="card__meta">
-                  <li>
+                <ul class="spec-list">
+                  <li class="spec" data-modalidad="estadia">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                    49 camas
+                    <span class="spec-mode">Estadía</span>
+                    <span class="spec-cap" data-rol="capacidad">49 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
                   </li>
-                  <li>
+                  <li class="spec" data-modalidad="visita">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                    100 en visita
-                  </li>
-                  <li>
-                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                    $2.000 visita / $5.000 cama
+                    <span class="spec-mode">Visita</span>
+                    <span class="spec-cap" data-rol="capacidad">100 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
                   </li>
                 </ul>
                 <p class="card__text">
@@ -388,7 +504,7 @@
                   Avenida Central y Diagonal 1 (CEF N.º 18).
                 </p>
                 <div class="card__actions">
-                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=tinku" data-accion="reservar">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=tinku&modalidad=visita" data-accion="reservar" data-cta-hereda>
                     <span class="btn__label">Reservar</span>
                   </a>
                   <a class="btn btn--ghost btn--sm" href="#modal-tinku" data-accion="ver-detalle">
@@ -410,18 +526,18 @@
               </div>
               <div class="card__body">
                 <h3 class="card__title">Aquilina Soldati</h3>
-                <ul class="card__meta">
-                  <li>
+                <ul class="spec-list">
+                  <li class="spec" data-modalidad="estadia">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                    58 camas
+                    <span class="spec-mode">Estadía</span>
+                    <span class="spec-cap" data-rol="capacidad">58 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
                   </li>
-                  <li>
+                  <li class="spec" data-modalidad="visita">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                    100 en visita
-                  </li>
-                  <li>
-                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                    $2.000 visita / $5.000 cama
+                    <span class="spec-mode">Visita</span>
+                    <span class="spec-cap" data-rol="capacidad">100 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
                   </li>
                 </ul>
                 <p class="card__text">
@@ -429,7 +545,7 @@
                   4124 – San Pedro de Colalao.
                 </p>
                 <div class="card__actions">
-                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=aquilina" data-accion="reservar">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=aquilina&modalidad=visita" data-accion="reservar" data-cta-hereda>
                     <span class="btn__label">Reservar</span>
                   </a>
                   <a class="btn btn--ghost btn--sm" href="#modal-aquilina" data-accion="ver-detalle">
@@ -451,23 +567,23 @@
               </div>
               <div class="card__body">
                 <h3 class="card__title">Alto Verde</h3>
-                <ul class="card__meta">
-                  <li>
+                <ul class="spec-list">
+                  <li class="spec" data-modalidad="estadia">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                    50 camas
+                    <span class="spec-mode">Estadía</span>
+                    <span class="spec-cap" data-rol="capacidad">50 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
                   </li>
-                  <li>
+                  <li class="spec" data-modalidad="visita">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                    100 en visita
-                  </li>
-                  <li>
-                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                    $2.000 visita / $5.000 cama
+                    <span class="spec-mode">Visita</span>
+                    <span class="spec-cap" data-rol="capacidad">100 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
                   </li>
                 </ul>
                 <p class="card__text">Nuevo albergue 2026 test desde BD pg</p>
                 <div class="card__actions">
-                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=altoverde" data-accion="reservar">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=altoverde&modalidad=visita" data-accion="reservar" data-cta-hereda>
                     <span class="btn__label">Reservar</span>
                   </a>
                   <a class="btn btn--ghost btn--sm" href="#modal-altoverde" data-accion="ver-detalle">
@@ -489,18 +605,18 @@
               </div>
               <div class="card__body">
                 <h3 class="card__title">Quinta Agronomica</h3>
-                <ul class="card__meta">
-                  <li>
+                <ul class="spec-list">
+                  <li class="spec" data-modalidad="estadia">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-                    150 camas
+                    <span class="spec-mode">Estadía</span>
+                    <span class="spec-cap" data-rol="capacidad">150 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$8.000</span> <span class="spec-unit">por cama</span></span>
                   </li>
-                  <li>
+                  <li class="spec" data-modalidad="visita">
                     <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-                    250 en visita
-                  </li>
-                  <li>
-                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-                    $3.000 visita / $8.000 cama
+                    <span class="spec-mode">Visita</span>
+                    <span class="spec-cap" data-rol="capacidad">250 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$3.000</span> <span class="spec-unit">por persona</span></span>
                   </li>
                 </ul>
                 <p class="card__text">
@@ -508,7 +624,7 @@
                   Agronómica, ya cuenta con un corredor seguro.
                 </p>
                 <div class="card__actions">
-                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=albergue-unt" data-accion="reservar">
+                  <a class="btn btn--primary btn--sm" href="reservar.html?albergue=albergue-unt&modalidad=visita" data-accion="reservar" data-cta-hereda>
                     <span class="btn__label">Reservar</span>
                   </a>
                   <a class="btn btn--ghost btn--sm" href="#modal-albergue-unt" data-accion="ver-detalle">
@@ -575,15 +691,44 @@
                 <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
               </a>
             </header>
-            <div class="modal__media">
-              <img src="assets/img/maestro/01.jpg" alt="Albergue Maestro José Fierro" loading="lazy" decoding="async" />
+            <div class="modal__galeria">
+              <div class="modal__media">
+                <a class="modal__media-link" href="#foto-maestro-1">
+                  <img src="assets/img/maestro/01.jpg" alt="Maestro José Fierro, foto 1" loading="lazy" decoding="async" />
+                </a>
+              </div>
+              <ul class="modal__tira" aria-label="Más fotos de Maestro José Fierro">
+                <li><a href="#foto-maestro-2"><img src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-maestro-3"><img src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-maestro-4"><img src="assets/img/maestro/04.jpeg" alt="Maestro José Fierro, foto 4" loading="lazy" decoding="async" /></a></li>
+              </ul>
             </div>
             <div class="modal__body">
+              <!-- Una fila por modalidad: modalidad, capacidad y precio en la
+                   misma frase, igual que en la tarjeta. La capacidad y el precio
+                   llevan data-rol porque los escribe listarAlbergues
+                   (assets/js/index.js); modalidad y unidad son texto fijo. -->
               <dl class="modal__facts">
-                <div class="modal__fact"><dt>Camas</dt><dd>92</dd></div>
-                <div class="modal__fact"><dt>Lugares en visita</dt><dd>150</dd></div>
-                <div class="modal__fact"><dt>Visita de un día</dt><dd>$2.000</dd></div>
-                <div class="modal__fact"><dt>Cama por noche</dt><dd>$5.000</dd></div>
+                <div class="modal__fact spec" data-modalidad="estadia">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    Estadía
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">92 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama y noche</span></span>
+                  </dd>
+                </div>
+                <div class="modal__fact spec" data-modalidad="visita">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    Visita de un día
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">150 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
+                  </dd>
+                </div>
               </dl>
               <ul class="modal__features">
                 <li>
@@ -613,10 +758,32 @@
                 <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
                 <span class="btn__label">Reglamento</span>
               </a>
-              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=maestro" data-accion="reservar">
-                <span class="btn__label">Reservar</span>
-              </a>
+              <!-- La ficha es el único lugar donde se ven los dos precios
+                   juntos: acá se elige cuál se reserva, sin heredar nada. -->
+              <div class="modal__foot-ctas">
+                <a class="btn btn--primary btn--sm" href="reservar.html?albergue=maestro&modalidad=visita" data-accion="reservar">
+                  <span class="btn__label">Reservar visita</span>
+                </a>
+                <a class="btn btn--secondary btn--sm" href="reservar.html?albergue=maestro&modalidad=alojamiento" data-accion="reservar">
+                  <span class="btn__label">Reservar estadía</span>
+                </a>
+              </div>
             </footer>
+          </div>
+
+          <!-- Visor: se abre con el hash de cada foto y no cierra la ficha. -->
+          <div class="visor" role="dialog" aria-label="Foto ampliada">
+            <a class="visor__backdrop" href="#modal-maestro" tabindex="-1" aria-hidden="true"></a>
+            <figure class="visor__marco">
+              <img id="foto-maestro-1" src="assets/img/maestro/01.jpg" alt="Maestro José Fierro, foto 1" loading="lazy" decoding="async" />
+              <img id="foto-maestro-2" src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" />
+              <img id="foto-maestro-3" src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" />
+              <img id="foto-maestro-4" src="assets/img/maestro/04.jpeg" alt="Maestro José Fierro, foto 4" loading="lazy" decoding="async" />
+            </figure>
+            <a class="visor__close" href="#modal-maestro">
+              <span class="visually-hidden">Cerrar la foto</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </a>
           </div>
         </div>
 
@@ -638,15 +805,40 @@
                 <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
               </a>
             </header>
-            <div class="modal__media">
-              <img src="assets/img/tinku/01.jpg" alt="Albergue Tinku Huasi" loading="lazy" decoding="async" />
+            <div class="modal__galeria">
+              <div class="modal__media">
+                <a class="modal__media-link" href="#foto-tinku-1">
+                  <img src="assets/img/tinku/01.jpg" alt="Tinku Huasi, foto 1" loading="lazy" decoding="async" />
+                </a>
+              </div>
+              <ul class="modal__tira" aria-label="Más fotos de Tinku Huasi">
+                <li><a href="#foto-tinku-2"><img src="assets/img/tinku/02.jpg" alt="Tinku Huasi, foto 2" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-tinku-3"><img src="assets/img/tinku/03.jpg" alt="Tinku Huasi, foto 3" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-tinku-4"><img src="assets/img/tinku/04.jpg" alt="Tinku Huasi, foto 4" loading="lazy" decoding="async" /></a></li>
+              </ul>
             </div>
             <div class="modal__body">
               <dl class="modal__facts">
-                <div class="modal__fact"><dt>Camas</dt><dd>49</dd></div>
-                <div class="modal__fact"><dt>Lugares en visita</dt><dd>100</dd></div>
-                <div class="modal__fact"><dt>Visita de un día</dt><dd>$2.000</dd></div>
-                <div class="modal__fact"><dt>Cama por noche</dt><dd>$5.000</dd></div>
+                <div class="modal__fact spec" data-modalidad="estadia">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    Estadía
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">49 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama y noche</span></span>
+                  </dd>
+                </div>
+                <div class="modal__fact spec" data-modalidad="visita">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    Visita de un día
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">100 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
+                  </dd>
+                </div>
               </dl>
               <ul class="modal__features">
                 <li>
@@ -676,10 +868,29 @@
                 <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
                 <span class="btn__label">Reglamento</span>
               </a>
-              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=tinku" data-accion="reservar">
-                <span class="btn__label">Reservar</span>
-              </a>
+              <div class="modal__foot-ctas">
+                <a class="btn btn--primary btn--sm" href="reservar.html?albergue=tinku&modalidad=visita" data-accion="reservar">
+                  <span class="btn__label">Reservar visita</span>
+                </a>
+                <a class="btn btn--secondary btn--sm" href="reservar.html?albergue=tinku&modalidad=alojamiento" data-accion="reservar">
+                  <span class="btn__label">Reservar estadía</span>
+                </a>
+              </div>
             </footer>
+          </div>
+
+          <div class="visor" role="dialog" aria-label="Foto ampliada">
+            <a class="visor__backdrop" href="#modal-tinku" tabindex="-1" aria-hidden="true"></a>
+            <figure class="visor__marco">
+              <img id="foto-tinku-1" src="assets/img/tinku/01.jpg" alt="Tinku Huasi, foto 1" loading="lazy" decoding="async" />
+              <img id="foto-tinku-2" src="assets/img/tinku/02.jpg" alt="Tinku Huasi, foto 2" loading="lazy" decoding="async" />
+              <img id="foto-tinku-3" src="assets/img/tinku/03.jpg" alt="Tinku Huasi, foto 3" loading="lazy" decoding="async" />
+              <img id="foto-tinku-4" src="assets/img/tinku/04.jpg" alt="Tinku Huasi, foto 4" loading="lazy" decoding="async" />
+            </figure>
+            <a class="visor__close" href="#modal-tinku">
+              <span class="visually-hidden">Cerrar la foto</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </a>
           </div>
         </div>
 
@@ -701,15 +912,40 @@
                 <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
               </a>
             </header>
-            <div class="modal__media">
-              <img src="assets/img/aquilina/01.jpg" alt="Albergue Aquilina Soldati" loading="lazy" decoding="async" />
+            <div class="modal__galeria">
+              <div class="modal__media">
+                <a class="modal__media-link" href="#foto-aquilina-1">
+                  <img src="assets/img/aquilina/01.jpg" alt="Aquilina Soldati, foto 1" loading="lazy" decoding="async" />
+                </a>
+              </div>
+              <ul class="modal__tira" aria-label="Más fotos de Aquilina Soldati">
+                <li><a href="#foto-aquilina-2"><img src="assets/img/aquilina/02.jpg" alt="Aquilina Soldati, foto 2" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-aquilina-3"><img src="assets/img/aquilina/03.webp" alt="Aquilina Soldati, foto 3" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-aquilina-4"><img src="assets/img/aquilina/04.webp" alt="Aquilina Soldati, foto 4" loading="lazy" decoding="async" /></a></li>
+              </ul>
             </div>
             <div class="modal__body">
               <dl class="modal__facts">
-                <div class="modal__fact"><dt>Camas</dt><dd>58</dd></div>
-                <div class="modal__fact"><dt>Lugares en visita</dt><dd>100</dd></div>
-                <div class="modal__fact"><dt>Visita de un día</dt><dd>$2.000</dd></div>
-                <div class="modal__fact"><dt>Cama por noche</dt><dd>$5.000</dd></div>
+                <div class="modal__fact spec" data-modalidad="estadia">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    Estadía
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">58 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama y noche</span></span>
+                  </dd>
+                </div>
+                <div class="modal__fact spec" data-modalidad="visita">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    Visita de un día
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">100 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
+                  </dd>
+                </div>
               </dl>
               <ul class="modal__features">
                 <li>
@@ -739,10 +975,29 @@
                 <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
                 <span class="btn__label">Reglamento</span>
               </a>
-              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=aquilina" data-accion="reservar">
-                <span class="btn__label">Reservar</span>
-              </a>
+              <div class="modal__foot-ctas">
+                <a class="btn btn--primary btn--sm" href="reservar.html?albergue=aquilina&modalidad=visita" data-accion="reservar">
+                  <span class="btn__label">Reservar visita</span>
+                </a>
+                <a class="btn btn--secondary btn--sm" href="reservar.html?albergue=aquilina&modalidad=alojamiento" data-accion="reservar">
+                  <span class="btn__label">Reservar estadía</span>
+                </a>
+              </div>
             </footer>
+          </div>
+
+          <div class="visor" role="dialog" aria-label="Foto ampliada">
+            <a class="visor__backdrop" href="#modal-aquilina" tabindex="-1" aria-hidden="true"></a>
+            <figure class="visor__marco">
+              <img id="foto-aquilina-1" src="assets/img/aquilina/01.jpg" alt="Aquilina Soldati, foto 1" loading="lazy" decoding="async" />
+              <img id="foto-aquilina-2" src="assets/img/aquilina/02.jpg" alt="Aquilina Soldati, foto 2" loading="lazy" decoding="async" />
+              <img id="foto-aquilina-3" src="assets/img/aquilina/03.webp" alt="Aquilina Soldati, foto 3" loading="lazy" decoding="async" />
+              <img id="foto-aquilina-4" src="assets/img/aquilina/04.webp" alt="Aquilina Soldati, foto 4" loading="lazy" decoding="async" />
+            </figure>
+            <a class="visor__close" href="#modal-aquilina">
+              <span class="visually-hidden">Cerrar la foto</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </a>
           </div>
         </div>
 
@@ -764,15 +1019,41 @@
                 <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
               </a>
             </header>
-            <div class="modal__media">
-              <img src="assets/img/altoverde/01.jpg" alt="Albergue Alto Verde" loading="lazy" decoding="async" />
+            <div class="modal__galeria">
+              <div class="modal__media">
+                <a class="modal__media-link" href="#foto-altoverde-1">
+                  <img src="assets/img/altoverde/01.jpg" alt="Alto Verde, foto 1" loading="lazy" decoding="async" />
+                </a>
+              </div>
+              <ul class="modal__tira" aria-label="Más fotos de Alto Verde">
+                <li><a href="#foto-altoverde-2"><img src="assets/img/altoverde/02.jpg" alt="Alto Verde, foto 2" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-altoverde-3"><img src="assets/img/altoverde/03.jpg" alt="Alto Verde, foto 3" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-altoverde-4"><img src="assets/img/altoverde/04.jpg" alt="Alto Verde, foto 4" loading="lazy" decoding="async" /></a></li>
+              </ul>
             </div>
+
             <div class="modal__body">
               <dl class="modal__facts">
-                <div class="modal__fact"><dt>Camas</dt><dd>50</dd></div>
-                <div class="modal__fact"><dt>Lugares en visita</dt><dd>100</dd></div>
-                <div class="modal__fact"><dt>Visita de un día</dt><dd>$2.000</dd></div>
-                <div class="modal__fact"><dt>Cama por noche</dt><dd>$5.000</dd></div>
+                <div class="modal__fact spec" data-modalidad="estadia">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    Estadía
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">50 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama y noche</span></span>
+                  </dd>
+                </div>
+                <div class="modal__fact spec" data-modalidad="visita">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    Visita de un día
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">100 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
+                  </dd>
+                </div>
               </dl>
               <ul class="modal__features">
                 <li>
@@ -795,10 +1076,29 @@
                 <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
                 <span class="btn__label">Reglamento</span>
               </a>
-              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=altoverde" data-accion="reservar">
-                <span class="btn__label">Reservar</span>
-              </a>
+              <div class="modal__foot-ctas">
+                <a class="btn btn--primary btn--sm" href="reservar.html?albergue=altoverde&modalidad=visita" data-accion="reservar">
+                  <span class="btn__label">Reservar visita</span>
+                </a>
+                <a class="btn btn--secondary btn--sm" href="reservar.html?albergue=altoverde&modalidad=alojamiento" data-accion="reservar">
+                  <span class="btn__label">Reservar estadía</span>
+                </a>
+              </div>
             </footer>
+          </div>
+
+          <div class="visor" role="dialog" aria-label="Foto ampliada">
+            <a class="visor__backdrop" href="#modal-altoverde" tabindex="-1" aria-hidden="true"></a>
+            <figure class="visor__marco">
+              <img id="foto-altoverde-1" src="assets/img/altoverde/01.jpg" alt="Alto Verde, foto 1" loading="lazy" decoding="async" />
+              <img id="foto-altoverde-2" src="assets/img/altoverde/02.jpg" alt="Alto Verde, foto 2" loading="lazy" decoding="async" />
+              <img id="foto-altoverde-3" src="assets/img/altoverde/03.jpg" alt="Alto Verde, foto 3" loading="lazy" decoding="async" />
+              <img id="foto-altoverde-4" src="assets/img/altoverde/04.jpg" alt="Alto Verde, foto 4" loading="lazy" decoding="async" />
+            </figure>
+            <a class="visor__close" href="#modal-altoverde">
+              <span class="visually-hidden">Cerrar la foto</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </a>
           </div>
         </div>
 
@@ -820,20 +1120,44 @@
                 <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
               </a>
             </header>
-            <div class="modal__media">
-              <img
-                src="assets/img/albergue-unt/01.jpg"
-                alt="Albergue Quinta Agronomica"
-                loading="lazy"
-                decoding="async"
-              />
+            <div class="modal__galeria">
+              <div class="modal__media">
+                <a class="modal__media-link" href="#foto-unt-1">
+                  <img
+                    src="assets/img/albergue-unt/01.jpg"
+                    alt="Quinta Agronomica, foto 1"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </a>
+              </div>
+              <ul class="modal__tira" aria-label="Más fotos de Quinta Agronomica">
+                <li><a href="#foto-unt-2"><img src="assets/img/albergue-unt/02.jpg" alt="Quinta Agronomica, foto 2" loading="lazy" decoding="async" /></a></li>
+                <li><a href="#foto-unt-3"><img src="assets/img/albergue-unt/03.jpg" alt="Quinta Agronomica, foto 3" loading="lazy" decoding="async" /></a></li>
+              </ul>
             </div>
             <div class="modal__body">
               <dl class="modal__facts">
-                <div class="modal__fact"><dt>Camas</dt><dd>150</dd></div>
-                <div class="modal__fact"><dt>Lugares en visita</dt><dd>250</dd></div>
-                <div class="modal__fact"><dt>Visita de un día</dt><dd>$3.000</dd></div>
-                <div class="modal__fact"><dt>Cama por noche</dt><dd>$8.000</dd></div>
+                <div class="modal__fact spec" data-modalidad="estadia">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
+                    Estadía
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">150 camas</span>
+                    <span class="spec-price"><span data-rol="precio">$8.000</span> <span class="spec-unit">por cama y noche</span></span>
+                  </dd>
+                </div>
+                <div class="modal__fact spec" data-modalidad="visita">
+                  <dt class="spec-mode">
+                    <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
+                    Visita de un día
+                  </dt>
+                  <dd>
+                    <span class="spec-cap" data-rol="capacidad">250 lugares</span>
+                    <span class="spec-price"><span data-rol="precio">$3.000</span> <span class="spec-unit">por persona</span></span>
+                  </dd>
+                </div>
               </dl>
               <ul class="modal__features">
                 <li>
@@ -855,10 +1179,28 @@
                 <svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"></use></svg>
                 <span class="btn__label">Reglamento</span>
               </button>
-              <a class="btn btn--primary btn--sm" href="reservar.html?albergue=albergue-unt" data-accion="reservar">
-                <span class="btn__label">Reservar</span>
-              </a>
+              <div class="modal__foot-ctas">
+                <a class="btn btn--primary btn--sm" href="reservar.html?albergue=albergue-unt&modalidad=visita" data-accion="reservar">
+                  <span class="btn__label">Reservar visita</span>
+                </a>
+                <a class="btn btn--secondary btn--sm" href="reservar.html?albergue=albergue-unt&modalidad=alojamiento" data-accion="reservar">
+                  <span class="btn__label">Reservar estadía</span>
+                </a>
+              </div>
             </footer>
+          </div>
+
+          <div class="visor" role="dialog" aria-label="Foto ampliada">
+            <a class="visor__backdrop" href="#modal-albergue-unt" tabindex="-1" aria-hidden="true"></a>
+            <figure class="visor__marco">
+              <img id="foto-unt-1" src="assets/img/albergue-unt/01.jpg" alt="Quinta Agronomica, foto 1" loading="lazy" decoding="async" />
+              <img id="foto-unt-2" src="assets/img/albergue-unt/02.jpg" alt="Quinta Agronomica, foto 2" loading="lazy" decoding="async" />
+              <img id="foto-unt-3" src="assets/img/albergue-unt/03.jpg" alt="Quinta Agronomica, foto 3" loading="lazy" decoding="async" />
+            </figure>
+            <a class="visor__close" href="#modal-albergue-unt">
+              <span class="visually-hidden">Cerrar la foto</span>
+              <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+            </a>
           </div>
         </div>
       </section>
@@ -908,12 +1250,58 @@
           </ol>
 
           <p class="how__foot">
-            <a class="link link--with-icon" href="reservar.html">
+            <a class="link link--with-icon" href="index.html#buscador">
               Empezar una reserva
               <svg class="icon icon--sm" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
             </a>
           </p>
         </div>
+      </section>
+
+      <!--
+        FRANJA DE FOTOS
+        Una <li> por foto de cualquier albergue: el render arma la tira con las
+        imágenes de listarAlbergues, así que sumar o sacar fotos no cambia el
+        layout. El alt es el nombre y la posición, nunca una descripción. Si un
+        albergue no tiene fotos, la sección no se muestra.
+      -->
+      <section class="gallery" id="fotos" aria-labelledby="fotos-titulo">
+        <div class="container">
+          <header class="section-heading">
+            <div class="section-intro">
+              <h2 id="fotos-titulo">Los albergues, en fotos</h2>
+            </div>
+          </header>
+        </div>
+
+        <!-- tabindex: la tira tiene scroll horizontal propio y sin esto el
+             teclado no puede recorrerla (regla scrollable-region-focusable). -->
+        <ul class="gallery__tira" aria-label="Fotos de los albergues" tabindex="0">
+          <li class="gallery__item">
+            <img src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" />
+          </li>
+          <li class="gallery__item">
+            <img src="assets/img/tinku/03.jpg" alt="Tinku Huasi, foto 3" loading="lazy" decoding="async" />
+          </li>
+          <li class="gallery__item">
+            <img src="assets/img/altoverde/03.jpg" alt="Alto Verde, foto 3" loading="lazy" decoding="async" />
+          </li>
+          <li class="gallery__item">
+            <img src="assets/img/aquilina/02.jpg" alt="Aquilina Soldati, foto 2" loading="lazy" decoding="async" />
+          </li>
+          <li class="gallery__item">
+            <img src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" />
+          </li>
+          <li class="gallery__item">
+            <img src="assets/img/albergue-unt/02.jpg" alt="Quinta Agronomica, foto 2" loading="lazy" decoding="async" />
+          </li>
+          <li class="gallery__item">
+            <img src="assets/img/tinku/04.jpg" alt="Tinku Huasi, foto 4" loading="lazy" decoding="async" />
+          </li>
+          <li class="gallery__item">
+            <img src="assets/img/altoverde/01.jpg" alt="Alto Verde, foto 1" loading="lazy" decoding="async" />
+          </li>
+        </ul>
       </section>
 
       <!--
@@ -974,8 +1362,9 @@
                   </summary>
                   <p class="accordion__panel">
                     Transferís el total y subís el comprobante en la plataforma.
-                    Tenés 48 h para hacerlo; si la fecha de ingreso está cerca,
-                    el plazo baja a 6 h.
+                    Tenés hasta 48 h antes del día de ingreso para hacerlo: el
+                    plazo se mide contra tu fecha de entrada, no contra el día
+                    en que reservás.
                   </p>
                 </details>
 
@@ -990,7 +1379,7 @@
                     </svg>
                   </summary>
                   <p class="accordion__panel">
-                    Hasta 3 meses antes del ingreso y como mínimo 60 h antes.
+                    Hasta 3 meses antes del ingreso y como mínimo 66 h antes.
                   </p>
                 </details>
 
@@ -1058,6 +1447,20 @@
           <p class="footer__claim">
             Estadías y visitas de un día en los albergues recreativos.
           </p>
+          <!-- Firma institucional. El archivo trae fondo blanco propio, así que
+               se apoya sobre una placa de superficie en lugar de recortarlo: el
+               rectángulo blanco es parte de la pieza, no un error de recorte. -->
+          <p class="footer__entidad">
+            <img
+              class="footer__entidad-logo"
+              src="assets/img/brand/unt-logo.png"
+              alt="Universidad Nacional de Tucumán"
+              width="400"
+              height="203"
+              loading="lazy"
+              decoding="async"
+            />
+          </p>
         </div>
 
         <div class="footer__col">
@@ -1065,7 +1468,7 @@
           <ul class="footer__list">
             <li><a href="index.html#albergues">Albergues</a></li>
             <li><a href="index.html#como-funciona">Cómo funciona</a></li>
-            <li><a href="reservar.html">Reservar</a></li>
+            <li><a href="index.html#buscador">Reservar</a></li>
             <li><a href="mi-reserva.html">Mi reserva</a></li>
           </ul>
         </div>
@@ -1111,7 +1514,10 @@
 
       <div class="footer__legal">
         <div class="container footer__legal-inner">
-          <p>Reservas de los albergues recreativos.</p>
+          <p>
+            <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+            Reservas de los albergues recreativos.
+          </p>
           <ul class="footer__legal-list">
             <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
             <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>
@@ -1120,5 +1526,9 @@
         </div>
       </div>
     </footer>
+
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/index.js"></script>
+    <script src="assets/js/overlays.js"></script>
   </body>
 </html>

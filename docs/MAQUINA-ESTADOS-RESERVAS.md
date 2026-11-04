@@ -65,8 +65,8 @@ Parámetros vigentes (editables en `configuracion_sistema`):
 
 | Clave | Valor | Significado |
 |---|---|---|
-| `anticipacion_horas` | 60 | Tope del hold: una reserva impaga nunca vive después de `inicio − 60 h` |
-| `ventana_pago_horas` | 48 | Ventana máxima que se le da al cliente para pagar |
+| `anticipacion_horas` | 60 | Componente del horizonte de creación y techo de la ventana de pago: la ventana no puede superarlo (si lo hiciera, la reserva nacería vencida) |
+| `ventana_pago_horas` | 48 | Horas antes del día de ingreso en las que se acepta el comprobante: el plazo se cuenta **hacia atrás desde el ingreso** |
 | `ventana_pago_min_horas` | 6 | Ventana mínima aceptable para crear una reserva |
 | `cancelacion_horas` | 48 | Borde de la devolución: más de 48 h → 100 %; menos → 50 % |
 | `devolucion_temprana_pct` | 100 | Devolución fuera del plazo |
@@ -76,11 +76,19 @@ Parámetros vigentes (editables en `configuracion_sistema`):
 ### Vencimiento del pago
 
 ```
-vencimiento = min( creación + ventana_pago_horas ,  inicio − anticipacion_horas )
+vencimiento = inicio − ventana_pago_horas          (48 h antes del ingreso)
 ```
 
-La segunda rama es la que evita el problema original: una reserva para mañana
-no puede quedar bloqueando el cupo hasta después de la visita.
+El plazo se mide contra el **día de ingreso**, no contra la creación: cuanto
+más anticipada es la reserva, más tiempo tiene el usuario para pagar. Como el
+horizonte de creación es `anticipacion + ventana_min` (66 h) y la ventana está
+acotada a `anticipacion_horas` (60 h), al crear siempre quedan al menos
+`ventana_pago_min_horas` (6 h) de plazo: una reserva no puede nacer vencida.
+
+La rama `inicio − ventana_pago_horas` también se aplica al leer (junto a lo
+grabado en `pago_vence_at`, vía `LEAST`), por lo que las reservas hechas con
+la regla anterior conservan su plazo original y las viejas de "7 días" quedan
+topeadas sin backfill.
 
 ### Horizonte para crear
 
@@ -122,8 +130,8 @@ La consulta de disponibilidad ya no es `estado <> 'Cancelado'`. Ahora:
 ```sql
 estado IN ('Pre-Reserva', 'Comprobar', 'Confirmado')
 AND ( estado <> 'Pre-Reserva'
-      OR COALESCE(LEAST(pago_vence_at, inicio_at - INTERVAL '60 hours'),
-                  inicio_at - INTERVAL '60 hours') > NOW() )
+      OR COALESCE(LEAST(pago_vence_at, inicio_at - INTERVAL '48 hours'),
+                  inicio_at - INTERVAL '48 hours') > NOW() )
 ```
 
 Consecuencias:
@@ -132,8 +140,9 @@ Consecuencias:
 - Una `Pre-Reserva` vencida deja de ocupar **en el mismo instante** en que
   vence, aunque el barrido todavía no la haya pasado de estado. Es la garantía
   de que el sistema no depende de que el cron esté vivo para no sobrevender.
-- El `LEAST(...)` protege también a las reservas viejas, que tienen 7 días
-  grabados en `pago_vence_at`, sin necesidad de backfill.
+- El `LEAST(...)` protege también a las reservas viejas: las que tienen 7
+  días grabados en `pago_vence_at` quedan topeadas en `inicio − 48 h`, y las
+  hechas con la regla anterior conservan su plazo original, sin backfill.
 
 El vencimiento se evalúa **también en las escrituras**: `subirComprobante` y
 `cancelarReserva` recalculan el estado efectivo antes de actuar.
@@ -256,7 +265,12 @@ heartbeat permite detectar que el cron se cayó.
   terminal produce el mismo efecto práctico.
 - **`Devolver` libera al cancelar**, no al devolver el dinero.
 - **Rechazo de comprobante:** vuelve a `Pre-Reserva` con
-  `min(ahora + 24 h, inicio − 60 h)`; si no queda tiempo, pasa a `Vencido`.
+  `min(ahora + 24 h, inicio − 48 h)`; si no queda tiempo, pasa a `Vencido`.
+- **Plazo de pago medido desde el ingreso.** `pago_vence_at` se calcula como
+  `inicio − ventana_pago_horas` (48 h), no desde la creación: cuanto más
+  anticipada es la reserva, más tiempo tiene el usuario para pagar. La
+  ventana queda acotada a `anticipacion_horas` para que, dentro del horizonte
+  de creación, la reserva no pueda nacer vencida.
 - **El horizonte efectivo es 66 h** (`60 + 6`) y es derivado. Si se cambia
   `anticipacion_horas`, cambia el corte de venta.
 - **La subida del comprobante genera dos correos:** acuse al cliente

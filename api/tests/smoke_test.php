@@ -283,9 +283,12 @@ $pkVM = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico =
 $mtV = (float) $db->query("SELECT monto_total FROM reservas_visitas WHERE id = $pkVM")->fetchColumn();
 check('33. monto_total persistido (congelado) en visita', $mtV === 8000.0, "monto=$mtV");
 $pv = $db->query("SELECT pago_vence_at FROM reservas_visitas WHERE id = $pkVM")->fetchColumn();
-$pvDias = $pv === false || $pv === null ? null
-    : (int) $db->query("SELECT (DATE(" . $db->quote((string) $pv) . ") - DATE(NOW()))")->fetchColumn();
-check('34. pago_vence_at = min(creacion + 48 h, inicio - 60 h) -> 2 dias', $pvDias === 2, "vence=$pv dias=$pvDias");
+// Regla vigente: el plazo se cuenta hacia atrás desde el día de ingreso.
+$desvioV = $pv === false || $pv === null ? 999.0
+    : (float) $db->query("SELECT EXTRACT(EPOCH FROM (pago_vence_at - (inicio_at - INTERVAL '48 hours'))) / 3600
+                            FROM reservas_visitas WHERE id = $pkVM")->fetchColumn();
+check('34. pago_vence_at = dia de ingreso - 48 h (plazo medido desde el ingreso)',
+    abs($desvioV) < 0.02, "vence=$pv desvio={$desvioV} h");
 
 // ---------- 35. visita sin email rechazada (email obligatorio) ----------
 $vSinMail = api('crearReserva', [
@@ -383,6 +386,13 @@ check('46. adminConfiguracionEditar guarda meses_anticipacion', ($cfgEdit['succe
 $cfgBad = apiConCookie('adminConfiguracionEditar', ['clave' => 'clave_inventada', 'valor' => '1'], $cookie);
 check('47. adminConfiguracionEditar rechaza claves no permitidas', ($cfgBad['success'] ?? true) === false, json_encode($cfgBad));
 
+// El plazo de pago se cuenta hacia atrás desde el ingreso: una ventana mayor
+// que anticipacion_horas haría nacer vencida a la reserva creada (el horizonte
+// es anticipacion + ventana_min). Caso borde de la regla nueva.
+$cfgVentana = apiConCookie('adminConfiguracionEditar', ['clave' => 'ventana_pago_horas', 'valor' => '720'], $cookie);
+check('47b. adminConfiguracionEditar rechaza ventana_pago_horas > anticipacion_horas',
+    ($cfgVentana['success'] ?? true) === false, json_encode($cfgVentana));
+
 // ---------- 48/49. panel admin: el identificador visible es codigo_publico ----------
 // El panel de administracion muestra y busca por codigo publico (R-000123) en
 // lugar del id_reserva de 4 digitos, que no es unico y no se corresponde con
@@ -437,7 +447,9 @@ $itemsEsperados = [
     'Hora de ingreso'         => '08:30',
     'Hora de egreso'          => '18:00',
     'Monto total'             => '$12.000',
-    'Vence el'                => date('d/m/Y', strtotime('+2 days')),
+    // Regla vigente: el plazo de pago se mide contra el día de ingreso
+    // (ventana_pago_horas antes de la fecha de entrada).
+    'Vence el'                => date('d/m/Y', strtotime($f33 . ' -48 hours')),
     'Estado'                  => 'Pre-Reserva',
 ];
 $faltantes = [];
@@ -666,12 +678,16 @@ $r = api('crearReserva', [
 ]);
 $codCerca = (string) ($r['codigoPublico'] ?? '');
 $pkCerca  = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote($codCerca))->fetchColumn();
-$desvioHoras = $pkCerca > 0
-    ? (float) $db->query("SELECT EXTRACT(EPOCH FROM (pago_vence_at - (inicio_at - INTERVAL '60 hours'))) / 3600
-                            FROM reservas_visitas WHERE id = $pkCerca")->fetchColumn()
-    : 999.0;
-check('68. el vencimiento queda en inicio - 60 h cuando la fecha está cerca',
-    ($r['success'] ?? false) === true && abs($desvioHoras) < 0.02, "desvio={$desvioHoras} h");
+$fila68 = $pkCerca > 0
+    ? $db->query("SELECT EXTRACT(EPOCH FROM (pago_vence_at - (inicio_at - INTERVAL '48 hours'))) / 3600 AS desvio,
+                         CASE WHEN pago_vence_at > NOW() THEN 1 ELSE 0 END AS vigente
+                    FROM reservas_visitas WHERE id = $pkCerca")->fetch(PDO::FETCH_ASSOC)
+    : null;
+$desvioHoras = is_array($fila68) ? (float) $fila68['desvio'] : 999.0;
+$naceVigente = is_array($fila68) && (int) $fila68['vigente'] === 1;
+check('68. con el ingreso cerca el plazo sigue en inicio - 48 h y la reserva nace vigente',
+    ($r['success'] ?? false) === true && abs($desvioHoras) < 0.02 && $naceVigente,
+    "desvio={$desvioHoras} h vigente=" . var_export($naceVigente, true));
 
 $dispAntes = api('obtenerDisponibilidadDia', ['albergue' => 'Tinku Huasi', 'fecha' => $cerca], 'GET');
 check('69. la pre-reserva vigente ocupa cupo', ($dispAntes['ocupados'] ?? -1) === 1, json_encode($dispAntes));

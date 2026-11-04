@@ -49,8 +49,9 @@ resultados que no se pueden integrar.
 
 ## Después del diseño
 
-1. Conectar los `data-*` con `script.js` (trabajo de integración, no de Kombai).
-2. Ajustar el bootstrap de cada página (ver sección 7 del contrato).
+1. Conectar los `data-*` con el runtime de la v2 (ver sección 9 del contrato).
+   La v2 no carga `script.js`: usa `v2/assets/js/` contra la misma API.
+2. Ajustar el bootstrap de cada página (ver secciones 7 y 9 del contrato).
 3. Probar el flujo completo contra `reserva_albergue_dev`.
 4. Mergear a `main` y deployar.
 
@@ -66,5 +67,8 @@ resultados que no se pueden integrar.
 - Prompts: 12 de 12 escritos.
 - Brief, datos mock, contrato y checklist: listos (datos al 2026-10-30).
 - Línea base: smoke test 90/90 PASS contra `reserva_albergue_dev` (2026-10-30).
-- Páginas: pendientes (las genera Kombai).
+- Páginas: las 5 del brief generadas en `v2/` y con runtime propio de reserva,
+  pago y cancelación.
 - Datos reales de los albergues: 5 de 5 (capturados el 2026-10-30).
+- Integración: flujo visita y alojamiento verificado de punta a punta contra
+  `reserva_albergue_dev` (crear → subir comprobante → cancelar).

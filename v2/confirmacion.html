@@ -8,6 +8,23 @@
       name="description"
       content="Pantalla de confirmación de la reserva: código, plazo para subir el comprobante de pago y detalle de la estadía."
     />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="assets/img/brand/favicon-32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="192x192"
+      href="assets/img/brand/icon-192.png"
+    />
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="assets/img/brand/apple-touch-icon-180.png"
+    />
     <link rel="stylesheet" href="assets/css/tokens.css" />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/components.css" />
@@ -69,6 +86,14 @@
     <header class="nav">
       <div class="container nav__bar">
         <a class="brand" href="index.html">
+          <img
+            class="brand__mark"
+            src="assets/img/brand/unt-sello.png"
+            alt=""
+            width="96"
+            height="118"
+            decoding="async"
+          />
           <span class="brand__name">Albergues recreativos</span>
         </a>
 
@@ -133,7 +158,8 @@
         data-rol="codigo"  → código de reserva (formato R-000000)
         data-rol="estado"  → estado de la reserva dentro del badge
         data-rol="total"   → monto total
-      El plazo de pago son 48 h, o 6 h si el ingreso está a menos de 48 h.
+      El plazo de pago es ventana_pago_horas (48 h) antes del día de ingreso
+      (docs/MAQUINA-ESTADOS-RESERVAS.md).
     -->
     <main id="contenido" tabindex="-1">
       <div class="container confirmacion" data-albergue="maestro">
@@ -172,11 +198,12 @@
                 <use href="#i-alert"></use>
               </svg>
               <div class="notice__body">
-                <p class="notice__title">Subí el comprobante antes del 1/11 a las 18:00</p>
+                <p class="notice__title">Subí el comprobante antes del 13/11 a las 00:00</p>
                 <p class="notice__text">
                   Pasado ese plazo la pre-reserva se libera y las camas vuelven a
-                  estar disponibles. Si el ingreso es en menos de 48 h, el plazo
-                  baja a 6 h.
+                  estar disponibles. Son 48 h antes del día de ingreso (15/11):
+                  el plazo se mide contra tu fecha de entrada, no contra el día
+                  en que reservaste.
                 </p>
               </div>
             </div>
@@ -232,7 +259,7 @@
 
               <div class="summary__total">
                 <span class="summary__total-label">Total</span>
-                <span class="summary__amount" data-rol="total">$45.000</span>
+                <span class="summary__amount" data-rol="total">$60.000</span>
               </div>
             </div>
 
@@ -298,6 +325,17 @@
           <p class="footer__claim">
             Estadías y visitas de un día en los albergues recreativos.
           </p>
+          <p class="footer__entidad">
+            <img
+              class="footer__entidad-logo"
+              src="assets/img/brand/unt-logo.png"
+              alt="Universidad Nacional de Tucumán"
+              width="400"
+              height="203"
+              loading="lazy"
+              decoding="async"
+            />
+          </p>
         </div>
 
         <div class="footer__col">
@@ -305,7 +343,7 @@
           <ul class="footer__list">
             <li><a href="index.html#albergues">Albergues</a></li>
             <li><a href="index.html#como-funciona">Cómo funciona</a></li>
-            <li><a href="reservar.html">Reservar</a></li>
+            <li><a href="index.html#buscador">Reservar</a></li>
             <li><a href="mi-reserva.html">Mi reserva</a></li>
           </ul>
         </div>
@@ -350,7 +388,10 @@
 
       <div class="footer__legal">
         <div class="container footer__legal-inner">
-          <p>Reservas de los albergues recreativos.</p>
+          <p>
+            <span class="footer__legal-org">Universidad Nacional de Tucumán</span>
+            Reservas de los albergues recreativos.
+          </p>
           <ul class="footer__legal-list">
             <li><a href="#" data-placeholder="terminos">Términos y condiciones</a></li>
             <li><a href="#" data-placeholder="privacidad">Política de privacidad</a></li>

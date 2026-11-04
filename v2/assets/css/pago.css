@@ -99,6 +99,34 @@
   display: none;
 }
 
+/* --- Estados con JS -------------------------------------------------------
+   Cuando pago.js toma el control agrega .pago__card--js al form y maneja
+   data-estado. Estas reglas tienen más especificidad que las de :target, así
+   que el estado del envío manda sobre el hash de la URL. */
+.pago__card--js[data-estado] .subida {
+  display: none;
+}
+
+.pago__card--js[data-estado="sin-archivo"] #sin-archivo,
+.pago__card--js[data-estado="subiendo"] #subiendo,
+.pago__card--js[data-estado="recibido"] #recibido,
+.pago__card--js[data-estado="rechazado"] #rechazado,
+.pago__card--js[data-estado="error-red"] #error-red {
+  display: grid;
+}
+
+/* Mientras se envía y después de recibirlo, el código ya no se edita. */
+.pago__card--js[data-estado="subiendo"] .pago__identidad,
+.pago__card--js[data-estado="recibido"] .pago__identidad {
+  display: none;
+}
+
+/* Feedback de arrastre sobre la zona de carga. */
+.upload__drop--over {
+  border-color: var(--c-accent);
+  background-color: var(--c-accent-soft);
+}
+
 /* ==========================================================================
    Responsive
    ========================================================================== */

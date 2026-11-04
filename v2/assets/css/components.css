@@ -201,6 +201,26 @@
   color: var(--c-text-muted);
 }
 
+/* Fila de la etiqueta. Cuando el campo tiene largo fijo (DNI, código de
+   reserva) la etiqueta comparte la fila con el contador de caracteres, que va
+   alineado a la derecha y no reemplaza la ayuda del pie. */
+.field__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+
+.field__count {
+  flex: none;
+  color: var(--c-text-muted);
+  font-family: var(--ff-ui);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  line-height: var(--lh-snug);
+}
+
 .field__help {
   font-size: var(--fs-200);
   line-height: var(--lh-snug);
@@ -219,6 +239,25 @@
 
 .field__error .icon {
   margin-top: calc(var(--sp-1) / 2);
+}
+
+/* Mientras el campo está marcado, el contador también es parte del error. */
+.field--invalid .field__count {
+  color: var(--c-danger);
+}
+
+/* El aviso ya dice la regla ("sin puntos", "sin 0 ni 15"): la ayuda del pie no
+   se repite debajo del error, se cambia por él. */
+.field--invalid .field__help {
+  display: none;
+}
+
+/* Nota de obligatoriedad: cuando todos los campos lo son, se dice una vez en el
+   encabezado del formulario y no se repite campo por campo. */
+.form__required {
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
 }
 
 .input {
@@ -265,6 +304,12 @@
 }
 
 .field--invalid .input:focus-visible {
+  border-color: var(--c-danger);
+}
+
+/* La casilla de aceptación no es .input, así que necesita su propia marca. */
+.field--invalid .checkbox__input {
+  background-color: var(--c-danger-soft);
   border-color: var(--c-danger);
 }
 
@@ -670,22 +715,74 @@
   color: var(--c-text);
 }
 
-.card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-1) var(--sp-4);
+/* --- Filas de modalidad: tarjeta y ficha ---
+   Camas y visita no son dos métricas paralelas: son dos modalidades. Cuando la
+   capacidad de una y el precio de la otra caen en la misma columna, se leen
+   cruzadas: "$5.000" quedaba debajo de "150 en visita" y "$2.000" debajo de
+   "92 camas". Cada modalidad ocupa una fila con su capacidad y su precio
+   adentro, así el precio nunca queda alineado con la capacidad de la otra.
+
+   Lo usan la meta de la tarjeta (.spec-list) y los datos de la ficha
+   (.modal__facts): las dos superficies dicen lo mismo con las mismas palabras,
+   y el precio se reemplaza desde la base en las dos. */
+.spec-list {
+  display: grid;
+  gap: var(--sp-1);
   font-size: var(--fs-200);
   color: var(--c-text-subtle);
 }
 
-.card__meta > li {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--sp-1);
+/* La fila es un solo flujo de texto: si la tarjeta es angosta la frase se parte
+   por palabra, pero la capacidad y el precio no se reparten en columnas, que es
+   lo que hacía leer un precio al lado de la capacidad de otra modalidad. Sin
+   sangrado a propósito: los 24 px que ganaría la segunda línea se le restan a la
+   primera, y en las tarjetas de tres columnas eso es lo que decide si la fila
+   entra en un renglón. */
+.spec {
+  display: block;
+  min-width: 0;
 }
 
-.card__meta .icon {
+/* base.css pone display: block en los svg; acá el ícono es parte de la frase. */
+.spec .icon {
+  display: inline-block;
+  margin-right: var(--sp-1);
   color: var(--c-text-muted);
+  vertical-align: calc(var(--sp-1) * -1);
+}
+
+/* La modalidad es el sujeto de la fila: peso alto y color de texto principal. */
+.spec-mode {
+  color: var(--c-text);
+  font-weight: var(--fw-bold);
+}
+
+/* Capacidad y precio no se parten al medio: si la fila no entra, bajan enteros a
+   la línea siguiente en vez de dejar "por" de un lado y "cama" del otro. */
+.spec-cap {
+  color: var(--c-text-muted);
+  white-space: nowrap;
+}
+
+/* El precio cierra la fila de su propia modalidad, nunca la de al lado. */
+.spec-price {
+  color: var(--c-text-subtle);
+  font-weight: var(--fw-bold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.spec-unit {
+  color: var(--c-text-muted);
+  font-weight: var(--fw-regular);
+}
+
+/* En la ficha la modalidad es el <dt> y sus datos el <dd>: van en línea para que
+   la frase siga siendo una sola, igual que en la tarjeta. */
+.spec dt,
+.spec dd {
+  display: inline;
+  margin: 0;
 }
 
 .card__text {
@@ -758,8 +855,59 @@
   }
 }
 
+/* --- Indicador en línea ---
+   Para el tiempo en que la página espera a la base: un ícono que gira y una
+   línea de texto. Va dentro de un [role="status"], así el lector anuncia el
+   cambio de estado y no solo lo ve quien mira la pantalla. */
+.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--c-text-muted);
+  font-size: var(--fs-200);
+  line-height: var(--lh-snug);
+}
+
+.loading__spin {
+  flex: none;
+  color: var(--c-accent);
+  animation: btn-spin var(--dur-spin) linear infinite;
+}
+
+/* Aire debajo de una línea de estado o de un aviso que aparece sobre una
+   grilla, sin tocar el ritmo de la sección. */
+.section-status {
+  margin-bottom: var(--sp-4);
+}
+
+/* El bloque que llega de la base entra con el barrido vertical del sistema, no
+   con un fundido: es la misma pieza de impresión del landing. Se usa una vez,
+   cuando el esqueleto le deja el lugar al contenido real. */
+.is-revealing {
+  animation: data-develop var(--dur-wipe) var(--ease-out-soft) both;
+}
+
+@keyframes data-develop {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .skeleton {
+    animation: none;
+  }
+
+  .loading__spin,
+  .notice.is-loading .notice__icon {
+    animation: none;
+  }
+
+  .is-revealing {
     animation: none;
   }
 }
@@ -921,14 +1069,73 @@
   min-height: var(--nav-h);
 }
 
+/* La marca es el nombre del servicio; cuando hay sello, va en la misma línea y
+   a la izquierda. En el pie se usa sin sello y el bloque queda igual. */
 .brand {
   display: inline-flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   justify-content: center;
+  gap: var(--sp-3);
   min-height: var(--tap-min);
   padding-block: var(--sp-1);
   color: var(--c-text);
   text-decoration: none;
+}
+
+/* Sello institucional: solo el escudo, sin el texto del lockup, porque en 64 px
+   de barra ese texto quedaría de 6 px. La imagen mide el doble de lo que se
+   muestra, así que entra sin pérdida en pantallas de 2x. */
+.brand__mark {
+  display: block;
+  height: var(--brand-mark-h);
+  width: auto;
+  flex: none;
+}
+
+/* Bajo 1024 la barra es compacta y el sello baja un escalón: es lo que permite
+   que sello, nombre, "Reservar" y el menú convivan en 390 px sin partir el
+   nombre ni desbordar. */
+@media (max-width: 1023px) {
+  .brand__mark {
+    height: var(--brand-mark-h-sm);
+  }
+}
+
+/* Con el sello puesto, en menos de 480 px el nombre no entra al lado de
+   "Reservar" y el menú: se parte en dos líneas y la marca cambia de forma. Un
+   escalón menos de tipografía y 4 px menos de separación lo devuelven a una
+   sola línea sin mover nada más de la barra. */
+@media (max-width: 479px) {
+  .nav__bar .brand {
+    gap: var(--sp-2);
+  }
+
+  .nav__bar .brand__name {
+    font-size: var(--fs-200);
+  }
+}
+
+/* 360 es el ancho más chico del sistema y ahí el nombre vuelve a caer en dos
+   líneas. Se ajusta el sello y el espacio antes que tocar los botones. */
+@media (max-width: 379px) {
+  .brand__mark {
+    height: 30px;
+  }
+
+  .nav__bar {
+    gap: var(--sp-2);
+  }
+
+  .nav__bar .brand {
+    gap: var(--sp-1);
+  }
+
+  /* El alto del botón no cambia: solo se recorta el aire lateral, que es lo que
+     devuelve los últimos píxeles al nombre. */
+  .nav__actions .btn {
+    padding-inline: var(--sp-2);
+  }
 }
 
 .brand:hover {
@@ -1142,8 +1349,19 @@
 
 /* El tamaño chico de la marca también es parte de la presentación compacta:
    dentro de un marco angosto los media queries siguen al viewport, no al marco. */
+/* Con el sello en la barra, la presentación compacta baja un escalón más de
+   tipografía: es la misma medida que aplica el media query de 479 px en el
+   sitio real, así el marco del styleguide muestra lo que se ve en el teléfono. */
 .nav--compact .brand__name {
-  font-size: var(--fs-300);
+  font-size: var(--fs-200);
+}
+
+.nav--compact .brand {
+  gap: var(--sp-1);
+}
+
+.nav--compact .brand__mark {
+  height: var(--brand-mark-h-sm);
 }
 
 .nav--compact .nav__disclosure {
@@ -1161,15 +1379,33 @@
   border-top: var(--bw) solid var(--c-border);
 }
 
+/* Móvil: dos columnas. La marca y el contacto ocupan el ancho completo y
+   Reservas y Condiciones comparten fila; son las dos listas cortas y así el pie
+   no arma cuatro bloques apilados de 200 px. Desde 1024 vuelven las cuatro
+   columnas del escritorio. */
 .footer__top {
   display: grid;
-  gap: var(--footer-gap);
-  padding-block: var(--sp-12);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: var(--sp-4);
+  row-gap: var(--sp-6);
+  padding-block: var(--sp-8);
+}
+
+.footer__top > .footer__brand,
+.footer__top > .footer__col:last-child {
+  grid-column: 1 / -1;
 }
 
 .footer__brand {
   display: grid;
   align-content: start;
+}
+
+/* En el pie la marca es un ítem de grilla y se estira al ancho de la columna:
+   sin esto el nombre queda centrado respecto del claim y del logo, que sí
+   arrancan a la izquierda. */
+.brand--footer {
+  justify-content: flex-start;
 }
 
 .brand--footer .brand__name {
@@ -1184,6 +1420,28 @@
   font-size: var(--fs-200);
 }
 
+/* Firma institucional.
+   El lockup de UNT se distribuye con fondo blanco propio. Sobre el arena del
+   pie ese blanco se vería como un rectángulo pegado, y recortarlo degradaría
+   el escudo; por eso se apoya sobre una placa de superficie, con el mismo
+   borde de 1 px que el resto del sistema y sin sombra. La placa mide lo que
+   mide el logo, no el ancho de la columna, para no competir con el titular
+   del pie. */
+.footer__entidad {
+  justify-self: start;
+  margin-top: var(--sp-6);
+  padding: var(--sp-2) var(--sp-3);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border);
+  border-radius: var(--radius-sm);
+}
+
+.footer__entidad-logo {
+  display: block;
+  width: var(--footer-logo-w);
+  height: auto;
+}
+
 .footer__col-title {
   margin-bottom: var(--sp-2);
   font-family: var(--ff-ui);
@@ -1195,6 +1453,9 @@
 
 .footer__list {
   display: grid;
+  /* Con dos columnas en móvil los rótulos largos ocupan dos líneas y el alto
+     táctil de 44 px se llena entero: 4 px separan una fila de la siguiente. */
+  row-gap: var(--sp-1);
 }
 
 .footer__list a {
@@ -1273,6 +1534,16 @@
   background-color: var(--c-surface-inverse);
 }
 
+/* La firma institucional abre el pie legal en su propia línea: mismo tamaño
+   que el resto de la franja, un paso más clara que los enlaces porque no es un
+   enlace, y con 9.4:1 sobre el carbón. En escritorio la franja no crece (los
+   dos renglones caben en el alto táctil de los enlaces); en móvil suma una
+   fila. */
+.footer__legal-org {
+  display: block;
+  color: var(--c-neutral-300);
+}
+
 .footer__legal-inner {
   display: flex;
   flex-wrap: wrap;
@@ -1305,23 +1576,29 @@
   text-decoration-color: currentColor;
 }
 
-@media (min-width: 480px) {
-  .footer__top {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* En móvil el bloque legal con tres enlaces de 44 px por fila suma más aire que
+   texto: 36 px alcanza para el área táctil (el mínimo AA es 24) y deja el pie
+   legal en dos filas. El aire del contenedor se reduce a uno solo por lado. */
+@media (max-width: 767px) {
+  .footer__legal-inner {
+    row-gap: 0;
+    padding-block: var(--sp-2);
   }
 
-  .footer__brand {
-    grid-column: 1 / -1;
+  .footer__legal a {
+    min-height: calc(var(--sp-8) + var(--sp-1));
   }
 }
 
 @media (min-width: 1024px) {
   .footer__top {
     grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
+    gap: var(--footer-gap);
     padding-block: var(--sp-16);
   }
 
-  .footer__brand {
+  .footer__top > .footer__brand,
+  .footer__top > .footer__col:last-child {
     grid-column: auto;
   }
 }
@@ -1424,7 +1701,11 @@ input.stepper__value:focus-visible {
   display: none;
 }
 
-.modal:target {
+/* La ficha se abre con su propio hash y sigue abierta cuando el hash apunta a
+   una foto de adentro (.visor img:target): así el visor no cierra la ficha al
+   ampliar una foto. */
+.modal:target,
+.modal:has(:target) {
   display: grid;
 }
 
@@ -1485,13 +1766,30 @@ input.stepper__value:focus-visible {
   background-color: var(--c-surface-sunken);
 }
 
-.modal__media {
-  position: relative;
-  aspect-ratio: var(--card-media-ratio);
+/* --- Galería de la ficha ---
+   La portada va en .modal__media y el resto del array en .modal__tira. La
+   cantidad de fotos la decide la base: la tira crece hacia los costados y no
+   mide en función del número, así que un albergue con una foto y otro con diez
+   usan el mismo bloque sin reglas nuevas. */
+.modal__galeria {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
   background-color: var(--c-surface-sunken);
+  border-bottom: var(--bw) solid var(--c-border);
 }
 
-/* Mismo motivo que en la tarjeta: el marco manda, la foto se recorta adentro. */
+.modal__media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  aspect-ratio: var(--card-media-ratio);
+  border-radius: var(--radius-md);
+  background-color: var(--c-neutral-200);
+}
+
+/* Mismo motivo que en la tarjeta: el marco manda, la foto se encuadra adentro.
+   El recorte es de encuadre, no del archivo: se usa la foto tal como viene. */
 .modal__media img {
   position: absolute;
   inset: 0;
@@ -1500,36 +1798,139 @@ input.stepper__value:focus-visible {
   object-fit: cover;
 }
 
+.modal__tira {
+  display: flex;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.modal__tira::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sin fotos adicionales la tira no existe: así una ficha de una sola foto no
+   queda con una banda vacía debajo, que es lo que ataría el layout al número.
+   Se pregunta por los hijos y no con :empty porque el marcado deja nodos de
+   texto entre las <li> y :empty nunca se cumple. */
+.modal__tira:not(:has(> li)) {
+  display: none;
+}
+
+.modal__tira > li {
+  position: relative;
+  flex: 0 0 auto;
+  width: 96px;
+  overflow: hidden;
+  aspect-ratio: var(--card-media-ratio);
+  border-radius: var(--radius-sm);
+  background-color: var(--c-neutral-200);
+  scroll-snap-align: start;
+}
+
+.modal__tira img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* La portada y las miniaturas son enlaces al visor. Abren el hash de la foto y
+   la ficha NO se cierra: .modal también se muestra cuando el :target está
+   adentro suyo, así que el visor vive dentro de la misma ficha. */
+.modal__media-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.modal__tira > li > a {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* --- Visor de la foto ---
+   Una capa por ficha con todas las fotos apiladas: se ve la que coincide con el
+   hash y las demás quedan ocultas y sin descargar, porque son lazy y no están
+   en pantalla. Cerrar vuelve a #modal-<clave> y deja la ficha abierta. */
+.visor {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  display: none;
+  place-items: center;
+  padding: var(--sp-4);
+}
+
+.visor:has(img:target) {
+  display: grid;
+}
+
+.visor__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--c-scrim);
+}
+
+.visor__marco {
+  position: relative;
+  display: grid;
+  place-items: center;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+}
+
+.visor img {
+  display: none;
+  max-width: 100%;
+  max-height: calc(100vh - var(--sp-16));
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+}
+
+.visor img:target {
+  display: block;
+}
+
+.visor__close {
+  position: absolute;
+  top: var(--sp-4);
+  right: var(--sp-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  background-color: var(--c-surface);
+  border: var(--bw) solid var(--c-border-control);
+  border-radius: var(--radius-sm);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
 .modal__body {
   display: grid;
   gap: var(--sp-6);
   padding: var(--sp-4);
 }
 
+/* Los datos de la ficha usan la misma fila por modalidad que la tarjeta: una
+   capacidad y un precio por línea, con la modalidad abriendo la frase. Antes
+   eran cuatro celdas —camas y lugares arriba, los dos precios abajo— y los
+   precios quedaban alineados entre sí, lejos de su capacidad. */
 .modal__facts {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sp-4);
+  gap: var(--sp-2);
   margin: 0;
-}
-
-.modal__fact {
-  display: grid;
-  gap: var(--sp-1);
-}
-
-.modal__fact dt {
-  color: var(--c-text-muted);
-  font-size: var(--fs-200);
-  line-height: var(--lh-snug);
-}
-
-.modal__fact dd {
-  margin: 0;
-  color: var(--c-text);
-  font-size: var(--fs-400);
-  font-weight: var(--fw-bold);
-  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-300);
+  color: var(--c-text-subtle);
 }
 
 .modal__features {
@@ -1563,12 +1964,35 @@ input.stepper__value:focus-visible {
   border-top: var(--bw) solid var(--c-border);
 }
 
+/* "Ver mapa" es un enlace de texto en la fila de acciones: se le da el mismo
+   alto táctil que a los botones. */
 .modal__foot .link {
+  justify-content: center;
+  min-height: var(--tap-min);
   margin-inline-end: auto;
 }
 
 .modal__foot .btn--primary {
   flex: 1 1 auto;
+}
+
+/* La ficha cierra con las dos modalidades: es el único lugar donde se ven los
+   dos precios juntos, así que la elección se ofrece acá y no se hereda del
+   buscador. La visita va en primario porque es la modalidad con la que abre el
+   buscador; una sola acción de peso alto por superficie, como el resto del
+   sistema. En móvil la pareja ocupa un renglón propio debajo de mapa y
+   reglamento. */
+.modal__foot-ctas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-2);
+  flex: 1 1 100%;
+}
+
+@media (min-width: 480px) {
+  .modal__foot-ctas {
+    flex: 0 1 auto;
+  }
 }
 
 @media (min-width: 768px) {
@@ -1604,6 +2028,12 @@ input.stepper__value:focus-visible {
   .modal__foot .btn--primary {
     flex: 0 0 auto;
   }
+
+  /* Con el panel a 40rem los dos CTA entran como pastillas de su ancho, no
+     como dos columnas que se estiran. */
+  .modal__foot-ctas {
+    grid-template-columns: repeat(2, minmax(0, auto));
+  }
 }
 
 /* ==========================================================================
@@ -1614,9 +2044,104 @@ input.stepper__value:focus-visible {
    La grilla no recorta ni fija alto: la descripción de cada albergue puede
    tener cualquier largo y la fila crece con la tarjeta más alta.
    ========================================================================== */
-/* Sin padding arriba: el hero ya cierra con aire y acá empieza con una línea. */
-.results {
-  padding-block: 0 var(--sp-12);
+/* --- Ritmo vertical de la home ---
+   El aire entre secciones va arriba y no abajo: cada sección abre con su
+   hairline a la misma distancia del contenido anterior y el pie no suma un
+   margen propio. 32 px en móvil, 64 desde 768. La sección que cierra la página
+   deja además aire antes del pie. */
+.results,
+.how,
+.rules {
+  padding-block: var(--sp-8) 0;
+}
+
+.rules {
+  padding-block: var(--sp-8);
+}
+
+/* --- Franja de fotos ---
+   La tira arranca alineada con el contenido y sangra hasta el borde derecho de
+   la ventana. Una <li> por foto: la cantidad la decide la base, así que el alto
+   es fijo, el ancho no depende del número y las proporciones distintas de cada
+   archivo quedan resueltas por el encuadre. */
+.gallery {
+  padding-block: var(--sp-8) 0;
+}
+
+.gallery .section-heading {
+  margin-bottom: var(--sp-6);
+}
+
+/* El selector lleva el tipo (ul) porque base.css apaga el padding de todo
+   ul[class] y ahí la clase sola no alcanza. */
+ul.gallery__tira {
+  display: flex;
+  gap: var(--sp-3);
+  margin: 0;
+  padding: 0 var(--gutter);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  /* Sin esto el snap consume el padding inicial y la primera foto arranca
+     pegada al borde: el punto de anclaje tiene que respetar el mismo aire. */
+  scroll-padding-inline-start: var(--gutter);
+  list-style: none;
+  scrollbar-width: none;
+}
+
+/* Desde que el container tope su ancho, la tira arranca alineada con el
+   contenido (el mismo margen que el container) y sigue hasta el borde. */
+@media (min-width: 1264px) {
+  ul.gallery__tira {
+    padding-inline-start: calc(50% - var(--container-max) / 2 + var(--gutter));
+    scroll-padding-inline-start: calc(50% - var(--container-max) / 2 + var(--gutter));
+  }
+}
+
+.gallery__tira::-webkit-scrollbar {
+  display: none;
+}
+
+/* La tira es un contenedor con scroll propio: lleva tabindex para que el teclado
+   pueda recorrerla y este anillo avisa que el foco está ahí y no en una foto.
+   Va por dentro porque la tira sangra hasta los bordes de la ventana. */
+ul.gallery__tira:focus-visible {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: calc(var(--bw-strong) * -1);
+}
+
+.gallery__item {
+  flex: 0 0 auto;
+  width: 380px;
+  height: 240px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  background-color: var(--c-surface-sunken);
+}
+
+.gallery__item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 767px) {
+  .gallery__item {
+    width: 260px;
+    height: 170px;
+  }
+}
+
+@media (min-width: 768px) {
+  .results,
+  .how {
+    padding-block: var(--sp-16) 0;
+  }
+
+  .rules {
+    padding-block: var(--sp-16);
+  }
 }
 
 .results__grid {
@@ -1785,10 +2310,6 @@ input.stepper__value:focus-visible {
    el número queda a la izquierda del texto; desde 768 los pasos se reparten en
    columnas con su propio separador arriba.
    ========================================================================== */
-.how {
-  padding-block: 0 var(--sp-12);
-}
-
 /* La línea de cierre hace que el enlace del pie quede después de toda la
    secuencia y no pegado al primer paso. */
 .how__steps {
@@ -1857,10 +2378,6 @@ input.stepper__value:focus-visible {
    definiciones con hairlines. A la derecha las preguntas, en acordeón nativo:
    <details> permite varias abiertas a la vez y se opera con teclado sin JS.
    ========================================================================== */
-.rules {
-  padding-block: 0 var(--sp-12);
-}
-
 .rules__grid {
   display: grid;
   gap: var(--sp-8);
@@ -2199,6 +2716,12 @@ input.stepper__value:focus-visible {
   line-height: var(--lh-body);
 }
 
+/* Nota pegada a un resumen que no vive dentro de .summary (la confirmación
+   del wizard): sin este margen el párrafo queda pegado a la última fila. */
+.summary__list + .summary__note {
+  margin-top: var(--sp-3);
+}
+
 /* ==========================================================================
    21. Calendario de disponibilidad
    --------------------------------------------------------------------------
@@ -2405,6 +2928,12 @@ input.stepper__value:focus-visible {
 .skeleton--day {
   min-height: var(--tap-min);
   border-radius: var(--radius-sm);
+}
+
+/* Mientras el mes viaja, el calendario no se puede operar: los días son
+   esqueletos y las flechas quedan inertes aunque el teclado las alcance. */
+.cal[aria-busy="true"] .cal__nav-btn {
+  pointer-events: none;
 }
 
 /* --- Leyenda y línea de rango --- */
@@ -2756,6 +3285,14 @@ input.stepper__value:focus-visible {
 
 .notice__text {
   color: var(--c-text-subtle);
+}
+
+/* Consulta en curso: el icono del aviso pasa a ser el anillo de carga y gira.
+   El texto lo cambia el script ("Consultando disponibilidad…"), así el aviso
+   sigue diciendo qué está pasando. */
+.notice.is-loading .notice__icon {
+  color: var(--c-accent);
+  animation: btn-spin var(--dur-spin) linear infinite;
 }
 
 /* Los rellenos suaves marcan el tono sin gritar: el borde queda del mismo color

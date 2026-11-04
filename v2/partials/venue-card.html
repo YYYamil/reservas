@@ -15,8 +15,16 @@
   Decisiones de la tarjeta:
   - Dos acciones: Reservar (peso alto) y Ver detalle (secundaria). El
     reglamento vive en la ficha, no se repite en cada tarjeta.
-  - Tres datos en la fila de meta: camas, capacidad de visita y los dos
-    precios. Es lo que el docente necesita para decidir, sin abrir la ficha.
+  - Reservar no decide la modalidad: la hereda del buscador de la home, junto
+    con la cantidad. El enlace lleva data-cta-hereda y index.js reescribe el
+    href (y el texto del botón) cuando se cambia el segmentado. Sin script
+    queda modalidad=visita, que es la que trae marcada el buscador.
+  - Una fila de meta por modalidad: Estadía (camas y precio por cama y noche) y
+    Visita (lugares y precio por persona). Camas y visita no son dos métricas
+    paralelas, son dos modalidades: con las capacidades arriba y los dos precios
+    juntos abajo se leían cruzados, porque el precio de la visita quedaba en la
+    columna de las camas. Cada fila lleva su capacidad y su precio adentro, así
+    el precio nunca se asocia a la modalidad de al lado.
   - La descripción se muestra tal cual la entrega la API, sin recortar: el
     layout aguanta cualquier largo (ver altoverde, que trae un texto de prueba).
 
@@ -44,18 +52,18 @@
   <div class="card__body">
     <h3 class="card__title">Maestro José Fierro</h3>
 
-    <ul class="card__meta">
-      <li>
+    <ul class="spec-list">
+      <li class="spec" data-modalidad="estadia">
         <svg class="icon icon--sm" aria-hidden="true"><use href="#i-bed"></use></svg>
-        92 camas
+        <span class="spec-mode">Estadía</span>
+        <span class="spec-cap" data-rol="capacidad">92 camas</span>
+        <span class="spec-price"><span data-rol="precio">$5.000</span> <span class="spec-unit">por cama</span></span>
       </li>
-      <li>
+      <li class="spec" data-modalidad="visita">
         <svg class="icon icon--sm" aria-hidden="true"><use href="#i-users"></use></svg>
-        150 en visita
-      </li>
-      <li>
-        <svg class="icon icon--sm" aria-hidden="true"><use href="#i-money"></use></svg>
-        $2.000 visita / $5.000 cama
+        <span class="spec-mode">Visita</span>
+        <span class="spec-cap" data-rol="capacidad">150 lugares</span>
+        <span class="spec-price"><span data-rol="precio">$2.000</span> <span class="spec-unit">por persona</span></span>
       </li>
     </ul>
 
@@ -67,8 +75,9 @@
     <div class="card__actions">
       <a
         class="btn btn--primary btn--sm"
-        href="reservar.html?albergue=maestro"
+        href="reservar.html?albergue=maestro&modalidad=visita"
         data-accion="reservar"
+        data-cta-hereda
       >
         <span class="btn__label">Reservar</span>
       </a>

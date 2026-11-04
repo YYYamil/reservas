@@ -66,10 +66,10 @@ de `albergue-unt`), la tarjeta y el flujo tienen que funcionar igual.
 | Campo | Valor | Qué significa |
 |---|---|---|
 | `meses_anticipacion` | 3 | ventana máxima de reserva |
-| `anticipacion_horas` | 60 | anticipación mínima antes del ingreso |
+| `anticipacion_horas` | 60 | anticipación mínima al crear; además es el techo de la ventana de pago |
 | `horizonte_horas` | 66 | horizonte mínimo total (anticipación + colchón) |
-| `ventana_pago_horas` | 48 | plazo para subir el comprobante |
-| `ventana_pago_min_horas` | 6 | mínimo de plazo cuando la fecha está cerca |
+| `ventana_pago_horas` | 48 | horas antes del día de ingreso para subir el comprobante |
+| `ventana_pago_min_horas` | 6 | plazo mínimo que queda para pagar al momento de crear |
 | `cancelacion_horas` | 48 | umbral de devolución 100 % / 50 % |
 | `fecha_minima_reserva` | `2026-11-03` | primera fecha reservable al momento de la captura |
 
