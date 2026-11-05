@@ -19,6 +19,13 @@ declare(strict_types=1);
  * Todos los correos incluyen el detalle completo de la reserva (código, albergue,
  * institución, responsable, fechas, cantidad, monto, vencimiento y estado).
  *
+ * Identidad visual (tokens del sistema v2, ver v2/assets/css/tokens.css):
+ * fondo marfil, cabecera con el escudo de la UNT, caja blanca de 600 px,
+ * acento terracota y tono semántico por tipo de evento (verde/ámbar/rojo/arena).
+ * Las imágenes se sirven desde Img/brand/ por URL absoluta: el mailer no
+ * adjunta archivos, así que ese directorio tiene que estar publicado en el
+ * sitio para que el logo aparezca.
+ *
  * El envío inmediato se intenta en el mismo request; si SMTP falla el registro
  * queda 'pendiente' y el worker `procesarNotificaciones()` lo reintenta.
  * Se puede desactivar por configuración (`notif_envio_inmediato`), en cuyo caso
@@ -313,6 +320,153 @@ function detalleReserva(array $r): array
     return $filas;
 }
 
+/** Paleta semántica de los correos (tokens del sistema visual v2).
+ *
+ * Cada tono trae fondo, borde y texto: se usa en la caja de nota, en el
+ * eyebrow y en el chip de estado. Los valores están verificados contra
+ * WCAG AA sobre fondo claro. */
+function tonoCorreo(string $tono): array
+{
+    $tonos = [
+        'ok'      => ['bg' => '#e1eadf', 'borde' => '#c7d8c8', 'texto' => '#1f4530'],
+        'alerta'  => ['bg' => '#f6e9d2', 'borde' => '#e4d2ab', 'texto' => '#7e5219'],
+        'peligro' => ['bg' => '#f5dfd8', 'borde' => '#e3c3b8', 'texto' => '#7a3024'],
+        'info'    => ['bg' => '#f6f0e5', 'borde' => '#e9e1d3', 'texto' => '#4c463d'],
+    ];
+    return $tonos[$tono] ?? $tonos['info'];
+}
+
+/**
+ * Chip de estado [texto visible, tono] según el estado de la reserva.
+ * 'Devolver' es un estado interno: al usuario se le muestra como
+ * "Devolución pendiente". Devuelve null si no hay estado.
+ */
+function chipEstado(string $estado): ?array
+{
+    $map = [
+        'Confirmado'  => ['Confirmado', 'ok'],
+        'Pre-Reserva' => ['Pre-Reserva', 'alerta'],
+        'Comprobar'   => ['Comprobar', 'alerta'],
+        'Devolver'    => ['Devolución pendiente', 'alerta'],
+        'Cancelado'   => ['Cancelado', 'peligro'],
+        'Vencido'     => ['Vencido', 'peligro'],
+        'Rechazado'   => ['Rechazado', 'peligro'],
+    ];
+    $e = trim($estado);
+    if ($e === '') {
+        return null;
+    }
+    [$texto, $tono] = $map[$e] ?? [$e, 'info'];
+    return [$texto, tonoCorreo($tono)];
+}
+
+/**
+ * Agrupa las filas del detalle en tres bloques para que se lean en el móvil.
+ * 'Estado' queda afuera de la tabla: se muestra como chip al inicio del
+ * correo, que es lo primero que se quiere ver.
+ *
+ * @param array<int, array{0:string,1:string}> $filas
+ * @return array<int, array{titulo:string, filas:array<int, array{0:string,1:string}>}>
+ */
+function agruparDetalle(array $filas): array
+{
+    $orden = [
+        'Reserva' => ['Código de reserva', 'Albergue', 'Modalidad', 'Vence el',
+            'Pre-reserva registrada', 'Comprobante subido', 'Devolución', 'Devolución realizada'],
+        'Personas' => ['Institución', 'Responsable', 'DNI', 'Teléfono', 'Email', 'Cantidad de personas'],
+        'Fechas y pago' => ['Fecha de ingreso', 'Hora de ingreso', 'Hora de egreso',
+            'Fechas de alojamiento', 'Noches', 'Monto total', 'CBU para transferir'],
+    ];
+
+    $grupos = array_fill_keys(array_keys($orden), []);
+    foreach ($filas as $fila) {
+        $etiqueta = (string) ($fila[0] ?? '');
+        if ($etiqueta === '' || $etiqueta === 'Estado') {
+            continue;
+        }
+        $destino = null;
+        foreach ($orden as $nombre => $etiquetas) {
+            if (in_array($etiqueta, $etiquetas, true)) {
+                $destino = $nombre;
+                break;
+            }
+        }
+        // Etiqueta nueva o inesperada: no se pierde, va en el primer bloque.
+        $grupos[$destino ?? 'Reserva'][] = $fila;
+    }
+
+    $salida = [];
+    foreach (array_keys($orden) as $nombre) {
+        if ($grupos[$nombre] !== []) {
+            $salida[] = ['titulo' => $nombre, 'filas' => $grupos[$nombre]];
+        }
+    }
+    return $salida;
+}
+
+/**
+ * Datos visuales fijos por tipo de evento: eyebrow, tono, preheader (la línea
+ * que el cliente de correo muestra junto al asunto) y el enlace secundario.
+ * El estado de la reserva lo agrega plantillaCorreo() aparte.
+ */
+function metaCorreo(string $tipoEvento, array $r, string $appUrl): array
+{
+    $cod    = (string) ($r['codigo_publico'] ?? '');
+    $alb    = (string) ($r['albergue'] ?? '');
+    $vence  = !empty($r['pago_vence_at']) ? fmtFecha((string) $r['pago_vence_at']) : '';
+    $limite = !empty($r['validacion_vence_at']) ? fmtFechaHora((string) $r['validacion_vence_at']) : '';
+    $pct    = isset($r['devolucion_pct']) && $r['devolucion_pct'] !== null
+        ? (int) round((float) $r['devolucion_pct'])
+        : 0;
+
+    $mapa = [
+        'creacion'             => ['Pre-reserva registrada', 'alerta',
+            'Pre-reserva ' . $cod . ($vence !== '' ? ' · pago hasta el ' . $vence : ' registrada')],
+        'recordatorio'         => ['Recordatorio de pago', 'alerta',
+            'Pre-reserva ' . $cod . ($vence !== '' ? ' · vence el ' . $vence : '')],
+        'confirmacion'         => ['Reserva confirmada', 'ok',
+            'Reserva ' . $cod . ' confirmada · presentá el código al ingreso'],
+        'cancelacion_cliente'  => ['Cancelación solicitada', 'peligro',
+            'Pre-reserva ' . $cod . ' cancelada · cupo liberado'],
+        'cancelacion'          => ['Pre-reserva cancelada', 'peligro',
+            'Pre-reserva ' . $cod . ' cancelada · cupo liberado'],
+        'pago_recibido'        => ['Comprobante para validar', 'alerta',
+            'Reserva ' . $cod . ($limite !== '' ? ' · validación hasta el ' . $limite : ' · comprobante nuevo')],
+        'comprobante_recibido' => ['Comprobante recibido', 'ok',
+            'Reserva ' . $cod . ' · comprobante en revisión'],
+        'validacion_admin'     => ['Reserva validada', 'ok',
+            'Reserva ' . $cod . ' confirmada · comprobante aprobado'],
+        'vencimiento'          => ['Pre-reserva vencida', 'peligro',
+            'Pre-reserva ' . $cod . ' vencida · cupo liberado'],
+        'rechazo'              => ['Comprobante rechazado', 'peligro',
+            'Comprobante rechazado · reserva ' . $cod],
+        'devolucion'           => ['Cancelación con devolución', 'info',
+            'Reserva ' . $cod . ' cancelada' . ($pct > 0 ? ' · devolución ' . $pct . '%' : '')],
+        'aviso_admin'          => ['Nueva pre-reserva', 'alerta',
+            'Nueva pre-reserva ' . $cod . ($alb !== '' ? ' · ' . $alb : '')],
+    ];
+
+    [$eyebrow, $tono, $preheader] = $mapa[$tipoEvento]
+        ?? ['Detalle de la reserva', 'info', 'Reserva ' . $cod];
+
+    // Enlace secundario: el panel para los avisos al administrador, una nueva
+    // reserva cuando no queda nada que hacer, y la ficha de la reserva para
+    // el usuario final (mi-reserva.html?codigo=..., prefilado por la v2).
+    $link = null;
+    if ($appUrl !== '') {
+        if (in_array($tipoEvento, ['pago_recibido', 'validacion_admin', 'aviso_admin'], true)) {
+            $link = ['texto' => 'Abrir el panel de administración', 'url' => $appUrl . '/admin/'];
+        } elseif (in_array($tipoEvento, ['vencimiento', 'cancelacion'], true)) {
+            $link = ['texto' => 'Reservar de nuevo', 'url' => $appUrl . '/index.html'];
+        } else {
+            $link = ['texto' => 'Ver mi reserva en el sitio', 'url' => $appUrl . '/v2/mi-reserva.html'
+                . ($cod !== '' ? '?codigo=' . rawurlencode($cod) : '')];
+        }
+    }
+
+    return ['eyebrow' => $eyebrow, 'tono' => $tono, 'preheader' => $preheader, 'link' => $link];
+}
+
 /** Genera [asunto, html] para un tipo de evento.
  *
  * `$pdo` es opcional y solo lo usan los correos que piden pagar: lee el CBU
@@ -345,7 +499,9 @@ function plantillaCorreo(string $tipoEvento, array $r, string $appUrl = '', ?PDO
         }
     }
 
-    $base   = correoBase($filas, $appUrl);
+    $meta            = metaCorreo($tipoEvento, $r, $appUrl);
+    $meta['estado']  = (string) ($r['estado'] ?? '');
+    $base            = correoBase($filas, $appUrl, $meta);
 
     $linkPago = $appUrl !== ''
         ? $appUrl . '/pago.html' . ($codigo !== '' ? '?codigo=' . rawurlencode($codigo) : '')
@@ -469,53 +625,197 @@ function plantillaCorreo(string $tipoEvento, array $r, string $appUrl = '', ?PDO
 }
 
 /**
- * Devuelve un closure que arma el HTML final del correo con el bloque de detalle.
+ * Devuelve un closure que arma el HTML final del correo.
+ *
+ * Estructura (sistema visual v2): preheader, cabecera con el escudo de la UNT,
+ * eyebrow semántico, título, chip de estado, detalle agrupado en tres bloques,
+ * caja de nota con el tono del evento, CTA y pie institucional con el logo.
+ *
+ * $opts trae eyebrow, tono, preheader, estado y link (ver metaCorreo()).
+ * Las imágenes se sirven por URL absoluta porque el mailer no adjunta archivos.
  *
  * @param array<int, array{0:string,1:string}> $filas
+ * @param array{eyebrow?:string,tono?:string,preheader?:string,estado?:string,link?:array|null} $opts
  */
-function correoBase(array $filas, string $appUrl = ''): callable
+function correoBase(array $filas, string $appUrl = '', array $opts = []): callable
 {
-    $htmlFilas = '';
-    foreach ($filas as $fila) {
-        [$etiqueta, $valor] = $fila;
-        if ((string) $valor === '') {
-            continue;
-        }
-        $destacar = in_array($etiqueta, ['Código de reserva', 'Monto total'], true);
-        $estilo   = $destacar
-            ? 'padding:6px 0;text-align:right;font-weight:700;color:#005CA2'
-            : 'padding:6px 0;text-align:right';
-        $htmlFilas .= '<tr><td style="padding:6px 0;color:#64748b;vertical-align:top">' . h($etiqueta) . '</td>'
-            . '<td style="' . $estilo . '">' . h($valor) . '</td></tr>';
+    $tono      = tonoCorreo((string) ($opts['tono'] ?? 'info'));
+    $eyebrow   = (string) ($opts['eyebrow'] ?? '');
+    $preheader = (string) ($opts['preheader'] ?? '');
+    $estado    = (string) ($opts['estado'] ?? '');
+    $link      = ($opts['link'] ?? null);
+    if (!is_array($link) || ($link['url'] ?? '') === '') {
+        $link = null;
     }
 
-    return function (string $titulo, string $intro, string $nota = '', ?array $cta = null) use ($htmlFilas): string {
-        $htmlNota = $nota !== ''
-            ? '<p style="margin:16px 0 0;line-height:1.5;color:#334155;background:#f1f5f9;border-radius:6px;padding:12px">' . h($nota) . '</p>'
+    // Escudo (96x119) en la cabecera y logo completo (400x203, con fondo
+    // blanco propio) en el pie sobre placa blanca: igual que la nav y el
+    // footer del sitio. Sin appUrl no hay dónde servirlos y el correo queda
+    // solo con texto, que es como se lee igual si el cliente bloquea imágenes.
+    $sello = $appUrl !== '' ? $appUrl . '/Img/brand/unt-sello.png' : '';
+    $logo  = $appUrl !== '' ? $appUrl . '/Img/brand/unt-logo.png' : '';
+
+    if ($sello !== '') {
+        $cabeceraMarca = '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+            . '<td valign="middle" style="padding-right:12px;">'
+            . '<img src="' . h($sello) . '" width="34" height="42" alt="Universidad Nacional de Tucumán" style="display:block;border:0;">'
+            . '</td><td valign="middle">'
+            . '<div style="font-family:Georgia,\'Times New Roman\',serif;font-size:17px;line-height:1.2;color:#2c2622;">Albergues recreativos</div>'
+            . '<div style="margin-top:3px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.3;letter-spacing:0.06em;text-transform:uppercase;color:#6b6355;">Universidad Nacional de Tucumán</div>'
+            . '</td></tr></table>';
+    } else {
+        $cabeceraMarca = '<div style="font-family:Georgia,\'Times New Roman\',serif;font-size:17px;color:#2c2622;">Albergues recreativos</div>';
+    }
+
+    // --- Detalle agrupado en tres bloques ---------------------------------
+    $bloques = '';
+    foreach (agruparDetalle($filas) as $g) {
+        $filasHtml = '';
+        foreach ($g['filas'] as $fila) {
+            [$etiqueta, $valor] = $fila;
+            if ((string) $valor === '') {
+                continue;
+            }
+            $destacar    = in_array($etiqueta, ['Código de reserva', 'Monto total'], true);
+            $estiloValor = $destacar ? 'font-weight:700;color:#a84c27;' : 'color:#2c2622;';
+            $filasHtml  .= '<tr>'
+                . '<td style="padding:7px 0;width:44%;vertical-align:top;color:#6b6355;border-bottom:1px solid #f4efe6;">' . h($etiqueta) . '</td>'
+                . '<td style="padding:7px 0;text-align:right;vertical-align:top;border-bottom:1px solid #f4efe6;' . $estiloValor . '">'
+                . h((string) $valor) . '</td></tr>';
+        }
+        if ($filasHtml === '') {
+            continue;
+        }
+        $bloques .= '<tr><td style="padding:12px 14px 6px;background:#fcf9f2;border-bottom:1px solid #e9e1d3;">'
+            . '<span style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#6b6355;">'
+            . h((string) $g['titulo']) . '</span></td></tr>'
+            . '<tr><td style="padding:4px 14px 10px;">'
+            . '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;">'
+            . $filasHtml . '</table></td></tr>';
+    }
+
+    // --- Chip de estado ----------------------------------------------------
+    $chip     = $estado !== '' ? chipEstado($estado) : null;
+    $chipHtml = '';
+    if ($chip !== null) {
+        [$chipTexto, $chipTono] = $chip;
+        $chipHtml = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:16px;"><tr>'
+            . '<td style="background:' . $chipTono['bg'] . ';border:1px solid ' . $chipTono['borde'] . ';border-radius:8px;padding:6px 12px;">'
+            . '<span style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:'
+            . $chipTono['texto'] . ';">' . h($chipTexto) . '</span></td></tr></table>';
+    }
+
+    return function (string $titulo, string $intro, string $nota = '', ?array $cta = null) use (
+        $appUrl, $eyebrow, $preheader, $tono, $chipHtml, $bloques, $cabeceraMarca, $logo, $link
+    ): string {
+        $tituloH = h($titulo);
+        $introH  = h($intro);
+
+        // Línea de vista previa: el cliente de correo la muestra junto al
+        // asunto. Va primero y oculta, para que no se vea en el cuerpo.
+        $pre = $preheader !== ''
+            ? '<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;color:#fcf9f2;">'
+                . h($preheader) . '</div>'
             : '';
+
+        $htmlEyebrow = $eyebrow !== ''
+            ? '<p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:'
+                . $tono['texto'] . ';">' . h($eyebrow) . '</p>'
+            : '';
+
+        $htmlNota = $nota !== ''
+            ? '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;"><tr>'
+                . '<td style="background:' . $tono['bg'] . ';border:1px solid ' . $tono['borde']
+                . ';border-radius:8px;padding:12px 14px;font-size:14px;line-height:1.5;color:' . $tono['texto'] . ';">'
+                . h($nota) . '</td></tr></table>'
+            : '';
+
         $htmlCta = '';
         if ($cta !== null && ($cta['url'] ?? '') !== '') {
-            $htmlCta = '<p style="margin:20px 0 0;text-align:center">'
-                . '<a href="' . h((string) $cta['url']) . '" style="display:inline-block;background:#005CA2;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:600">'
-                . h((string) ($cta['texto'] ?? 'Ver detalle')) . '</a></p>';
+            $htmlCta = '<div style="margin-top:18px;text-align:center;">'
+                . '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>'
+                . '<td style="background:#a84c27;border-radius:8px;">'
+                . '<a href="' . h((string) $cta['url']) . '" style="display:inline-block;padding:13px 24px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;">'
+                . h((string) ($cta['texto'] ?? 'Ver detalle')) . '</a>'
+                . '</td></tr></table></div>';
+        }
+
+        $htmlLink = '';
+        if ($link !== null) {
+            $htmlLink = '<p style="margin:16px 0 0;font-size:13px;line-height:1.5;text-align:center;color:#6b6355;">'
+                . '<a href="' . h((string) $link['url']) . '" style="color:#a84c27;text-decoration:underline;">'
+                . h((string) $link['texto']) . '</a></p>';
+        }
+
+        // --- Pie institucional ---------------------------------------------
+        $htmlLogo = '';
+        if ($logo !== '') {
+            $htmlLogo = '<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;"><tr>'
+                . '<td style="background:#ffffff;border:1px solid #e9e1d3;padding:6px 10px;">'
+                . '<img src="' . h($logo) . '" width="160" height="81" alt="Universidad Nacional de Tucumán" style="display:block;border:0;">'
+                . '</td></tr></table>';
+        }
+
+        $htmlLinksPie = '';
+        if ($appUrl !== '') {
+            $pie = [
+                ['Mi reserva', $appUrl . '/v2/mi-reserva.html'],
+                ['Reglamento', $appUrl . '/reglamento.html'],
+                ['Ir al sitio', $appUrl . '/index.html'],
+            ];
+            $items = [];
+            foreach ($pie as [$textoPie, $urlPie]) {
+                $items[] = '<a href="' . h($urlPie) . '" style="color:#a84c27;text-decoration:underline;">' . h($textoPie) . '</a>';
+            }
+            $htmlLinksPie = '<p style="margin:12px 0 0;font-size:13px;line-height:1.6;">'
+                . implode(' &nbsp;·&nbsp; ', $items) . '</p>';
         }
 
         return <<<HTML
-<div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;color:#0f172a">
-  <div style="background:#005CA2;color:#fff;padding:18px 24px;border-radius:8px 8px 0 0">
-    <h2 style="margin:0;font-size:18px">Albergues Tucumán</h2>
-  </div>
-  <div style="border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 8px 8px">
-    <h3 style="margin:0 0 12px;font-size:16px">{$titulo}</h3>
-    <p style="margin:0;line-height:1.5;color:#334155">{$intro}</p>
-    <table style="width:100%;margin-top:16px;border-collapse:collapse;font-size:14px">
-      {$htmlFilas}
-    </table>
-    {$htmlNota}
-    {$htmlCta}
-    <p style="margin-top:20px;font-size:12px;color:#94a3b8">Este es un mensaje automático, no responda a este correo.</p>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{$tituloH}</title>
+</head>
+<body style="margin:0;padding:0;background:#fcf9f2;">
+{$pre}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fcf9f2;">
+  <tr>
+    <td align="center" style="padding:24px 12px;">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #d6cbb8;border-radius:12px;">
+        <tr><td style="height:6px;font-size:0;line-height:0;background:#a84c27;">&nbsp;</td></tr>
+        <tr><td style="padding:16px 24px;border-bottom:1px solid #e9e1d3;">{$cabeceraMarca}</td></tr>
+        <tr>
+          <td style="padding:24px;">
+            {$htmlEyebrow}
+            <h1 style="margin:0 0 10px;font-family:Georgia,'Times New Roman',serif;font-size:22px;line-height:1.25;font-weight:normal;color:#2c2622;">{$tituloH}</h1>
+            <p style="margin:0;font-size:15px;line-height:1.55;color:#4c463d;">{$introH}</p>
+            {$chipHtml}
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;border:1px solid #e9e1d3;border-radius:8px;">
+              {$bloques}
+            </table>
+            {$htmlNota}
+            {$htmlCta}
+            {$htmlLink}
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 24px;background:#f6f0e5;border-top:1px solid #e9e1d3;">
+            {$htmlLogo}
+            <p style="margin:0;font-size:13px;line-height:1.6;color:#4c463d;">Universidad Nacional de Tucumán · Reservas de los albergues recreativos</p>
+            <p style="margin:6px 0 0;font-size:13px;line-height:1.6;color:#4c463d;">Consultas: (0381) 452-6408</p>
+            {$htmlLinksPie}
+            <p style="margin:14px 0 0;font-size:11px;line-height:1.5;color:#8e8474;">Este es un mensaje automático del sistema de reservas. No responder a este correo.</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
 HTML;
     };
 }
