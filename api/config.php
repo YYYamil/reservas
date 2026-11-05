@@ -33,7 +33,7 @@ $config = [
     'smtp_pass'   => '',
     'smtp_secure' => 'tls', // STARTTLS
     'mail_from'       => 'notificaciones@reservas.yamy.fun',
-    'mail_from_name'  => 'Albergues Tucumán',
+    'mail_from_name'  => 'Albergues recreativos · UNT',
 
     // --- Notificaciones ---
     // URL pública del sitio, usada en los enlaces de los correos.
