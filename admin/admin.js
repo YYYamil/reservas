@@ -83,6 +83,7 @@
     btnCerrarAlbergue: f('btnCerrarAlbergue'),
     formConfig: f('formConfig'),
     cfgMailAdmin: f('cfgMailAdmin'),
+    cfgCbu: f('cfgCbu'),
     cfgNotifMsg: f('cfgNotifMsg'),
   };
 
@@ -213,7 +214,11 @@
   function llamar(accion, params) {
     var body = new URLSearchParams();
     body.set('action', accion);
-    (params || {}).forEach(function (v, k) { if (v !== '') body.set(k, v); });
+    // Se envían TODOS los valores, incluso vacíos: el endpoint de
+    // configuración distingue "no viene" de "quiere borrar" por la presencia
+    // de la clave en $_POST. El resto de los endpoints usan parametro(), que
+    // trata '' como ausente, así que el comportamiento no cambia.
+    (params || {}).forEach(function (v, k) { body.set(k, v); });
     return fetch(API, { method: 'POST', body: body }).then(function (r) {
       return r.json().then(function (j) {
         if (r.status === 401) { throw { unauthorized: true }; }
@@ -274,6 +279,7 @@
   function cargarConfigNotificaciones() {
     llamar('adminConfig', new Map()).then(function (j) {
       ui.cfgMailAdmin.value = (j.config && j.config.mail_admin) ? j.config.mail_admin : '';
+      ui.cfgCbu.value = (j.config && j.config.cbu_cobro) ? j.config.cbu_cobro : '';
     }).catch(function () {});
   }
 
@@ -1115,6 +1121,7 @@ ui.btnActualizar.addEventListener('click', function () {
     ui.cfgNotifMsg.hidden = true;
     var params = new Map();
     params.set('mail_admin', ui.cfgMailAdmin.value.trim());
+    params.set('cbu_cobro', ui.cfgCbu.value.trim());
     llamar('adminConfigGuardar', params).then(function () {
       ui.cfgNotifMsg.textContent = 'Configuración guardada.';
       ui.cfgNotifMsg.classList.remove('error');

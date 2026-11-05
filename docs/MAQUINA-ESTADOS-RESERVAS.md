@@ -285,6 +285,12 @@ heartbeat permite detectar que el cron se cayó.
 - **El plazo de validación no cancela nada:** si el operador no valida a
   tiempo, la reserva queda en `Comprobar` y el cupo sigue retenido. El plazo es
   un compromiso operativo y se muestra en el panel; no una acción automática.
+- **CBU de cobro en los correos que piden pagar:** `configuracion_sistema.
+  cbu_cobro` (texto libre, editable por el super_admin en el panel) se agrega
+  como fila "CBU para transferir" debajo de "Monto total" en `creacion` y
+  `recordatorio`. Sin dato, la fila muestra "Pedir CBU a la entidad
+  telefonicamente"; nunca queda vacía porque `correoBase` omite los valores
+  vacíos. Los otros eventos no la incluyen.
 
 ## 11. Pendientes / próximos pasos
 

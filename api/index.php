@@ -1790,14 +1790,33 @@ try {
 
         case 'adminConfigGuardar':
             requiereRol(['super_admin']);
-            $mailAdmin = trim(parametro('mail_admin'));
-            if ($mailAdmin !== '' && filter_var($mailAdmin, FILTER_VALIDATE_EMAIL) === false) {
-                responder(['success' => false, 'message' => 'Email del administrador inválido']);
+            // Cada clave se actualiza SOLO si viene en el pedido (presente en
+            // $_POST, aunque vacía): un panel cacheado que manda solo
+            // mail_admin no borra el CBU, y limpiar un campo se hace
+            // enviándolo vacío.
+            if (array_key_exists('mail_admin', $_POST)) {
+                $mailAdmin = trim((string) $_POST['mail_admin']);
+                if ($mailAdmin !== '' && filter_var($mailAdmin, FILTER_VALIDATE_EMAIL) === false) {
+                    responder(['success' => false, 'message' => 'Email del administrador inválido']);
+                }
+                $pdo->prepare(
+                    "INSERT INTO configuracion_sistema (clave, valor, updated_at) VALUES ('mail_admin', ?, NOW())
+                     ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = NOW()"
+                )->execute([$mailAdmin]);
             }
-            $pdo->prepare(
-                "INSERT INTO configuracion_sistema (clave, valor, updated_at) VALUES ('mail_admin', ?, NOW())
-                 ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = NOW()"
-            )->execute([$mailAdmin]);
+            // CBU de cobro: texto libre (CBU, alias o CVU) que se incluye en
+            // los correos de pre-reserva y recordatorio. Vacío = leyenda
+            // "Pedir CBU a la entidad telefonicamente".
+            if (array_key_exists('cbu_cobro', $_POST)) {
+                $cbuCobro = trim((string) $_POST['cbu_cobro']);
+                if (mb_strlen($cbuCobro) > 80) {
+                    responder(['success' => false, 'message' => 'El CBU no puede superar los 80 caracteres']);
+                }
+                $pdo->prepare(
+                    "INSERT INTO configuracion_sistema (clave, valor, updated_at) VALUES ('cbu_cobro', ?, NOW())
+                     ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, updated_at = NOW()"
+                )->execute([$cbuCobro]);
+            }
             responder(['success' => true]);
             break;
 
@@ -1814,7 +1833,7 @@ try {
             requiereRol(['super_admin']);
             $clave = trim(parametro('clave'));
             $valor = trim(parametro('valor'));
-            $permitidas = ['meses_anticipacion', 'mail_admin',
+            $permitidas = ['meses_anticipacion', 'mail_admin', 'cbu_cobro',
                 'anticipacion_horas', 'ventana_pago_horas', 'ventana_pago_min_horas',
                 'cancelacion_horas', 'devolucion_temprana_pct', 'devolucion_tardia_pct',
                 'validacion_horas'];
@@ -1850,6 +1869,9 @@ try {
             }
             if ($clave === 'mail_admin' && $valor !== '' && filter_var($valor, FILTER_VALIDATE_EMAIL) === false) {
                 responder(['success' => false, 'message' => 'Email del administrador inválido']);
+            }
+            if ($clave === 'cbu_cobro' && mb_strlen($valor) > 80) {
+                responder(['success' => false, 'message' => 'El CBU no puede superar los 80 caracteres']);
             }
             $pdo->prepare(
                 'INSERT INTO configuracion_sistema (clave, valor, updated_at) VALUES (?, ?, NOW())

@@ -465,6 +465,60 @@ check('53. el mail de creación incluye el enlace para subir el comprobante',
     str_contains($cuerpoCre, 'pago.html') && str_contains($cuerpoCre, rawurlencode($codNV)),
     'link pago.html?codigo=' . $codNV);
 
+// ---------- 52b/52c/52d/52e. CBU de cobro en los correos que piden pagar ----------
+// adminConfigGuardar solo toca las claves que vienen en el pedido: con
+// cbu_cobro vacío se limpia el dato y el correo pasa a la leyenda.
+$cbuEjemplo = 'CTA 0123 4567 8901 2345 6789 ALIAS-DE-PRUEBA';
+$setCbu = apiConCookie('adminConfigGuardar', ['cbu_cobro' => $cbuEjemplo], $cookie);
+check('52b. adminConfigGuardar guarda el CBU de cobro',
+    ($setCbu['success'] ?? false) === true, json_encode($setCbu));
+
+$rCbu = api('crearReserva', [
+    'albergue' => 'Maestro José Fierro', 'institucion' => 'CBU PRUEBA', 'responsable' => 'Cbu P',
+    'dni' => '30888777', 'contacto' => '3816666666', 'email' => 'cbu@example.com',
+    'cantidad' => 1, 'fechaIngreso' => $f17, 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$pkCbu = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote((string) ($rCbu['codigoPublico'] ?? '')))->fetchColumn();
+$cuerpoCbu = $pkCbu > 0 ? (string) $db->query("SELECT cuerpo FROM notificaciones_email
+    WHERE reserva_modalidad='visita' AND reserva_pk=$pkCbu AND tipo_evento='creacion'")->fetchColumn() : '';
+$iMonto = strpos($cuerpoCbu, 'Monto total');
+$iCbu   = strpos($cuerpoCbu, 'CBU para transferir');
+check('52c. el mail de creación incluye el CBU debajo del monto',
+    $cuerpoCbu !== '' && str_contains($cuerpoCbu, $cbuEjemplo)
+    && $iMonto !== false && $iCbu !== false && $iCbu > $iMonto,
+    'pk=' . $pkCbu . ' iMonto=' . var_export($iMonto, true) . ' iCbu=' . var_export($iCbu, true));
+
+// El recordatorio también lo lleva: la reserva tiene que tener más de 1 h de
+// creada y vencer dentro de las próximas 12 h (reglas del barrido).
+// created_at es naive y la app lee en zona America/Argentina/Tucuman
+// (db.php hace SET TIME ZONE): hay que escribir la hora local, no la del
+// instante en UTC, o para la app la reserva parece recién creada.
+$db->exec("UPDATE reservas_visitas
+              SET pago_vence_at = NOW() + INTERVAL '6 hours',
+                  created_at = (NOW() AT TIME ZONE 'America/Argentina/Tucuman') - INTERVAL '2 hours'
+            WHERE id = $pkCbu");
+api('tareasVencimiento', ['token' => '']);
+$cuerpoRec = (string) $db->query("SELECT cuerpo FROM notificaciones_email
+    WHERE reserva_modalidad='visita' AND reserva_pk=$pkCbu AND tipo_evento='recordatorio'")->fetchColumn();
+check('52d. el recordatorio de pago también incluye el CBU',
+    $cuerpoRec !== '' && str_contains($cuerpoRec, 'CBU para transferir') && str_contains($cuerpoRec, $cbuEjemplo),
+    'recordatorio=' . ($cuerpoRec !== '' ? 'ok' : 'sin registro'));
+
+$setCbuVacio = apiConCookie('adminConfigGuardar', ['cbu_cobro' => ''], $cookie);
+$rSinCbu = api('crearReserva', [
+    'albergue' => 'Maestro José Fierro', 'institucion' => 'SIN CBU', 'responsable' => 'Sin Cbu',
+    'dni' => '30888666', 'contacto' => '3817777777', 'email' => 'sincbu@example.com',
+    'cantidad' => 1, 'fechaIngreso' => $f18, 'horaIngreso' => '09:00', 'horaEgreso' => '17:00',
+]);
+$pkSinCbu = (int) $db->query("SELECT id FROM reservas_visitas WHERE codigo_publico = " . $db->quote((string) ($rSinCbu['codigoPublico'] ?? '')))->fetchColumn();
+$cuerpoSinCbu = $pkSinCbu > 0 ? (string) $db->query("SELECT cuerpo FROM notificaciones_email
+    WHERE reserva_modalidad='visita' AND reserva_pk=$pkSinCbu AND tipo_evento='creacion'")->fetchColumn() : '';
+check('52e. sin CBU configurado el mail muestra la leyenda pedida',
+    ($setCbuVacio['success'] ?? false) === true
+    && str_contains($cuerpoSinCbu, 'Pedir CBU a la entidad telefonicamente')
+    && !str_contains($cuerpoSinCbu, $cbuEjemplo),
+    'pk=' . $pkSinCbu);
+
 // ---------- 54/55. alojamiento: detalle con fechas y noches ----------
 $nuevaAlo = api('crearReservaAlojamiento', [
     'albergue' => 'Maestro José Fierro', 'institucion' => 'NOTIF ALO', 'responsable' => 'Notif A',
@@ -833,6 +887,7 @@ $db->exec("ALTER SEQUENCE reserva_publica_seq RESTART WITH 1");
 // ficticia (los defaults del sistema son 3 meses y un mail_admin vacio).
 $db->exec("DELETE FROM configuracion_sistema WHERE clave = 'meses_anticipacion'");
 $db->exec("DELETE FROM configuracion_sistema WHERE clave = 'mail_admin' AND valor = 'smoke.admin@example.com'");
+$db->exec("DELETE FROM configuracion_sistema WHERE clave = 'cbu_cobro'");
 check('31. BD de prueba limpiada (sin datos residuales)', true, 'TRUNCATE + secuencia reiniciada + config de prueba eliminada');
 
 // ---------- Resultado ----------

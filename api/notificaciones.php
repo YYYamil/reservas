@@ -165,7 +165,7 @@ function encolarNotificacion(
     if ($extra !== []) {
         $ctx = array_merge($ctx, $extra);
     }
-    [$asunto, $html] = plantillaCorreo($tipoEvento, $ctx, appUrl($pdo, $config ?? []));
+    [$asunto, $html] = plantillaCorreo($tipoEvento, $ctx, appUrl($pdo, $config ?? []), $pdo);
 
     $sql = 'INSERT INTO notificaciones_email
                 (reserva_modalidad, reserva_pk, destinatario, destinatario_tipo, tipo_evento,
@@ -313,12 +313,38 @@ function detalleReserva(array $r): array
     return $filas;
 }
 
-/** Genera [asunto, html] para un tipo de evento. */
-function plantillaCorreo(string $tipoEvento, array $r, string $appUrl = ''): array
+/** Genera [asunto, html] para un tipo de evento.
+ *
+ * `$pdo` es opcional y solo lo usan los correos que piden pagar: lee el CBU
+ * de cobro de `configuracion_sistema`. Sin PDO (scripts de muestras) no se
+ * agrega la fila. */
+function plantillaCorreo(string $tipoEvento, array $r, string $appUrl = '', ?PDO $pdo = null): array
 {
     $alb    = (string) ($r['albergue'] ?? '');
     $codigo = (string) ($r['codigo_publico'] ?? '');
     $filas  = detalleReserva($r);
+
+    // CBU de cobro: fila debajo de "Monto total" en los correos que piden
+    // pagar (pre-reserva y recordatorio). Sin dato configurado se pide por
+    // teléfono en lugar de dejar la fila vacía (correoBase omite valores
+    // vacíos, así que la leyenda nunca se perdería igual).
+    if (($tipoEvento === 'creacion' || $tipoEvento === 'recordatorio') && $pdo instanceof PDO) {
+        $cbu   = trim(configSistema($pdo, 'cbu_cobro', ''));
+        $fila  = ['CBU para transferir', $cbu !== '' ? $cbu : 'Pedir CBU a la entidad telefonicamente'];
+        $pos   = false;
+        foreach ($filas as $i => $f) {
+            if (($f[0] ?? '') === 'Monto total') {
+                $pos = $i;
+                break;
+            }
+        }
+        if ($pos !== false) {
+            array_splice($filas, $pos + 1, 0, [$fila]);
+        } else {
+            $filas[] = $fila;
+        }
+    }
+
     $base   = correoBase($filas, $appUrl);
 
     $linkPago = $appUrl !== ''
