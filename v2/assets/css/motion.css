@@ -1,13 +1,20 @@
 /* ==========================================================================
    motion.css — movimiento del landing, lenguaje de imprenta
    --------------------------------------------------------------------------
-   Nada se desvanece: todo se compone. Cuatro piezas, todas sin JS.
+   Nada se desvanece: todo se compone.
 
    1. El título del hero se escribe palabra por palabra, de izquierda a derecha.
    2. Al scrollear, cada sección dibuja su filete de 1 px, su título se escribe
       y la foto de cada tarjeta se revela con un barrido vertical.
    3. La ficha y el visor se despliegan desde el borde superior.
    4. Respuesta al puntero: sólo las flechas de los enlaces empujan.
+   5. El interior de la ficha se compone por partes, en el orden de lectura.
+   6. Wizard: cada paso se compone al entrar; la barra de pasos y el check de
+      los pasos completados acompañan el estado.
+   7. Calendario: el rango elegido se imprime desde el punto de la entrada.
+   8. Página de confirmación: el sello se dibuja (aro y check a trazo) y el
+      resto de la página se compone detrás.
+   9. Avisos, acordeón de ayuda y filas del pie: piezas que se componen.
 
    Reglas que respeta todo lo de acá:
    - Se animan clip-path, scale (filetes) y translate (flechas). No hay fundidos
@@ -349,5 +356,252 @@
 @media (hover: hover) {
   .link--with-icon:hover .icon {
     translate: 5px 0;
+  }
+}
+
+/* --- Re-impresión (clase .is-reprint) ---
+   Presentación al servicio de los datos: cuando un texto cambia por lógica
+   del sitio (index.js, etiqueta de los CTA), la clase re-dispara la escritura
+   del texto en vez de aparecer de un reemplazo seco. Sin JS ni sin la clase,
+   los textos quedan como siempre. */
+.is-reprint {
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .is-reprint {
+    animation: print-write var(--dur-print) var(--ease-out-soft) both;
+  }
+}
+
+/* ==========================================================================
+   5. El interior de la ficha se compone
+   La ficha ya entra levantándose del plano (sección 3); acá lo de adentro se
+   arma por partes, en el orden en que se lee: el título se escribe, la foto
+   se revela como una copia, los datos y las acciones despliegan. Las piezas
+   están en display:none mientras la ficha está cerrada, así que la
+   composición arranca sola al abrir (:target) y otra vez al reabrir.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .modal__head {
+    animation: print-write var(--dur-wipe) var(--ease-out-soft) both;
+  }
+
+  .modal__galeria {
+    animation: print-develop var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 240ms;
+  }
+
+  .modal__body {
+    animation: print-develop var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 320ms;
+  }
+
+  .modal__foot {
+    animation: print-develop var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 400ms;
+  }
+}
+
+/* ==========================================================================
+   6. Wizard: cada paso se compone al entrar
+   Los pasos se muestran con :target sobre un elemento en display:none, así
+   que la composición corre sola al navegar entre pasos, sin JS. Reservas.js
+   sigue mandando el estado (clases step--current / step--done); acá sólo
+   acompaña la transición de color y el chequeo del paso cumplido se compone
+   cuando aparece.
+   ========================================================================== */
+.step__num,
+.step__label {
+  transition: color var(--dur-2) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .paso:target .paso__title {
+    animation: print-write var(--dur-wipe) var(--ease-out-soft) both;
+  }
+
+  .paso:target .paso__lead {
+    animation: print-write var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 300ms;
+  }
+
+  .paso:target .paso__form {
+    animation: print-develop var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 420ms;
+  }
+
+  .paso:target .paso__actions {
+    animation: print-develop var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 540ms;
+  }
+
+  .step--current .step__num {
+    animation: print-develop 240ms var(--ease-out-soft) both;
+  }
+
+  .step--done .step__check {
+    animation: print-develop 240ms var(--ease-out-soft) both;
+    /* El color lo pone components.css; acá sólo acompaña la aparición. */
+  }
+}
+
+/* ==========================================================================
+   7. El rango del calendario se compone
+   Cuando la selección marca los días (reservar.js agrega las clases), el
+   fondo cada día crece de izquierda a derecha, como una banda que se
+   imprime: inicio a pleno, en el medio y al final. Los estados de error
+   (--invalid y compañía) quedan quietos a propósito: el error no se adorna.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .cal__day--in-range {
+    background-color: transparent;
+    background-image: linear-gradient(var(--c-accent-soft), var(--c-accent-soft));
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 0 100%;
+    animation: band-grow var(--dur-2) var(--ease-out) both;
+  }
+
+  .cal__day--range-start,
+  .cal__day--range-end,
+  .cal__day--awaiting {
+    background-color: transparent;
+    background-image: linear-gradient(var(--c-accent), var(--c-accent));
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    background-size: 0 100%;
+    animation: band-grow var(--dur-2) var(--ease-out) both;
+  }
+}
+
+@keyframes band-grow {
+  from {
+    background-size: 0 100%;
+  }
+
+  to {
+    background-size: 100% 100%;
+  }
+}
+
+/* ==========================================================================
+   8. La página de confirmación se compone y el sello se dibuja
+   La caja entra primero, el título se escribe, el lead sigue y el sello
+   traza su aro y su check con el trazo que ya usa el sistema (currentColor y
+   sin relleno, igual que todo .icon). Sin JS, funciona en la carga.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .confirmacion__head .seal {
+    animation: print-develop 240ms var(--ease-out-soft) both;
+  }
+
+  .confirmacion__title {
+    animation: print-write var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 200ms;
+  }
+
+  .confirmacion__lead {
+    animation: print-write var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 460ms;
+  }
+
+  .confirmacion__head .badge {
+    animation: print-develop 240ms var(--ease-out-soft) both;
+    animation-delay: 620ms;
+  }
+
+  .confirmacion__code {
+    animation: print-develop var(--dur-wipe) var(--ease-out-soft) both;
+    animation-delay: 700ms;
+  }
+
+  /* El check del sello dibuja a trazo: la longitud del dash es el largo real
+     de cada trazo (aro 2π·10 ≈ 63; check ≈ 9) y tanto en el estado inicial
+     como al terminar queda el icono completo e intacto. */
+  .seal--success .seal__ring {
+    stroke-dasharray: 63;
+    animation: seal-ring-draw 480ms var(--ease-out-soft) both;
+    animation-delay: 120ms;
+  }
+
+  .seal--success .seal__check {
+    stroke-dasharray: 9;
+    animation: seal-check-draw 320ms var(--ease-out-soft) both;
+    animation-delay: 480ms;
+  }
+}
+
+@keyframes seal-ring-draw {
+  from {
+    stroke-dashoffset: 63;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes seal-check-draw {
+  from {
+    stroke-dashoffset: 9;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ==========================================================================
+   9. Avisos, acordeón y pie
+   - Todo .notice se compone cuando entra en pantalla: la caja no parpadea,
+     aparece desarrollándose desde arriba como cualquier bloque del sistema.
+   - El acordeón de ayuda despliega la respuesta como una hoja, con
+     interpolate-size (Chrome 131+; en lo que no lo soporta, queda el
+     comportamiento nativo: abre y cierra sin anim pero funciona igual).
+   - Las filas de horario del pie se escriben al entrar en pantalla, como
+     cualquier título.
+   ========================================================================== */
+@media (prefers-reduced-motion: no-preference) {
+  .notice {
+    animation: print-develop 240ms var(--ease-out-soft) both;
+  }
+}
+
+@supports (interpolate-size: allow-keywords) {
+  @media (prefers-reduced-motion: no-preference) {
+    details.accordion__item {
+      interpolate-size: allow-keywords;
+    }
+
+    details.accordion__item::details-content {
+      block-size: 0;
+      overflow: hidden;
+      content-visibility: hidden;
+      transition: block-size var(--dur-2) var(--ease-out-soft),
+        content-visibility var(--dur-1);
+      transition-behavior: allow-discrete;
+    }
+
+    details.accordion__item:open::details-content {
+      block-size: auto;
+      content-visibility: visible;
+    }
+  }
+}
+
+/* Las filas de horario del pie se escriben cuando entran en pantalla. Mismo
+   mecanismo de título: mientras dura el scroll, se recortan de izquierda a
+   derecha y al final quedan intactas. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .footer__hours-row {
+      animation-name: print-write;
+      animation-duration: auto;
+      animation-timing-function: var(--ease-out-soft);
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 25%;
+    }
   }
 }

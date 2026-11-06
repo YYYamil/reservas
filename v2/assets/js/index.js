@@ -36,6 +36,17 @@
   const qs = (selector, root = document) => root.querySelector(selector);
   const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 
+  /* Re-disparar la animación de re-impresión de motion.css: quita la clase,
+     fuerza el reflow y la vuelve a poner, para que un texto nuevo se vuelva a
+     escribir aunque el nodo ya tuviera la animación. Puro presentación: no
+     toca datos ni estados de ninguna lógica. */
+  function reimprimir(nodo) {
+    if (!nodo) return;
+    nodo.classList.remove('is-reprint');
+    void nodo.offsetWidth;
+    nodo.classList.add('is-reprint');
+  }
+
   function $(id) {
     return document.getElementById(id);
   }
@@ -167,7 +178,13 @@
 
         const etiqueta = qs('.btn__label', cta);
         if (etiqueta) {
-          etiqueta.textContent = modalidad === 'visita' ? 'Reservar visita' : 'Reservar estadía';
+          const texto = modalidad === 'visita' ? 'Reservar visita' : 'Reservar estadía';
+          // Sólo si cambió: cambiar la cantidad sin tocar la modalidad no
+          // debe re-escribir el mismo texto una y otra vez.
+          if (etiqueta.textContent !== texto) {
+            etiqueta.textContent = texto;
+            reimprimir(etiqueta);
+          }
         }
       });
     };

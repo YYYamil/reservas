@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="assets/css/tokens.css" />
     <link rel="stylesheet" href="assets/css/base.css" />
     <link rel="stylesheet" href="assets/css/components.css?v=20261106a" />
+    <link rel="stylesheet" href="assets/css/motion.css?v=20261106b" />
     <link rel="stylesheet" href="assets/css/confirmacion.css" />
   </head>
   <body class="page-confirmacion">
@@ -167,7 +168,13 @@
           <section class="confirmacion__panel" aria-labelledby="confirmacion-titulo">
             <header class="confirmacion__head">
               <span class="seal seal--success" aria-hidden="true">
-                <svg class="icon icon--lg"><use href="#i-check-circle"></use></svg>
+                <!-- Svg directo (no <use>): el aro y el check llevan clases
+                     para que motion.css pueda dibujarlos a trazo. Es la misma
+                     geometría del sprite #i-check-circle. -->
+                <svg class="icon icon--lg" aria-hidden="true">
+                  <circle class="seal__ring" cx="12" cy="12" r="10" />
+                  <path class="seal__check" d="m9 12 2 2 4-4" />
+                </svg>
               </span>
 
               <h1 class="confirmacion__title" id="confirmacion-titulo">
