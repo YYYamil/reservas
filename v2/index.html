@@ -1264,6 +1264,10 @@
         imágenes de listarAlbergues, así que sumar o sacar fotos no cambia el
         layout. El alt es el nombre y la posición, nunca una descripción. Si un
         albergue no tiene fotos, la sección no se muestra.
+
+        Cada foto es un enlace al hash de su copia ampliada, el mismo patrón
+        :target de las fichas, y el script desliza la tira sola (index.js,
+        iniciarFranja).
       -->
       <section class="gallery" id="fotos" aria-labelledby="fotos-titulo">
         <div class="container">
@@ -1278,30 +1282,71 @@
              teclado no puede recorrerla (regla scrollable-region-focusable). -->
         <ul class="gallery__tira" aria-label="Fotos de los albergues" tabindex="0">
           <li class="gallery__item">
-            <img src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" />
+            <a class="gallery__link" href="#foto-galeria-1">
+              <img src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" />
+            </a>
           </li>
           <li class="gallery__item">
-            <img src="assets/img/tinku/03.jpg" alt="Tinku Huasi, foto 3" loading="lazy" decoding="async" />
+            <a class="gallery__link" href="#foto-galeria-2">
+              <img src="assets/img/tinku/03.jpg" alt="Tinku Huasi, foto 3" loading="lazy" decoding="async" />
+            </a>
           </li>
           <li class="gallery__item">
-            <img src="assets/img/altoverde/03.jpg" alt="Alto Verde, foto 3" loading="lazy" decoding="async" />
+            <a class="gallery__link" href="#foto-galeria-3">
+              <img src="assets/img/altoverde/03.jpg" alt="Alto Verde, foto 3" loading="lazy" decoding="async" />
+            </a>
           </li>
           <li class="gallery__item">
-            <img src="assets/img/aquilina/02.jpg" alt="Aquilina Soldati, foto 2" loading="lazy" decoding="async" />
+            <a class="gallery__link" href="#foto-galeria-4">
+              <img src="assets/img/aquilina/02.jpg" alt="Aquilina Soldati, foto 2" loading="lazy" decoding="async" />
+            </a>
           </li>
           <li class="gallery__item">
-            <img src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" />
+            <a class="gallery__link" href="#foto-galeria-5">
+              <img src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" />
+            </a>
           </li>
           <li class="gallery__item">
-            <img src="assets/img/albergue-unt/02.jpg" alt="Quinta Agronomica, foto 2" loading="lazy" decoding="async" />
+            <a class="gallery__link" href="#foto-galeria-6">
+              <img src="assets/img/albergue-unt/02.jpg" alt="Quinta Agronomica, foto 2" loading="lazy" decoding="async" />
+            </a>
           </li>
           <li class="gallery__item">
-            <img src="assets/img/tinku/04.jpg" alt="Tinku Huasi, foto 4" loading="lazy" decoding="async" />
+            <a class="gallery__link" href="#foto-galeria-7">
+              <img src="assets/img/tinku/04.jpg" alt="Tinku Huasi, foto 4" loading="lazy" decoding="async" />
+            </a>
           </li>
           <li class="gallery__item">
-            <img src="assets/img/altoverde/01.jpg" alt="Alto Verde, foto 1" loading="lazy" decoding="async" />
+            <a class="gallery__link" href="#foto-galeria-8">
+              <img src="assets/img/altoverde/01.jpg" alt="Alto Verde, foto 1" loading="lazy" decoding="async" />
+            </a>
           </li>
         </ul>
+
+        <!--
+          Visor de la franja: la capa vive en la página (no dentro de una
+          ficha) y se abre con el hash de cada foto. Sin script funciona por
+          CSS (:target); overlays.js le agrega Escape, el bloqueo del fondo y
+          devolver el foco al enlace que abrió. Cerrar vuelve al hash de la
+          sección. El anillo de foco va por dentro porque el <li> recorta.
+        -->
+        <div class="visor" role="dialog" aria-label="Foto ampliada">
+          <a class="visor__backdrop" href="#fotos" tabindex="-1" aria-hidden="true"></a>
+          <figure class="visor__marco">
+            <img id="foto-galeria-1" src="assets/img/maestro/03.jpeg" alt="Maestro José Fierro, foto 3" loading="lazy" decoding="async" />
+            <img id="foto-galeria-2" src="assets/img/tinku/03.jpg" alt="Tinku Huasi, foto 3" loading="lazy" decoding="async" />
+            <img id="foto-galeria-3" src="assets/img/altoverde/03.jpg" alt="Alto Verde, foto 3" loading="lazy" decoding="async" />
+            <img id="foto-galeria-4" src="assets/img/aquilina/02.jpg" alt="Aquilina Soldati, foto 2" loading="lazy" decoding="async" />
+            <img id="foto-galeria-5" src="assets/img/maestro/02.jpg" alt="Maestro José Fierro, foto 2" loading="lazy" decoding="async" />
+            <img id="foto-galeria-6" src="assets/img/albergue-unt/02.jpg" alt="Quinta Agronomica, foto 2" loading="lazy" decoding="async" />
+            <img id="foto-galeria-7" src="assets/img/tinku/04.jpg" alt="Tinku Huasi, foto 4" loading="lazy" decoding="async" />
+            <img id="foto-galeria-8" src="assets/img/altoverde/01.jpg" alt="Alto Verde, foto 1" loading="lazy" decoding="async" />
+          </figure>
+          <a class="visor__close" href="#fotos">
+            <span class="visually-hidden">Cerrar la foto</span>
+            <svg class="icon" aria-hidden="true"><use href="#i-close"></use></svg>
+          </a>
+        </div>
       </section>
 
       <!--

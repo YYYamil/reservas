@@ -2133,6 +2133,51 @@ ul.gallery__tira:focus-visible {
   }
 }
 
+/* --- Foto clickeable y visor de la franja ---
+   Cada foto es un enlace al hash de su copia ampliada: mismo patrón :target
+   que el visor de las fichas, funciona sin script. El anillo va por dentro
+   porque el <li> recorta todo lo que sale de su caja. */
+.gallery__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+  cursor: zoom-in;
+}
+
+.gallery__link:focus-visible {
+  outline: var(--bw-strong) solid var(--c-focus);
+  outline-offset: calc(var(--bw-strong) * -1);
+}
+
+/* El visor de la franja vive en la página (no dentro de una modal): sin este
+   tope quedaría debajo de la navegación fija, que se apoya en --z-nav. */
+.gallery .visor {
+  z-index: var(--z-modal);
+}
+
+/* El deslize automático escribe scrollLeft a cada cuadro y eso pelea con el
+   snap: mientras el deslize es el dueño del scroll —corriendo o en pausa
+   retomable— el snap queda apagado, para que retomar después de la pausa no
+   salte al punto de anclaje más cercano. Sólo un scroll manual la saca. El
+   script (index.js, iniciarFranja) administra la clase. */
+ul.gallery__tira.is-gliding {
+  scroll-snap-type: none;
+}
+
+/* Al presionar la foto cede un píxel: confirma que el clic entró antes de
+   que llegue el visor, igual que en las miniaturas de la ficha. */
+@media (hover: hover) {
+  .gallery__link img {
+    transition: scale var(--dur-2) var(--ease-out);
+  }
+
+  .gallery__link:active img {
+    scale: 0.98;
+  }
+}
+
 @media (min-width: 768px) {
   .results,
   .how {
