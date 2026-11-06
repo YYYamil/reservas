@@ -199,6 +199,41 @@ git reset --hard origin/main
 Los archivos ignorados (`api/config.local.php`, `comprobantes/`,
 `Img/albergues/`) no se tocan.
 
+### La API devuelve 500 despues de editar `config.local.php`
+
+Si editas `api/config.local.php` en el servidor con `sed -i` (o cualquier
+herramienta que reemplaza el archivo), el inode nuevo queda con owner
+`ubuntu:ubuntu` y **PHP-FPM corre como `www-data`**: deja de poder leerlo.
+Como `api/config.php` hace `require` de ese archivo, se cae **toda la API**
+(el landing no carga los albergues y `listarAlbergues` devuelve 500 sin
+cuerpo).
+
+El error real no esta en el response sino en el log de nginx:
+
+```bash
+sudo tail -n 30 /var/log/nginx/error.log
+```
+
+```
+PHP Fatal error: Uncaught Error: Failed opening required
+'/var/www/reservas-albergues/api/config.local.php'
+in /var/www/reservas-albergues/api/config.php on line 62
+```
+
+Solucion (es exactamente lo que aplica `deploy-reservas.sh`):
+
+```bash
+sudo chown ubuntu:www-data /var/www/reservas-albergues/api/config.local.php
+sudo chmod 640 /var/www/reservas-albergues/api/config.local.php
+```
+
+Regla: despues de tocar un archivo en el servidor, re-aplica owner, grupo y
+permisos, y verifica de vuelta:
+
+```bash
+curl -I https://reservas.yamy.fun/api/index.php?action=listarAlbergues   # 200
+```
+
 ### Faltan imagenes o PDFs en local
 
 Es esperable: no estan versionados. Copialos desde el servidor:
