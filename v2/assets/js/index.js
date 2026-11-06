@@ -24,6 +24,11 @@
    Y sincroniza el destino de los CTA que heredan del buscador ([data-cta-
    hereda]): la modalidad marcada arriba y la cantidad viajan al wizard, para
    que la tarjeta no abra una modalidad que nadie eligió.
+
+   Además la franja de fotos (sección Franja en la home) se desliza sola, de
+   punta a punta y de vuelta, mientras nadie la usa: cede el control con el
+   puntero o el foco adentro, con una capa abierta, si la sección salió de
+   pantalla o si la pestaña quedó oculta. Con movimiento reducido no se mueve.
    ========================================================================== */
 (function () {
   'use strict';
@@ -186,6 +191,203 @@
     V2.mostrar($('buscador-aviso'), true);
   }
 
+  /* ----------------------------------------------------- franja de fotos */
+  /*
+    La franja se desliza sola: un ping-pong continuo que recorre la tira de
+    punta a punta invirtiendo la dirección en los bordes, sin duplicar el DOM
+    y sin cortes. Es movimiento de ambiente, así que cede el control apenas
+    alguien lo necesita, y retoma desde donde quedó:
+
+    - Puntero o foco teclado adentro de la tira: pausa, retoma al salir.
+    - Capa abierta (ficha, visor): mira html.hay-capa, que overlays.js enciende
+      y apaga al entrar y cerrar.
+    - Sección fuera de pantalla o pestaña oculta: pausa.
+    - Tocar la tira: pausa mientras dura el toque y retoma un rato después, no
+      a mitad del gesto.
+    - Scroll manual (rueda horizontal, arrastre, teclas de desplazamiento):
+      la tira queda con el snap y sin deslize por un rato.
+    - Movimiento reducido del sistema: no desliza nunca, ni a mitad de sesión.
+  */
+  function iniciarFranja() {
+    const tira = qs('.gallery__tira');
+    if (!tira || 'glide' in tira.dataset) return;
+    tira.dataset.glide = 'on';
+
+    const VELOCIDAD = 40;   // px por segundo
+    const REANUDA_MS = 2500; // ventana tras el toque o el scroll manual
+    const TECLAS_SCROLLO = ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'PageUp', 'PageDown'];
+
+    const reducido = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const pausa = {
+      puntero: false, // el cursor está sobre la tira
+      foco: false,    // el foco está en la tira o dentro
+      fuera: true,    // la sección no está en pantalla (lo define el observer)
+      tactil: false,  // hay un dedo tocando la tira
+    };
+
+    let direccion = 1;    // 1 avanza al final de la tira, -1 vuelve al inicio
+    let ultimo = 0;       // marca de tiempo del cuadro anterior
+    let cuadro = 0;       // id del rAF pedido (0 = deslize colgado)
+    let manualHasta = 0;  // scroll manual: respeta hasta esta marca de tiempo
+    let alReanudar = 0;   // id del timeout que revisa el estado tras el toque
+    let toqueX = 0;       // ancla del dedo para saber si el gesto es horizontal
+    let toqueY = 0;
+
+    /* El deslize sólo corre si no hay ningún motivo de pausa. El chequeo del
+       snap lo lleva la clase is-gliding, no este cálculo. */
+    function puedeDeslizar() {
+      return (
+        !reducido.matches &&
+        !pausa.puntero && !pausa.foco && !pausa.fuera && !pausa.tactil &&
+        performance.now() >= manualHasta &&
+        !document.documentElement.classList.contains('hay-capa') &&
+        !document.hidden &&
+        tira.scrollWidth > tira.clientWidth
+      );
+    }
+
+    function paso(marca) {
+      cuadro = 0;
+
+      // La capa se abrió, la pestaña quedó oculta o el sistema pidió menos
+      // movimiento después del último evento: no avanza por su cuenta y
+      // espera a que un evento llame a sincronizar de nuevo.
+      if (!puedeDeslizar()) return;
+
+      // Tras una pausa larga no corre la distancia guardada: cada reanudación
+      // toma el cuadro como si el giro recién arrancara.
+      const dt = Math.min(marca - ultimo, 100);
+      ultimo = marca;
+
+      let x = tira.scrollLeft + direccion * VELOCIDAD * dt / 1000;
+      const limite = tira.scrollWidth - tira.clientWidth;
+
+      // Ping-pong: en el borde se apoya y da la vuelta, sin saltar.
+      if (x >= limite) { x = limite; direccion = -1; }
+      else if (x <= 0) { x = 0; direccion = 1; }
+
+      tira.scrollLeft = x;
+      cuadro = requestAnimationFrame(paso);
+    }
+
+    function sincronizar() {
+      const corriendo = puedeDeslizar();
+
+      // La clase es pegajosa: mientras el deslize es el dueño del scroll
+      // (corriendo o en pausa retomable) el snap queda apagado, para que
+      // retomar después del hover o de una capa no salte al punto de anclaje
+      // más cercano. Sólo el scroll manual la saca: ahí el snap vuelve a
+      // mandar, que es lo que el usuario está pidiendo.
+      if (corriendo) tira.classList.add('is-gliding');
+      else if (performance.now() < manualHasta || reducido.matches) {
+        tira.classList.remove('is-gliding');
+      }
+
+      if (corriendo && !cuadro) {
+        ultimo = performance.now();
+        cuadro = requestAnimationFrame(paso);
+      } else if (!corriendo && cuadro) {
+        cancelAnimationFrame(cuadro);
+        cuadro = 0;
+      }
+    }
+
+    /* Scroll manual: congelar el deslize un rato; sin el apagón el snap lo
+       pelearía con escribir scrollLeft a cada cuadro. */
+    function aManual() {
+      manualHasta = performance.now() + REANUDA_MS;
+      clearTimeout(alReanudar);
+      alReanudar = setTimeout(sincronizar, REANUDA_MS + 50);
+      sincronizar();
+    }
+
+    // El puntero pausa, sin contar el dedo: touchstart/touchend lo lleva.
+    tira.addEventListener('pointerenter', (e) => {
+      if (e.pointerType === 'touch') return;
+      pausa.puntero = true;
+      sincronizar();
+    });
+    tira.addEventListener('pointerleave', (e) => {
+      if (e.pointerType === 'touch') return;
+      pausa.puntero = false;
+      sincronizar();
+    });
+
+    tira.addEventListener('focusin', () => {
+      pausa.foco = true;
+      sincronizar();
+    });
+    tira.addEventListener('focusout', (e) => {
+      // El foco que pasa de un hijo a otro no sale de la tira.
+      if (!tira.contains(e.relatedTarget)) {
+        pausa.foco = false;
+        sincronizar();
+      }
+    });
+
+    tira.addEventListener('touchstart', (e) => {
+      const dedo = e.touches[0];
+      if (dedo) { toqueX = dedo.clientX; toqueY = dedo.clientY; }
+      pausa.tactil = true;
+      sincronizar();
+    }, { passive: true });
+    // Arrastre horizontal con el dedo: intención manual, con snap, igual que
+    // un scrolleo. Un roce casi vertical (para apoyar y leer) lo ignora.
+    tira.addEventListener('touchmove', (e) => {
+      const dedo = e.touches[0];
+      if (!dedo) return;
+      if (Math.abs(dedo.clientX - toqueX) > Math.abs(dedo.clientY - toqueY)) aManual();
+    }, { passive: true });
+    tira.addEventListener('touchend', () => {
+      pausa.tactil = false;
+      aManual(); // retoma un rato después del toque, no bajo el dedo
+    });
+    tira.addEventListener('touchcancel', () => {
+      pausa.tactil = false;
+      sincronizar();
+    });
+
+    // Arrastre horizontal con trackpad o shift + rueda: intención manual.
+    tira.addEventListener('wheel', (e) => {
+      if (e.deltaX !== 0 && Math.abs(e.deltaX) > Math.abs(e.deltaY)) aManual();
+    }, { passive: true });
+
+    // Las teclas de desplazamiento ya mueven la tira por sí solas: lo único
+    // que agrega el script es señalar que el recorrido lo lleva el usuario.
+    tira.addEventListener('keydown', (e) => {
+      if (TECLAS_SCROLLO.includes(e.key)) aManual();
+    });
+
+    // La sección en pantalla se chequea por observation, no por cuadro.
+    if (typeof IntersectionObserver !== 'undefined') {
+      const vigilar = new IntersectionObserver((entradas) => {
+        pausa.fuera = !entradas.some((entrada) => entrada.isIntersecting);
+        sincronizar();
+      });
+      vigilar.observe(tira);
+    } else {
+      // Sin observer (navegadores viejos): siempre está en pantalla; la pausa
+      // por sale-de-vista no es crítica para el resto de los comportamientos.
+      pausa.fuera = false;
+    }
+
+    // overlays.js abre o cierra el bloqueo del fondo en su propio listener:
+    // mirar el atributo class del html es el único punto de verdad que no
+    // depende del orden de registro de los listeners.
+    new MutationObserver(sincronizar).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    // El sistema pidió menos movimiento en el medio de la sesión: al correr
+    // el chequeo en cada sync, el deslize se corta solo.
+    reducido.addEventListener('change', sincronizar);
+
+    window.addEventListener('resize', sincronizar);
+    document.addEventListener('visibilitychange', sincronizar);
+    sincronizar(); // si la sección arranca en pantalla, arranca el deslize
+  }
+
   async function iniciar() {
     const aviso = $('resultados-aviso');
     if (aviso) aviso.hidden = true;
@@ -209,6 +411,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     avisoDeEntrada();
     sincronizarCtas();
+    iniciarFranja();
     iniciar();
   });
 })();

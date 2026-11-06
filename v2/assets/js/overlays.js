@@ -151,9 +151,12 @@
       // location.replace con un hash reemplaza la entrada actual (no suma
       // historial) y además reevalúa :target. replaceState cambiaría la URL
       // pero no el :target, y la capa quedaría abierta.
-      // El foco sólo vuelve al cerrar la ficha: cerrar el visor devuelve a la
-      // ficha y ahí el usuario sigue dentro de la capa.
-      if (!esVisor(capa)) {
+      // El foco vuelve al cerrar la ficha y al cerrar un visor que vive
+      // fuera de una modal (el de la franja de fotos): ahí no hay ficha que
+      // siga abierta adentro, el disparador es el enlace de la foto. En el
+      // visor de una ficha no, porque la ficha queda abierta y el usuario
+      // sigue navegando dentro de la capa.
+      if (!esVisor(capa) || !capa.closest('.modal')) {
         navegacionHecha = false;
         focoPendiente = true;
         devolverFocoCuandoNavegue();
